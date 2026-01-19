@@ -86,6 +86,7 @@ Thumbs.db
 # Project specific
 test_system.py
 show_status.py
+check_db_state.py
 
 # Pycache
 **/__pycache__/

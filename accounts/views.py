@@ -61,7 +61,89 @@ def login_view(request):
 # Dashboard (requires login)
 @login_required(login_url='accounts:login')
 def dashboard_view(request):
-    return render(request, "accounts/dashboard.html", {"user": request.user})
+    from game.models import CourseEnrollment, QuestionAttempt, UserScore, ChallengeAttempt, Challenge
+    
+    # Get user's chapter enrollments and progress
+    enrollments = CourseEnrollment.objects.filter(user=request.user).select_related('chapter')
+    
+    chapter_data = []
+    total_chapters_completed = 0
+    total_chapters = enrollments.count()
+    
+    for enrollment in enrollments:
+        completed = QuestionAttempt.objects.filter(
+            user=request.user,
+            question__challenge__isnull=False,
+            is_correct=True
+        ).count()
+        total = enrollment.chapter.questions.count() if hasattr(enrollment.chapter, 'questions') else 0
+        
+        if enrollment.is_completed:
+            total_chapters_completed += 1
+        
+        progress = (completed / total * 100) if total > 0 else 0
+        
+        chapter_data.append({
+            'enrollment': enrollment,
+            'completed': completed,
+            'total': total,
+            'progress': progress,
+            'is_completed': enrollment.is_completed,
+        })
+    
+    # Get user's challenge attempts and progress
+    all_challenges = Challenge.objects.all()
+    challenge_data = []
+    total_challenges_completed = 0
+    total_challenges = all_challenges.count()
+    
+    for challenge in all_challenges:
+        # Check if user has completed this challenge
+        attempt = ChallengeAttempt.objects.filter(user=request.user, challenge=challenge, is_completed=True).first()
+        is_completed = attempt is not None
+        
+        if is_completed:
+            total_challenges_completed += 1
+        
+        # Count correct questions in this challenge
+        correct_count = QuestionAttempt.objects.filter(
+            user=request.user,
+            question__challenge=challenge,
+            is_correct=True
+        ).count()
+        total_questions = challenge.questions.count()
+        progress = (correct_count / total_questions * 100) if total_questions > 0 else 0
+        
+        challenge_data.append({
+            'challenge': challenge,
+            'correct': correct_count,
+            'total': total_questions,
+            'progress': progress,
+            'is_completed': is_completed,
+            'score': attempt.score if attempt else 0,
+        })
+    
+    # Get user score
+    user_score = UserScore.objects.filter(user=request.user).first()
+    total_points = user_score.total_points if user_score else 0
+    
+    # Calculate overall progress
+    total_items = total_chapters + total_challenges
+    completed_items = total_chapters_completed + total_challenges_completed
+    overall_progress = (completed_items / total_items * 100) if total_items > 0 else 0
+    
+    context = {
+        "user": request.user,
+        "chapter_data": chapter_data,
+        "challenge_data": challenge_data,
+        "total_score": total_points,
+        "overall_progress": overall_progress,
+        "chapters_completed": total_chapters_completed,
+        "total_chapters": total_chapters,
+        "challenges_completed": total_challenges_completed,
+        "total_challenges": total_challenges,
+    }
+    return render(request, "accounts/dashboard.html", context)
 
 # Logout
 def logout_view(request):

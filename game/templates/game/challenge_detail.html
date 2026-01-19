@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}{{ challenge.title }} - C++ StoryLearn{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .challenge-header {
+            background: linear-gradient(135deg, #DC3545 0%, #A50E0E 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .challenge-header h1 {
+            margin: 0 0 0.5rem 0;
+        }
+
+        .challenge-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .challenge-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .meta-badge {
+            background: rgba(255,255,255,0.3);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .progress-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+        }
+
+        .progress-container h3 {
+            margin: 0 0 1rem 0;
+            color: #DC3545;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            background: #f9faff;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid #DC3545;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #DC3545;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .progress-bar-large {
+            background: #f0f0f0;
+            height: 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill-large {
+            background: linear-gradient(90deg, #DC3545, #A50E0E);
+            height: 100%;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: width 0.3s ease;
+        }
+
+        .questions-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .question-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #DC3545;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .question-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .question-item.correct {
+            border-left-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .question-item.attempted {
+            border-left-color: #FFC107;
+            background: #fffbf0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .question-title {
+            flex: 1;
+        }
+
+        .question-title h4 {
+            margin: 0 0 0.5rem 0;
+            color: #DC3545;
+        }
+
+        .question-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-correct {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-attempted {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-pending {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .question-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .question-reward {
+            font-size: 0.9rem;
+            color: #DC3545;
+            font-weight: 600;
+        }
+
+        .completion-alert {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .completion-alert i {
+            font-size: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .difficulty-easy { color: #28a745; }
+        .difficulty-medium { color: #FFC107; }
+        .difficulty-hard { color: #DC3545; }
+
+        @media (max-width: 768px) {
+            .challenge-meta {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .question-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="challenge-header">
+        <h1><i class="fas fa-tasks"></i> {{ challenge.title }}</h1>
+        <p>{{ challenge.description }}</p>
+        <div class="challenge-meta">
+            <div class="meta-item">
+                <i class="fas fa-tag"></i>
+                <span class="meta-badge difficulty-{{ challenge.difficulty|lower }}">
+                    {{ challenge.get_difficulty_display }}
+                </span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-code"></i>
+                <span class="meta-badge">{{ challenge.get_challenge_type_display }}</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-star"></i>
+                <span class="meta-badge">{{ challenge.points }} XP</span>
+            </div>
+        </div>
+    </div>
+
+    {% if is_completed %}
+    <div class="completion-alert">
+        <i class="fas fa-check-circle"></i>
+        <div>
+            <strong>Challenge Completed!</strong> You've earned {{ challenge.points }} points.
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="progress-container">
+        <h3>Challenge Progress</h3>
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-number">{{ correct_answers }}/{{ total_questions }}</div>
+                <div class="stat-label">Questions Correct</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ total_students }}</div>
+                <div class="stat-label">Students Attempted</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ students_completed }}</div>
+                <div class="stat-label">Students Completed</div>
+            </div>
+        </div>
+        {% if total_questions > 0 %}
+        <div class="progress-bar-large">
+            <div class="progress-fill-large" style="width: {{ progress_percent }}%;">
+                {% if progress_percent > 15 %}{{ progress_percent|floatformat:0 }}%{% endif %}
+            </div>
+        </div>
+        <p><strong>{{ correct_answers }} out of {{ total_questions }}</strong> questions answered correctly</p>
+        {% endif %}
+    </div>
+
+    {% if question_data %}
+        <div class="questions-list">
+            {% for item in question_data %}
+                <div class="question-item {% if item.is_correct %}correct{% elif item.is_attempted %}attempted{% endif %}">
+                    <div class="question-header">
+                        <div class="question-title">
+                            <h4><i class="fas fa-question-circle"></i> Question {{ forloop.counter }}: {{ item.question.story|truncatewords:8 }}</h4>
+                            <p style="color: #666; margin: 0.5rem 0 0 0; font-size: 0.9rem;">{{ item.question.story }}</p>
+                        </div>
+                        <div class="question-status">
+                            {% if item.is_correct %}
+                                <span class="status-badge status-correct">
+                                    <i class="fas fa-check-circle"></i> Correct
+                                </span>
+                            {% elif item.is_attempted %}
+                                <span class="status-badge status-attempted">
+                                    <i class="fas fa-times-circle"></i> Incorrect
+                                </span>
+                            {% else %}
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-clock"></i> Pending
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="question-info">
+                        <div class="question-reward">
+                            <i class="fas fa-star"></i> {{ item.question.points }} XP
+                        </div>
+                        <a href="{% url 'game:quiz' item.question.id %}" class="btn btn-danger">
+                            {% if item.is_correct %}View Question{% elif item.is_attempted %}Try Again{% else %}Start Question{% endif %} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No questions in this challenge yet</h3>
+            <p>Check back soon for challenge questions!</p>
+        </div>
+    {% endif %}
+
+    <!-- Navigation -->
+    <div class="btn-group" style="margin-top: 2rem;">
+        <a href="{% url 'game:home' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="{% url 'game:leaderboard' %}" class="btn btn-secondary">
+            <i class="fas fa-ranking-star"></i> Leaderboard
+        </a>
+    </div>
+{% endblock %}

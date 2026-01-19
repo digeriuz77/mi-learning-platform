@@ -218,46 +218,53 @@
                         <th><i class="fas fa-medal"></i> Rank</th>
                         <th>Player Name</th>
                         <th><i class="fas fa-star"></i> Score</th>
-                        <th><i class="fas fa-tasks"></i> Missions</th>
+                        <th><i class="fas fa-tasks"></i> Completed</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for user in users %}
-                        <tr {% if user.rank == 6 %}class="current-user"{% endif %}>
+                    {% for item in leaderboard %}
+                        <tr {% if item.is_current_user %}class="current-user"{% endif %}>
                             <td>
                                 <div class="rank-cell">
-                                    {% if user.rank == 1 %}
+                                    {% if item.rank == 1 %}
                                         <span class="medal">🥇</span>
-                                        <span class="rank-badge rank-1">{{ user.rank }}</span>
-                                    {% elif user.rank == 2 %}
+                                        <span class="rank-badge rank-1">{{ item.rank }}</span>
+                                    {% elif item.rank == 2 %}
                                         <span class="medal">🥈</span>
-                                        <span class="rank-badge rank-2">{{ user.rank }}</span>
-                                    {% elif user.rank == 3 %}
+                                        <span class="rank-badge rank-2">{{ item.rank }}</span>
+                                    {% elif item.rank == 3 %}
                                         <span class="medal">🥉</span>
-                                        <span class="rank-badge rank-3">{{ user.rank }}</span>
+                                        <span class="rank-badge rank-3">{{ item.rank }}</span>
                                     {% else %}
-                                        <span class="rank-badge rank-default">#{{ user.rank }}</span>
+                                        <span class="rank-badge rank-default">#{{ item.rank }}</span>
                                     {% endif %}
                                 </div>
                             </td>
                             <td>
                                 <div class="player-name">
-                                    {% if user.rank <= 3 %}
+                                    {% if item.rank <= 3 %}
                                         <i class="fas fa-crown" style="color: #FFC107;"></i>
                                     {% else %}
                                         <i class="fas fa-user-circle"></i>
                                     {% endif %}
-                                    {{ user.name }}
-                                    {% if user.rank == 6 %}
+                                    {{ item.name }}
+                                    {% if item.is_current_user %}
                                         <span style="background: #0056D2; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-left: 0.5rem;">YOU</span>
                                     {% endif %}
                                 </div>
                             </td>
                             <td>
-                                <span class="score-cell">{{ user.score }} XP</span>
+                                <span class="score-cell">{{ item.score }} XP</span>
                             </td>
                             <td class="missions-cell">
-                                {{ user.missions }}/8
+                                {{ item.questions_completed }}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-inbox" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                <p>No users on leaderboard yet. Complete missions to appear here!</p>
                             </td>
                         </tr>
                     {% endfor %}
@@ -268,23 +275,23 @@
         <!-- Achievement Info -->
         <div class="card">
             <h2><i class="fas fa-star"></i> Earn More Points</h2>
-            <p>Complete missions, solve challenges, and climb the leaderboard!</p>
+            <p>Complete missions and climb the leaderboard!</p>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
                 <div>
-                    <strong>💯 Perfect Score</strong>
-                    <p>+150 XP</p>
+                    <strong>✅ Complete Mission</strong>
+                    <p>+100 XP</p>
                 </div>
                 <div>
-                    <strong>⚡ Streak Bonus</strong>
-                    <p>+50 XP per mission</p>
+                    <strong>⚡ Streak</strong>
+                    <p>Multiple completions</p>
                 </div>
                 <div>
-                    <strong>🎯 Speed Bonus</strong>
-                    <p>+25 XP for quick completion</p>
+                    <strong>🏆 Top 3</strong>
+                    <p>Special recognition</p>
                 </div>
                 <div>
-                    <strong>🏆 Rank Up</strong>
-                    <p>Special badges</p>
+                    <strong>🎯 Progress</strong>
+                    <p>Track your growth</p>
                 </div>
             </div>
         </div>
@@ -292,7 +299,7 @@
         <!-- Action Buttons -->
         <div style="text-align: center; margin-top: 2rem;">
             <a href="{% url 'game:home' %}" class="btn btn-primary">
-                <i class="fas fa-play"></i> Start Next Mission
+                <i class="fas fa-play"></i> Start Next Course
             </a>
             <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">
                 <i class="fas fa-chart-line"></i> My Dashboard

@@ -20,6 +20,10 @@
             border-left: 4px solid #0056D2;
         }
 
+        .dashboard-card.challenges-card {
+            border-left-color: #DC3545;
+        }
+
         .dashboard-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
@@ -30,11 +34,19 @@
             margin-bottom: 1rem;
         }
 
+        .dashboard-card.challenges-card h3 {
+            color: #DC3545;
+        }
+
         .stat-number {
             font-size: 2.5rem;
             font-weight: bold;
             color: #0056D2;
             margin: 1rem 0;
+        }
+
+        .dashboard-card.challenges-card .stat-number {
+            color: #DC3545;
         }
 
         .btn-group {
@@ -58,6 +70,10 @@
             border-radius: 4px;
         }
 
+        .dashboard-card.challenges-card .progress-fill {
+            background: linear-gradient(90deg, #DC3545, #A50E0E);
+        }
+
         .welcome-section {
             background: linear-gradient(135deg, #0056D2 0%, #003d99 100%);
             color: white;
@@ -74,37 +90,130 @@
             margin: 0;
             opacity: 0.9;
         }
+
+        .item-list {
+            margin-top: 1.5rem;
+        }
+
+        .item {
+            background: #f9faff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 3px solid #0056D2;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .dashboard-card.challenges-card .item {
+            background: #fff5f7;
+            border-left-color: #DC3545;
+        }
+
+        .item-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #0056D2;
+        }
+
+        .dashboard-card.challenges-card .item-info h4 {
+            color: #DC3545;
+        }
+
+        .item-progress-small {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0.5rem 0;
+        }
+
+        .item-action {
+            margin-left: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #0056D2;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #0056D2;
+        }
+
+        .progress-stat {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .progress-stat-item {
+            text-align: center;
+        }
+
+        .progress-stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0056D2;
+        }
+
+        .dashboard-card.challenges-card .progress-stat-number {
+            color: #DC3545;
+        }
+
+        .progress-stat-label {
+            color: #999;
+            font-size: 0.8rem;
+        }
     </style>
 {% endblock %}
 
 {% block content %}
     <div class="welcome-section">
         <h1>Welcome Back, {{ user.first_name|default:user.username }}! 👋</h1>
-        <p>Continue your C++ learning journey and master programming through interactive missions.</p>
+        <p>Continue your C++ learning journey and master programming through interactive learning and challenges.</p>
     </div>
 
+    <!-- OVERALL STATS -->
     <div class="dashboard-grid">
-        <!-- Progress Card -->
+        <!-- Overall Progress Card -->
         <div class="dashboard-card">
-            <h3><i class="fas fa-chart-line"></i> Your Progress</h3>
-            <div class="stat-number">75%</div>
-            <p>You're making great progress! Keep it up.</p>
+            <h3><i class="fas fa-chart-line"></i> Your Overall Progress</h3>
+            <div class="stat-number">{% widthratio overall_progress 1 1 %}%</div>
+            <p>You're making excellent progress! Keep learning.</p>
             <div class="progress-bar">
-                <div class="progress-fill" style="width: 75%;"></div>
+                <div class="progress-fill" style="width: {% widthratio overall_progress 1 1 %}%;"></div>
             </div>
-            <p><small>Completed 6 out of 8 missions</small></p>
+            <div class="progress-stat">
+                <div class="progress-stat-item">
+                    <div class="progress-stat-number">{{ chapters_completed }}</div>
+                    <div class="progress-stat-label">Chapters</div>
+                </div>
+                <div class="progress-stat-item">
+                    <div class="progress-stat-number">{{ challenges_completed }}</div>
+                    <div class="progress-stat-label">Challenges</div>
+                </div>
+            </div>
             <div class="btn-group">
-                <a href="{% url 'game:home' %}" class="btn btn-primary">View All Missions</a>
+                <a href="{% url 'game:home' %}" class="btn btn-primary">View Learning Hub</a>
             </div>
         </div>
 
-        <!-- Missions Card -->
+        <!-- Score Card -->
         <div class="dashboard-card">
-            <h3><i class="fas fa-gamepad"></i> Active Missions</h3>
-            <div class="stat-number">2</div>
-            <p>You have 2 missions in progress.</p>
+            <h3><i class="fas fa-star"></i> Your Score</h3>
+            <div class="stat-number">{{ total_score }}</div>
+            <p>Total XP earned from completed challenges</p>
+            <div class="progress-stat">
+                <div class="progress-stat-item">
+                    <div class="progress-stat-number">{{ total_chapters }}</div>
+                    <div class="progress-stat-label">Chapters</div>
+                </div>
+                <div class="progress-stat-item">
+                    <div class="progress-stat-number">{{ total_challenges }}</div>
+                    <div class="progress-stat-label">Challenges</div>
+                </div>
+            </div>
             <div class="btn-group">
-                <a href="{% url 'game:home' %}" class="btn btn-primary">Continue Missions</a>
+                <a href="{% url 'game:leaderboard' %}" class="btn btn-primary">Check Leaderboard</a>
             </div>
         </div>
 
@@ -112,31 +221,13 @@
         <div class="dashboard-card">
             <h3><i class="fas fa-robot"></i> AI Tutor</h3>
             <p>Get instant help with any C++ questions from our AI tutor.</p>
-            <p><small>Average response time: < 1 second</small></p>
+            <p><small>Available 24/7 for assistance</small></p>
             <div class="btn-group">
                 <a href="{% url 'chat:chat' %}" class="btn btn-primary">Chat with AI</a>
             </div>
         </div>
 
-        <!-- Leaderboard Card -->
-        <div class="dashboard-card">
-            <h3><i class="fas fa-trophy"></i> Leaderboard</h3>
-            <p>Your Rank: <strong>#42</strong> out of 1,234 students</p>
-            <p>Score: <strong>4,850 XP</strong></p>
-            <div class="btn-group">
-                <a href="{% url 'game:leaderboard' %}" class="btn btn-secondary">View Leaderboard</a>
-            </div>
-        </div>
-
-        <!-- Achievements Card -->
-        <div class="dashboard-card">
-            <h3><i class="fas fa-star"></i> Achievements</h3>
-            <div class="stat-number">5</div>
-            <p>You've earned 5 badges so far!</p>
-            <p><small>🏆 C++ Beginner • 🚀 Quick Learner • 💻 Code Master • 🎯 Focused • 🌟 Rising Star</small></p>
-        </div>
-
-        <!-- Settings Card -->
+        <!-- Account Card -->
         <div class="dashboard-card">
             <h3><i class="fas fa-cog"></i> Account</h3>
             <p><strong>Email:</strong> {{ user.email }}</p>
@@ -147,12 +238,79 @@
         </div>
     </div>
 
+    <!-- CHAPTERS SECTION -->
+    <div class="section-title">
+        <i class="fas fa-book-open"></i> Your Chapter Progress
+    </div>
+    {% if chapter_data %}
+    <div class="item-list">
+        {% for data in chapter_data %}
+        <div class="item">
+            <div class="item-info">
+                <h4>{{ data.enrollment.chapter.title }}</h4>
+                <div class="item-progress-small">
+                    {% if data.is_completed %}
+                        <span style="color: #28a745;"><i class="fas fa-check-circle"></i> Completed</span>
+                    {% else %}
+                        <i class="fas fa-book"></i> Enrolled
+                    {% endif %}
+                </div>
+            </div>
+            <div class="item-action">
+                <a href="{% url 'game:chapter_detail' data.enrollment.chapter.id %}" class="btn btn-sm btn-primary">
+                    {% if data.is_completed %}View{% else %}Continue{% endif %} <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background: #f9faff; padding: 2rem; border-radius: 8px; text-align: center; color: #999;">
+        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block; opacity: 0.5;"></i>
+        <p>No chapters enrolled yet. <a href="{% url 'game:home' %}">Start learning now</a>!</p>
+    </div>
+    {% endif %}
+
+    <!-- CHALLENGES SECTION -->
+    <div class="section-title" style="border-bottom-color: #DC3545; color: #DC3545;">
+        <i class="fas fa-tasks"></i> Your Challenge Progress
+    </div>
+    <div class="dashboard-grid">
+        {% if challenge_data %}
+            {% for data in challenge_data %}
+            <div class="dashboard-card challenges-card">
+                <h3>{{ data.challenge.title }}</h3>
+                <p>{{ data.challenge.description }}</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ data.progress }}%;"></div>
+                </div>
+                <p><small>{{ data.correct }}/{{ data.total }} questions correct</small></p>
+                {% if data.is_completed %}
+                    <p style="color: #28a745;"><i class="fas fa-check-circle"></i> <strong>Completed!</strong> Score: {{ data.score }} XP</p>
+                {% else %}
+                    <p style="color: #FFC107;"><i class="fas fa-clock"></i> In Progress</p>
+                {% endif %}
+                <div class="btn-group">
+                    <a href="{% url 'game:challenge_detail' data.challenge.id %}" class="btn btn-danger">
+                        {% if data.is_completed %}Review{% else %}Continue{% endif %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div style="grid-column: 1 / -1; background: #fff5f7; padding: 2rem; border-radius: 8px; text-align: center; color: #999;">
+                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem; display: block; opacity: 0.5;"></i>
+                <p>No challenges started yet. <a href="{% url 'game:home' %}">Explore challenges</a>!</p>
+            </div>
+        {% endif %}
+    </div>
+
     <!-- Quick Actions -->
-    <div class="card" style="margin-top: 2rem;">
-        <h2>Quick Actions</h2>
+    <div class="card" style="margin-top: 2rem; padding: 1.5rem; background: white; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.05);">
+        <h2 style="color: #0056D2; margin-bottom: 1rem;">Quick Actions</h2>
         <div class="btn-group">
             <a href="{% url 'game:home' %}" class="btn btn-primary">
-                <i class="fas fa-play"></i> Start Next Mission
+                <i class="fas fa-play"></i> Learning Hub
             </a>
             <a href="{% url 'chat:chat' %}" class="btn btn-primary">
                 <i class="fas fa-question-circle"></i> Ask AI Tutor
@@ -163,4 +321,3 @@
         </div>
     </div>
 {% endblock %}
-
