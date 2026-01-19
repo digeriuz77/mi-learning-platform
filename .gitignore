@@ -87,6 +87,10 @@ Thumbs.db
 test_system.py
 show_status.py
 check_db_state.py
+populate_sample_data.py
+setup_sample_data.py
+setup_sample_shell.py
+quickstart.sh
 
 # Pycache
 **/__pycache__/
