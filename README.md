@@ -1,4 +1,4 @@
-# C++ StoryLearn - Interactive Learning Platform 🚀
+# MI Learning Platform - Interactive Learning Platform 🚀
 
 A modern Django web application for learning C++ programming through interactive storytelling, AI-powered tutoring, and gamification.
 
@@ -6,7 +6,13 @@ A modern Django web application for learning C++ programming through interactive
 
 ## 🎯 Features
 
-- **📚 Story-Based Learning** - Learn C++ through engaging interactive missions
+- **📚 MI Skills Practice** - Master Motivational Interviewing through structured dialogue scenarios
+- **🎮 Interactive Dialogue Trees** - Navigate complex client conversations with branching paths
+- **👤 Real-time Feedback** - Get immediate guidance on MI technique effectiveness
+- **🎓 Progressive Learning** - 6-module curriculum from basic to advanced techniques
+- **🤝 AI-Powered Coaching** - MI expert system for personalized guidance
+- **📊 Skill Assessment** - Track proficiency in reflections, questions, affirmations, and change talk
+- **🏆 Gamified Progress** - Points, levels, achievements, and leaderboards
 - **💬 AI Tutor** - Get instant help from Groq AI-powered chatbot (Llama 3.1)
 - **🎮 Interactive Challenges** - Test your knowledge with multiple-choice questions
 - **👤 User Dashboard** - Track progress and access all features in one place
@@ -21,9 +27,10 @@ A modern Django web application for learning C++ programming through interactive
 - **Backend:** Django 4.2 (Python)
 - **Frontend:** HTML5, CSS3, JavaScript, Bootstrap 5
 - **Database:** SQLite3 (development) / PostgreSQL (production)
-- **AI API:** Groq (Llama 3.1 8B model)
+- **AI API:** Groq (Llama 3.1 8B model) - MI Coaching Expert System
 - **Auth:** Django's built-in authentication system
 - **Icons:** Font Awesome 6.5
+- **MI Framework:** Evidence-based Motivational Interviewing (OARS) techniques
 
 ## 📋 Requirements
 
@@ -37,16 +44,19 @@ A modern Django web application for learning C++ programming through interactive
 
 ### 1. Navigate to Project
 ```bash
-cd /home/neetesh/DevWorks/aspireBootcamp/CPPLearning
+cd C:\builds\MILearningPlatform
 ```
 
 ### 2. Activate Virtual Environment
 ```bash
+python -m venv venv
 source venv/bin/activate
 ```
 
 ### 3. Optional: Add Groq API Key
 Edit `.env` file and add:
+```
+GROQ_API_KEY=your_api_key_from_console.groq.com
 ```
 GROQ_API_KEY=your_api_key_from_console.groq.com
 ```
@@ -69,14 +79,14 @@ Then visit: **http://localhost:8000/admin**
 
 | Page | URL | Description |
 |------|-----|-------------|
-| Home | `/` | Landing page with feature overview |
+| Home | `/` | Landing page with MI learning overview |
 | Register | `/signup/` | Create new account |
 | Login | `/login/` | Sign in to your account |
-| Dashboard | `/dashboard/` | User profile and progress tracking |
-| AI Tutor | `/chat/` | Chat with AI for C++ help |
-| Missions | `/game/` | Interactive coding challenges |
-| Contact | `/contact/` | Send messages and feedback |
-| Admin | `/admin/` | Manage users and content |
+| Dashboard | `/dashboard/` | User profile and MI skill progress tracking |
+| MI Coach | `/chat/` | Chat with AI for MI technique guidance |
+| Scenarios | `/scenarios/` | Interactive MI dialogue practice scenarios |
+| Contact | `/contact/` | Send feedback and messages |
+| Admin | `/admin/` | Manage users and learning content |
 
 ## 🏗️ Project Structure
 
@@ -238,26 +248,24 @@ To contribute:
 3. Test thoroughly
 4. Submit a pull request
 
-## 📝 License
-
-This project is open source and available under the MIT License.
-
 ## 👨‍💻 Authors
 
-- **You** - Full stack developer
-- **AI** - Code assistance
+- **You** - Full stack Django developer
+- **AI** - MI learning design specialist
 
 ## 🎉 Current Status
 
-✅ **Version 1.0 - Complete Release**
+✅ **Version 1.0 - MI Learning Platform**
 
-- ✅ All apps merged and integrated
-- ✅ All features implemented
+- ✅ All apps transformed for Motivational Interviewing
+- ✅ 6-module dialogue system implemented
+- ✅ MI technique feedback integrated
+- ✅ Gamification system enhanced for MI skills
 - ✅ System tested and verified
 - ✅ Documentation complete
 - ✅ Ready for deployment
 
-Start learning C++ today! 🚀
+Start mastering MI techniques today! 💪✨
 
 ---
 

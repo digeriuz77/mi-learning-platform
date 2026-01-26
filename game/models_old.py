@@ -2,6 +2,28 @@ from django.db import models
 from django.contrib.auth.models import User
 import json
 
+class Chapter(models.Model):
+    """Represents a teaching chapter with learning materials and guided tasks"""
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    content = models.TextField(help_text="Teaching material and learning content")
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.title
+
+    def get_total_students(self):
+        """Get count of students enrolled in this chapter"""
+        return self.enrollments.values('user').distinct().count()
+
+    def get_completed_tasks(self):
+        """Get count of students who completed this chapter"""
+        return self.enrollments.filter(is_completed=True).count()
+
 
 class Scenario(models.Model):
     """Represents an MI learning scenario/dialogue tree"""
@@ -20,14 +42,20 @@ class Scenario(models.Model):
         default='beginner'
     )
     order = models.IntegerField(default=0)
-    points = models.IntegerField(default=100, help_text="Points awarded for completing scenario")
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['order']
 
     def __str__(self):
-        return f"{self.title} ({self.get_scenario_type_display()})"
+        return f"{self.title} ({self.get_challenge_type_display()})"
+
+    def get_total_students(self):
+        """Get count of students who attempted this challenge"""
+        return self.challenge_attempts.values('user').distinct().count()
+
+    def get_completed_students(self):
+        """Get count of students who completed this challenge"""
+        return self.challenge_attempts.filter(is_completed=True).values('user').distinct().count()
 
 
 class DialogueTree(models.Model):
@@ -57,10 +85,7 @@ class DialogueNode(models.Model):
     outcome = models.TextField(blank=True)
     learning_summary = models.TextField(blank=True)
     order = models.IntegerField(default=0)
-
-    class Meta:
-        ordering = ['order']
-
+    
     def __str__(self):
         return f"Node {self.node_id} in {self.tree.title}"
 
@@ -74,12 +99,21 @@ class PractitionerChoice(models.Model):
     feedback = models.TextField()
     is_correct_technique = models.BooleanField(default=False)
     is_mistake = models.BooleanField(default=False)
-
+    
+    class Meta:
+        ordering = ['id']
+    
     class Meta:
         ordering = ['id']
     
     def __str__(self):
         return f"Choice: {self.text[:50]}..."
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Question: {self.story[:30]}..."
 
 
 class MIQuestion(models.Model):
@@ -93,12 +127,57 @@ class MIQuestion(models.Model):
     points = models.IntegerField(default=100)
     change_talk_present = models.BooleanField(default=False)
     change_talk_type = models.CharField(max_length=10, blank=True)  # D, A, R, N, C, T
-
-    class Meta:
-        ordering = ['points']
-
+    
     def __str__(self):
         return f"MIQuestion: {self.patient_statement[:30]}..."
+
+
+class ScenarioEnrollment(models.Model):
+    """Tracks which users are enrolled in which scenarios"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='scenario_enrollments')
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, related_name='enrollments')
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+    is_completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'scenario')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.scenario.title}"
+
+
+class ScenarioAttempt(models.Model):
+    """Tracks user attempts on scenarios"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='scenario_attempts')
+    scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE, related_name='scenario_attempts')
+    is_completed = models.BooleanField(default=False)
+    score = models.IntegerField(default=0, help_text="Score earned in this attempt")
+    completed_at = models.DateTimeField(null=True, blank=True)
+    attempted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-attempted_at']
+        unique_together = ('user', 'scenario')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.scenario.title}"
+
+
+class MIQuestionAttempt(models.Model):
+    """Tracks user attempts on MI questions"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mi_question_attempts')
+    question = models.ForeignKey(MIQuestion, on_delete=models.CASCADE)
+    selected_response = models.TextField(blank=True)
+    is_correct = models.BooleanField(default=False)
+    points_earned = models.IntegerField(default=0)
+    attempted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-attempted_at']
+
+    def __str__(self):
+        return f"{self.user.username} - MI Question {self.question.id}"
 
 
 class ModuleProgress(models.Model):
@@ -122,10 +201,7 @@ class ModuleProgress(models.Model):
     completion_score = models.IntegerField(default=0, help_text="Final engagement score (0-100)")
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['-started_at']
-
+    
     def __str__(self):
         return f"{self.user.username} - Module {self.scenario.module_number}"
 
@@ -144,6 +220,9 @@ class UserScore(models.Model):
     summaries_created = models.IntegerField(default=0, help_text="Total summaries created")
     
     last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.total_points} points"
 
     def update_score(self):
         """Recalculate score from scenario attempts"""

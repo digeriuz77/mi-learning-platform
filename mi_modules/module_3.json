@@ -1,0 +1,555 @@
+{
+  "dialogue_tree": {
+    "title": "Module 3: Complex & Double-Sided Reflections - Exploring Ambivalence",
+    "learning_objective": "Learn to use complex reflections to capture deeper meaning and double-sided reflections to acknowledge ambivalence without pushing for resolution",
+    "technique_focus": "Complex Reflections and Double-Sided Reflections",
+    "stage_of_change": "Contemplation",
+    "mi_process": "Focusing and Evoking",
+    "description": "Complex reflections add meaning, emotion, or deeper understanding beyond what the patient explicitly said. Double-sided reflections acknowledge both sides of ambivalence (reasons to change AND reasons to stay the same), helping patients hold their complexity without feeling pushed.",
+    "start_node": "node_1",
+    "nodes": [
+      {
+        "id": "node_1",
+        "patient_statement": "I've been thinking about quitting smoking a lot lately. My daughter's pregnant with my first grandchild, and she asked me not to smoke around the baby. But I've been smoking for 25 years - it's part of who I am.",
+        "patient_context": "Contemplation - Patient shows clear ambivalence with reasons to change (grandchild) and reasons to maintain status quo (identity)",
+        "practitioner_choices": [
+          {
+            "text": "Your daughter's pregnancy is making you think about quitting.",
+            "technique": "Simple reflection (partial)",
+            "next_node_id": "node_2a",
+            "feedback": "This is accurate but only reflects one side - the reason to change. In contemplation, double-sided reflections that honor both sides of ambivalence are often more helpful."
+          },
+          {
+            "text": "On one hand, becoming a grandparent is making you think about quitting. On the other hand, smoking has been part of your life for so long, it feels like part of your identity.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_2b",
+            "feedback": "Excellent! This double-sided reflection acknowledges both sides of their ambivalence without trying to resolve it. This helps them feel fully heard and understood."
+          },
+          {
+            "text": "Smoking has become part of your identity over 25 years.",
+            "technique": "Simple reflection (sustain talk side only)",
+            "next_node_id": "node_2c",
+            "feedback": "This reflects only the sustain talk side (reasons not to change). While sometimes useful strategically, you missed the change talk about the grandchild. A double-sided reflection would be more complete here."
+          }
+        ]
+      },
+      {
+        "id": "node_2a",
+        "patient_statement": "Yeah, but it's not just that. I mean, I don't even know who I'd be without cigarettes. They're how I take breaks at work, how I deal with stress, how I... I don't know, punctuate my day.",
+        "patient_context": "Patient emphasizes sustain talk, possibly because change talk wasn't fully acknowledged",
+        "practitioner_choices": [
+          {
+            "text": "So you're thinking about quitting for your grandchild, and you're also aware that smoking serves a lot of important functions in your daily life.",
+            "technique": "Double-sided reflection (corrective)",
+            "next_node_id": "node_3a",
+            "feedback": "Good recovery! This double-sided reflection brings back the change talk you missed initially while also honoring what they're emphasizing now. This balances the conversation."
+          },
+          {
+            "text": "Cigarettes structure your whole day - breaks, stress relief, transitions.",
+            "technique": "Simple reflection (amplifying sustain talk)",
+            "next_node_id": "node_3b",
+            "feedback": "This reflection accurately captures what they said, but continuing to reflect only sustain talk can reinforce reasons not to change. Consider bringing back both sides of the ambivalence."
+          }
+        ]
+      },
+      {
+        "id": "node_2b",
+        "patient_statement": "Exactly! You get it. I want to be a good grandparent, but I also don't want to lose myself. And honestly, I'm scared. What if I quit and I'm miserable? What if I fail again like I did five years ago?",
+        "patient_context": "Patient feels understood and opens up more - adding fear of change and past failure",
+        "practitioner_choices": [
+          {
+            "text": "There's a lot at stake here - being there for your grandchild, maintaining your sense of self, and the risk of another painful failure.",
+            "technique": "Complex reflection (synthesis)",
+            "next_node_id": "node_3c",
+            "feedback": "Excellent! This complex reflection synthesizes multiple elements they've shared - competing values and fears. It shows deep understanding of their complex situation."
+          },
+          {
+            "text": "You want to be a good grandparent and you're afraid of failing again.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3d",
+            "feedback": "This is accurate but simpler than what the moment calls for. They've shared a complex emotional landscape - a complex reflection would show deeper understanding."
+          },
+          {
+            "text": "It sounds like you're scared of both changing and not changing.",
+            "technique": "Complex reflection (paradox)",
+            "next_node_id": "node_3e",
+            "feedback": "Excellent! This complex reflection names the paradox of their ambivalence - fear in both directions. This kind of reflection can be very powerful in contemplation."
+          }
+        ]
+      },
+      {
+        "id": "node_2c",
+        "patient_statement": "Right. Everyone keeps telling me to quit, but they don't understand what it means to me. It's not just a habit - it's... it's mine, you know?",
+        "patient_context": "Patient feels defensive because the change talk side wasn't acknowledged",
+        "practitioner_choices": [
+          {
+            "text": "People telling you to quit makes you feel like they don't understand how significant smoking is to you. And at the same time, your daughter's request about the baby is coming from a place that also matters to you.",
+            "technique": "Double-sided reflection (bringing back change talk)",
+            "next_node_id": "node_3f",
+            "feedback": "Excellent recovery! This acknowledges their frustration while gently bringing back the change talk side. You're helping them hold both sides rather than getting stuck defending one side."
+          },
+          {
+            "text": "People don't understand what smoking means to you.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3g",
+            "feedback": "This validates their feeling but keeps them stuck on the sustain talk side. In contemplation, we want to help them explore both sides of their ambivalence."
+          }
+        ]
+      },
+      {
+        "id": "node_3a",
+        "patient_statement": "Yeah, that's it exactly. I'm pulled in both directions. When I think about holding my grandchild, I want to be smoke-free. But when I think about getting through a tough day at work without a cigarette break... I can't even imagine it.",
+        "patient_context": "Patient articulates clear ambivalence - pulled between two competing desires",
+        "practitioner_choices": [
+          {
+            "text": "In one moment, the image of holding your grandchild makes quitting feel important and necessary. In another moment, facing work stress makes smoking feel absolutely essential.",
+            "technique": "Double-sided reflection (situational)",
+            "next_node_id": "node_4a",
+            "feedback": "Perfect! This double-sided reflection shows how their feelings about smoking shift depending on the context they're imagining. This validates that ambivalence is complex and situational."
+          },
+          {
+            "text": "You can see yourself wanting different things depending on the situation.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_4a",
+            "feedback": "This is accurate but less specific than the moment calls for. The previous option captures the specific situations and emotions they described, showing deeper listening."
+          }
+        ]
+      },
+      {
+        "id": "node_3b",
+        "patient_statement": "Right. And my coworkers all smoke - that's our social time. If I quit, I'm sitting in my cubicle alone while they're all outside talking and laughing. I'd be isolated.",
+        "patient_context": "Patient continues to elaborate on sustain talk - social connections",
+        "practitioner_choices": [
+          {
+            "text": "So there's your grandchild on one side, and on the other side there's this whole network of important things - stress relief, work breaks, social connection with coworkers. You're weighing a lot here.",
+            "technique": "Double-sided reflection (comprehensive)",
+            "next_node_id": "node_4b",
+            "feedback": "Excellent! This brings back the change talk (grandchild) while also fully acknowledging all the sustain talk they've shared. The phrase 'you're weighing a lot' normalizes the difficulty of their position."
+          },
+          {
+            "text": "Quitting would mean losing that social connection with your coworkers.",
+            "technique": "Simple reflection (sustain talk only)",
+            "next_node_id": "node_4c",
+            "feedback": "While accurate, this continues to reflect only one side. The conversation is at risk of reinforcing reasons not to change. Bring back both sides with a double-sided reflection."
+          }
+        ]
+      },
+      {
+        "id": "node_3c",
+        "patient_statement": "Yes! That's exactly it. It's not a simple decision. There's so much wrapped up in this. And I feel like everyone wants me to just decide already, but I can't.",
+        "patient_context": "Patient feels validated by being understood; mentions pressure to decide",
+        "practitioner_choices": [
+          {
+            "text": "People wanting you to decide quickly doesn't honor how complex this really is for you.",
+            "technique": "Complex reflection (underlying meaning)",
+            "next_node_id": "node_4d",
+            "feedback": "Excellent! This complex reflection captures the deeper meaning - they need their complexity honored, not rushed. This shows you understand what they really need."
+          },
+          {
+            "text": "You're not ready to decide yet.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_4d",
+            "feedback": "Accurate but doesn't capture why they're not ready - the complexity and the external pressure. The previous option shows deeper understanding."
+          },
+          {
+            "text": "Part of you wants clarity and another part knows you need time to sit with this complexity.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_4d",
+            "feedback": "Good! This reflects the internal tension between wanting resolution and needing time. Both this and the previous complex reflection are excellent - they capture different aspects of the situation."
+          }
+        ]
+      },
+      {
+        "id": "node_3d",
+        "patient_statement": "I am. Five years ago I tried to quit cold turkey. I made it three weeks and then I cracked. I was so irritable, my family couldn't stand me. I felt like a failure.",
+        "patient_context": "Patient shares past experience with failure and its emotional impact",
+        "practitioner_choices": [
+          {
+            "text": "That experience - making it three weeks but then struggling and feeling like you'd failed - that memory makes the idea of trying again even scarier.",
+            "technique": "Complex reflection (connecting past to present fear)",
+            "next_node_id": "node_4e",
+            "feedback": "Excellent! This complex reflection connects their past experience to their current fear, showing you understand how the past is shaping their present hesitation."
+          },
+          {
+            "text": "You tried to quit five years ago and it didn't work out.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_4f",
+            "feedback": "Accurate but doesn't capture the emotional weight of that experience - the irritability, family tension, and sense of failure. A complex reflection would show deeper empathy."
+          }
+        ]
+      },
+      {
+        "id": "node_3e",
+        "patient_statement": "That's... yeah. That's exactly it. If I keep smoking, I'm scared I'll disappoint my daughter and not be the grandparent I want to be. But if I try to quit, I'm scared I'll fail and feel terrible about myself.",
+        "patient_context": "Patient clearly articulates fear in both directions - staying the same and changing",
+        "practitioner_choices": [
+          {
+            "text": "You're caught between two different kinds of disappointment - disappointing your daughter or disappointing yourself.",
+            "technique": "Complex reflection (paradox)",
+            "next_node_id": "node_4g",
+            "feedback": "Perfect! This complex reflection names the painful paradox - both paths involve potential disappointment. This helps them see their dilemma clearly."
+          },
+          {
+            "text": "Either way, there's fear.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_4g",
+            "feedback": "True but quite general. The previous option is more specific about the types of fear and disappointment in each direction, which shows deeper understanding."
+          }
+        ]
+      },
+      {
+        "id": "node_3f",
+        "patient_statement": "It does. I mean, I know she's worried about the baby. I get that. But I also need people to respect that this is hard for me. It's not like I'm not trying to be considerate.",
+        "patient_context": "Patient acknowledges daughter's perspective while asserting their own struggle",
+        "practitioner_choices": [
+          {
+            "text": "You understand where your daughter is coming from, and you also need your own struggle to be acknowledged and respected.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_4h",
+            "feedback": "Excellent! This double-sided reflection honors both their empathy for their daughter and their need for understanding. This is the essence of holding ambivalence."
+          },
+          {
+            "text": "You need people to see how hard this is for you.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_4h",
+            "feedback": "Accurate but only captures one side - their need for understanding. You missed the important acknowledgment of their daughter's perspective."
+          }
+        ]
+      },
+      {
+        "id": "node_3g",
+        "patient_statement": "They don't. They just see a bad habit. They don't see that when my mom died, cigarettes got me through. They don't see that it's how I celebrate good things too. It's woven into everything.",
+        "patient_context": "Patient shares deeper emotional significance - smoking connected to grief and joy",
+        "practitioner_choices": [
+          {
+            "text": "Smoking has been there for you through the hardest times and the best times - it's connected to your emotional life in profound ways.",
+            "technique": "Complex reflection (emotional significance)",
+            "next_node_id": "node_4i",
+            "feedback": "Excellent! This complex reflection captures the deep emotional significance - smoking isn't just a habit but is intertwined with their emotional experiences and coping."
+          },
+          {
+            "text": "You want to honor your grandchild and you also need to honor what smoking has meant to you through grief and celebration.",
+            "technique": "Double-sided reflection (values)",
+            "next_node_id": "node_4i",
+            "feedback": "Perfect! This double-sided reflection frames both sides in terms of honoring - honoring the grandchild and honoring their own emotional history. This shows deep respect for their complexity."
+          }
+        ]
+      },
+      {
+        "id": "node_4a",
+        "patient_statement": "Exactly. And I hate feeling this torn. I wish I could just decide and be done with it. But every time I lean one way, I immediately think of reasons to go the other way.",
+        "patient_context": "Patient describes the exhausting nature of ambivalence",
+        "practitioner_choices": [
+          {
+            "text": "This back and forth is exhausting. Part of you wishes for clarity, and another part of you isn't quite ready to let go of either side.",
+            "technique": "Complex reflection with double-sided element",
+            "next_node_id": "node_5a",
+            "feedback": "Excellent! This captures both the exhaustion and why they can't resolve it yet - they're not ready to let go of either side. This validates their experience."
+          },
+          {
+            "text": "The ambivalence is wearing you down.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_5a",
+            "feedback": "Accurate but doesn't capture the complexity they just described - the constant back and forth and the wish for resolution. The previous option shows deeper understanding."
+          }
+        ]
+      },
+      {
+        "id": "node_4b",
+        "patient_statement": "I am weighing a lot. And honestly? The grandchild is the biggest thing that's ever made me seriously consider quitting. But I still don't know if that's enough to outweigh everything else.",
+        "patient_context": "Important change talk - grandchild is the most powerful motivator they've had, but ambivalence remains",
+        "practitioner_choices": [
+          {
+            "text": "Your grandchild represents the strongest reason you've ever had to quit, and you're still not sure if even that tips the scales.",
+            "technique": "Complex reflection (amplifying the significance)",
+            "next_node_id": "node_5b",
+            "feedback": "Excellent! This complex reflection amplifies both the significance of this motivator (strongest ever) and the depth of their ambivalence (even that might not be enough). This honors where they are."
+          },
+          {
+            "text": "The grandchild makes you want to quit more than anything else has.",
+            "technique": "Simple reflection (change talk)",
+            "next_node_id": "node_5c",
+            "feedback": "This reflects the change talk but misses the important second part - their uncertainty about whether even this is enough. The complexity they're expressing deserves a more complex reflection."
+          }
+        ]
+      },
+      {
+        "id": "node_4c",
+        "patient_statement": "Right. And it's not just work. My best friend and I have been smoking together for 20 years. Our whole friendship is built around those conversations over cigarettes. What happens to that?",
+        "patient_context": "Patient continues to explore costs of quitting - deep friendship connection",
+        "practitioner_choices": [
+          {
+            "text": "So you're imagining the baby - your first grandchild - and all the reasons that makes quitting feel important. And you're also imagining what you might lose - work friendships, your 20-year friendship, those important conversations. These are real relationships at stake on both sides.",
+            "technique": "Double-sided reflection (comprehensive, bringing back change talk)",
+            "next_node_id": "node_5d",
+            "feedback": "Excellent! This brings back the change talk that's been missing while fully honoring all the relationships they'd worry about losing. It frames both sides in terms of relationships, which seems to be what matters most to them."
+          },
+          {
+            "text": "You're worried about losing that 20-year friendship.",
+            "technique": "Simple reflection (sustain talk only)",
+            "next_node_id": "node_5e",
+            "feedback": "Accurate but the conversation has become one-sided - only exploring reasons not to change. A double-sided reflection would help bring back balance."
+          }
+        ]
+      },
+      {
+        "id": "node_4d",
+        "patient_statement": "Thank you for getting that. Most people just tell me to make a pros and cons list, like it's that simple. But it's not about logic - it's about... my whole life.",
+        "patient_context": "Patient appreciates being understood; contrasts logical approach with emotional reality",
+        "practitioner_choices": [
+          {
+            "text": "This isn't a simple math equation you can solve with a list - it's about your identity, your relationships, your emotional life. The stakes feel much bigger than pros and cons.",
+            "technique": "Complex reflection (capturing what makes it complex)",
+            "next_node_id": "node_5f",
+            "feedback": "Perfect! This complex reflection names why this decision is so difficult - it touches on core aspects of their life. This shows you understand the depth of what they're facing."
+          },
+          {
+            "text": "This is about more than logic for you.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_5f",
+            "feedback": "True but doesn't capture what makes it more than logic - the identity, relationships, and emotional dimensions they've shared. The previous option shows much deeper understanding."
+          }
+        ]
+      },
+      {
+        "id": "node_4e",
+        "patient_statement": "Yeah. I remember how it felt to fail. And thinking about going through that again... it's almost worse than just accepting I'm a smoker forever.",
+        "patient_context": "Patient articulates that fear of failure might be stronger than desire to change",
+        "practitioner_choices": [
+          {
+            "text": "The fear of another failure feels more powerful right now than the pull to change for your grandchild.",
+            "technique": "Complex reflection (naming the dominant feeling)",
+            "next_node_id": "node_5g",
+            "feedback": "Excellent! This complex reflection names what they're experiencing - fear is currently stronger than desire. This doesn't judge or try to change it, just reflects it accurately."
+          },
+          {
+            "text": "You're scared of failing again.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_5g",
+            "feedback": "Accurate but doesn't capture the comparison they made - that this fear might be stronger than the desire to change. The complexity of that deserves a complex reflection."
+          }
+        ]
+      },
+      {
+        "id": "node_4f",
+        "patient_statement": "Yeah. I was miserable. And I don't want to put my family through that again. They were relieved when I started smoking again, honestly. At least I was bearable to live with.",
+        "patient_context": "Patient reveals family preferred them smoking to dealing with withdrawal irritability",
+        "practitioner_choices": [
+          {
+            "text": "So quitting created so much tension that your family actually seemed relieved when you went back to smoking. And now you're wondering if trying again would just repeat that painful experience for everyone.",
+            "technique": "Complex reflection (connecting past to present hesitation)",
+            "next_node_id": "node_5h",
+            "feedback": "Excellent! This complex reflection shows how the past experience creates fear about repeating it, and includes the family dimension. This is a key barrier they're facing."
+          },
+          {
+            "text": "Your family found it hard when you were quitting.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_5h",
+            "feedback": "True but understated. They actually preferred them smoking, which is a powerful and painful message. The previous reflection captures that complexity better."
+          }
+        ]
+      },
+      {
+        "id": "node_4g",
+        "patient_statement": "Yeah. I can't win either way. Or maybe... maybe there is no winning. Maybe it's just about choosing which disappointment I can live with.",
+        "patient_context": "Patient is making meaning of their dilemma - reframing from 'winning' to 'choosing'",
+        "practitioner_choices": [
+          {
+            "text": "You're shifting from looking for a perfect solution to thinking about which path feels more aligned with who you want to be.",
+            "technique": "Complex reflection (shift in perspective)",
+            "next_node_id": "node_5i",
+            "feedback": "Excellent! This complex reflection captures an important cognitive shift - from trying to avoid disappointment to choosing based on values. This is movement toward resolution."
+          },
+          {
+            "text": "You're thinking about which disappointment you can accept.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_5i",
+            "feedback": "Accurate but doesn't capture the subtle but important reframing they're doing - moving from 'can't win' to making an active choice. The previous option highlights this shift."
+          }
+        ]
+      },
+      {
+        "id": "node_4h",
+        "patient_statement": "Right. I don't want to be defensive about it, but I also don't want to be judged for struggling with something this big.",
+        "patient_context": "Patient wants understanding without judgment",
+        "practitioner_choices": [
+          {
+            "text": "You want to be able to be honest about how difficult this is without that honesty being seen as making excuses or not caring enough.",
+            "technique": "Complex reflection (deeper meaning)",
+            "next_node_id": "node_5j",
+            "feedback": "Excellent! This captures what they really need - to have their struggle validated rather than interpreted as lack of care or commitment. This is empathy at a deep level."
+          },
+          {
+            "text": "You want understanding, not judgment.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_5j",
+            "feedback": "True but quite general. The previous option shows much deeper understanding of what specifically they need - to have their difficulty acknowledged without it being seen as lack of caring."
+          }
+        ]
+      },
+      {
+        "id": "node_4i",
+        "patient_statement": "Yes. Exactly. So when my daughter asks me to quit... I know she means well, but it feels like she's asking me to give up a piece of myself. And maybe I need to. Maybe that's what becoming a grandparent means. But it's hard.",
+        "patient_context": "Important moment - patient acknowledges they might need to change and connects it to transition/growth",
+        "practitioner_choices": [
+          {
+            "text": "There's something about becoming a grandparent that might mean letting go of this part of yourself, even though that letting go is really hard and involves real loss.",
+            "technique": "Complex reflection (change as growth with loss)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This complex reflection honors both sides - the possibility of growth/change and the reality of loss. This is sophisticated understanding of ambivalence."
+          },
+          {
+            "text": "Part of you thinks becoming a grandparent might mean it's time to quit, and part of you grieves what that would mean giving up.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This double-sided reflection captures both the emerging readiness and the grief. Both this and the previous option are excellent - they approach the complexity from slightly different angles."
+          }
+        ]
+      },
+      {
+        "id": "node_5a",
+        "patient_statement": "That's it. I need both sides to have space. I think that's what I'm not getting from people - they want me to dismiss one side and embrace the other. But I can't do that yet.",
+        "patient_context": "Patient articulates what they need - space to hold complexity",
+        "practitioner_choices": [
+          {
+            "text": "Both sides are real and important to you, and you need time and space to hold that tension rather than being pushed to resolve it prematurely.",
+            "technique": "Complex reflection (honoring their need)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This validates their need to sit with ambivalence rather than rush to resolution. This is respecting the contemplation process."
+          }
+        ]
+      },
+      {
+        "id": "node_5b",
+        "patient_statement": "Right. Which I guess tells me how deep this goes. If even my first grandchild isn't automatically making me quit... this is really complicated.",
+        "patient_context": "Patient gains insight into the depth of their attachment to smoking",
+        "practitioner_choices": [
+          {
+            "text": "You're recognizing just how significant smoking is in your life - that even something as powerful as becoming a grandparent doesn't automatically override that.",
+            "technique": "Complex reflection (insight)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflects their growing insight about the depth of their relationship with smoking. This kind of self-awareness is valuable in contemplation."
+          }
+        ]
+      },
+      {
+        "id": "node_5c",
+        "patient_statement": "It does. But I don't know if 'want' is strong enough to actually make me do it. You know?",
+        "patient_context": "Patient distinguishes between wanting and being able to act",
+        "practitioner_choices": [
+          {
+            "text": "There's a difference between wanting something and feeling able to do it. The desire is there around your grandchild, but the confidence or readiness isn't quite there yet.",
+            "technique": "Complex reflection (desire vs. ability)",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Excellent! This complex reflection makes an important MI distinction - between importance (wanting to change) and confidence (believing you can). This helps clarify where they are."
+          }
+        ]
+      },
+      {
+        "id": "node_5d",
+        "patient_statement": "Yes! You see it. This isn't about willpower or being weak. It's about relationships - the one I want to build with my grandchild and the ones I'm scared of losing with people who've been in my life for decades.",
+        "patient_context": "Patient clarifies what's really at stake - relationships on both sides",
+        "practitioner_choices": [
+          {
+            "text": "At its heart, this is about connection. You're trying to figure out how to move toward one important connection without severing other important connections.",
+            "technique": "Complex reflection (core issue)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This complex reflection identifies the core dilemma - how to build one relationship without losing others. This shows deep understanding of what makes this so difficult for them."
+          }
+        ]
+      },
+      {
+        "id": "node_5e",
+        "patient_statement": "I am. I'm worried about losing a lot of things. But... I guess I'm also worried about what I'd lose if I don't quit. Missing out on time with my grandchild because I'm outside smoking, or worse, dying early and not being there for them.",
+        "patient_context": "Patient spontaneously brings back change talk - recognizing losses on both sides",
+        "practitioner_choices": [
+          {
+            "text": "So you'd lose something either way. If you quit, you lose some relationships and parts of your routine. If you don't quit, you might lose time with your grandchild and potentially years of life.",
+            "technique": "Double-sided reflection (losses both ways)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This double-sided reflection frames both sides in terms of loss, which seems to be their framework. This helps them see the full picture of what's at stake."
+          }
+        ]
+      },
+      {
+        "id": "node_5f",
+        "patient_statement": "Yeah. It's about who I am and who I want to be. And maybe those two people are different when it comes to smoking.",
+        "patient_context": "Key insight - discrepancy between current and ideal self",
+        "practitioner_choices": [
+          {
+            "text": "You're noticing a gap between who you are now - someone whose life is intertwined with smoking - and who you want to be, especially as a grandparent.",
+            "technique": "Complex reflection (discrepancy)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This complex reflection names the discrepancy between current and ideal self, which is a key motivator for change. You're amplifying their own insight."
+          }
+        ]
+      },
+      {
+        "id": "node_5g",
+        "patient_statement": "It is right now. Maybe that will change when the baby's born. But right now, the fear is louder.",
+        "patient_context": "Patient acknowledges current state while staying open to future change",
+        "practitioner_choices": [
+          {
+            "text": "For now, the fear has more volume, and you're open to the possibility that might shift when you meet your grandchild.",
+            "technique": "Complex reflection (present state with future possibility)",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Excellent! This honors where they are now (fear is stronger) while acknowledging their openness to change (might shift later). This respects their process."
+          }
+        ]
+      },
+      {
+        "id": "node_5h",
+        "patient_statement": "Yeah. And I don't want to do that to them again. But I also think about my daughter, and how she'll feel when she sees me light up around her child. There's no good answer here.",
+        "patient_context": "Patient sees pain for others on both sides of their decision",
+        "practitioner_choices": [
+          {
+            "text": "You're caught between not wanting to put your family through withdrawal again and not wanting to disappoint your daughter by smoking around your grandchild. Either path involves disappointing people you love.",
+            "technique": "Double-sided reflection (pain both ways)",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Excellent! This double-sided reflection shows how both choices involve letting someone down. This validates why they feel stuck."
+          }
+        ]
+      },
+      {
+        "id": "node_5i",
+        "patient_statement": "Yeah. I think that's it. It's not about finding the painless path. It's about deciding what matters most and accepting the costs that come with that.",
+        "patient_context": "Significant reframing - from avoiding pain to choosing based on values",
+        "practitioner_choices": [
+          {
+            "text": "You're moving from looking for a way out of pain to thinking about which pain is worth it based on your values.",
+            "technique": "Complex reflection (shift toward values-based decision)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This complex reflection captures a profound shift in how they're thinking about their decision - from avoidance to values-based choice. This is real movement in contemplation."
+          }
+        ]
+      },
+      {
+        "id": "node_5j",
+        "patient_statement": "Exactly. Thank you for that. I think I need to sit with all this, but it helps to feel like someone understands how hard this really is.",
+        "patient_context": "Patient feels understood and validated",
+        "practitioner_choices": [
+          {
+            "text": "You need to sit with the complexity a bit longer, and it helps to do that knowing someone sees how real and difficult this is for you.",
+            "technique": "Complex reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This honors their process - they need more time with the ambivalence, and they need that to be respected rather than rushed."
+          }
+        ]
+      },
+      {
+        "id": "node_end_good",
+        "patient_statement": "This has been really helpful. I feel like I can think more clearly about this now. Not that I've decided anything, but I understand what I'm actually wrestling with better.",
+        "is_ending": true,
+        "outcome": "Strong engagement - Through complex and double-sided reflections, the practitioner helped the patient explore and articulate their ambivalence without pressure to resolve it",
+        "learning_summary": "Complex reflections capture deeper meaning, emotions, and connections. Double-sided reflections acknowledge both sides of ambivalence, helping patients in contemplation feel fully heard. In contemplation, the goal isn't to resolve ambivalence quickly but to help patients explore it fully - this creates the foundation for genuine, lasting change when they're ready."
+      },
+      {
+        "id": "node_end_moderate",
+        "patient_statement": "Thanks for listening. I've got a lot to think about.",
+        "is_ending": true,
+        "outcome": "Moderate engagement - Some exploration of ambivalence occurred, though more complex reflections could have deepened understanding",
+        "learning_summary": "In contemplation, patients need their ambivalence understood and validated, not resolved. Complex reflections show deeper understanding by capturing implicit meanings, emotions, and connections. Double-sided reflections acknowledge both change and sustain talk, preventing the conversation from becoming one-sided and defensive."
+      }
+    ]
+  }
+}

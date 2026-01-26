@@ -1,0 +1,699 @@
+{
+  "dialogue_tree": {
+    "title": "Module 4: Affirmations - Recognizing Strengths Without Cheerleading",
+    "learning_objective": "Learn to offer genuine affirmations that recognize patient strengths, efforts, and values without cheerleading, premature reassurance, or empty praise",
+    "technique_focus": "Affirmations",
+    "stage_of_change": "Contemplation to Preparation",
+    "mi_process": "Evoking",
+    "description": "Affirmations recognize and amplify patient strengths, efforts, and positive qualities. Genuine affirmations are specific, sincere, and build self-efficacy. They differ from cheerleading (overly enthusiastic), false reassurance ('I'm sure you can do it'), or flattery (generic praise). Good affirmations notice what's already there.",
+    "start_node": "node_1",
+    "nodes": [
+      {
+        "id": "node_1",
+        "patient_statement": "I've been thinking a lot about what we talked about last time. I actually looked up some information about quitting smoking. I haven't made any decisions, but I wanted to understand my options better.",
+        "patient_context": "Patient took initiative to research - this is a preparatory behavior worth affirming",
+        "practitioner_choices": [
+          {
+            "text": "That's great! I'm so proud of you! This is a really big step!",
+            "technique": "Cheerleading (ineffective)",
+            "next_node_id": "node_2a",
+            "feedback": "This is cheerleading - overly enthusiastic and focused on your feelings ('I'm proud') rather than their action. It can feel patronizing and creates pressure."
+          },
+          {
+            "text": "You took the initiative to educate yourself about quitting, even without being sure you're ready. That takes thoughtfulness and effort.",
+            "technique": "Genuine affirmation (specific)",
+            "next_node_id": "node_2b",
+            "feedback": "Excellent! This affirmation is specific (what they did), genuine (acknowledges uncertainty), and recognizes the qualities it demonstrates (initiative, thoughtfulness, effort)."
+          },
+          {
+            "text": "Looking up information is a good first step.",
+            "technique": "Acknowledgment (accurate but minimal)",
+            "next_node_id": "node_2c",
+            "feedback": "This acknowledges the action but doesn't affirm the strengths or qualities it demonstrates. It's MI-adherent but a fuller affirmation would be more powerful."
+          }
+        ]
+      },
+      {
+        "id": "node_2a",
+        "patient_statement": "Um, thanks. I mean, it's not that big of a deal. I just googled some stuff.",
+        "patient_context": "Patient minimizes their action, possibly feeling uncomfortable with over-enthusiasm",
+        "practitioner_choices": [
+          {
+            "text": "Well, I think it IS a big deal! Every journey starts with a first step!",
+            "technique": "Continuing to cheerlead (ineffective)",
+            "next_node_id": "node_end_uncomfortable",
+            "feedback": "Continuing to cheerlead after they've minimized it can make them more uncomfortable. Match their pace - offer specific, understated recognition instead."
+          },
+          {
+            "text": "You took time to look into it, even though you're still weighing your options. That says something about how seriously you're considering this.",
+            "technique": "Genuine affirmation (recovery)",
+            "next_node_id": "node_3a",
+            "feedback": "Good recovery! This is more understated and specific, which may match their comfort level better. It notices their action without making it bigger than they're ready for."
+          }
+        ]
+      },
+      {
+        "id": "node_2b",
+        "patient_statement": "I guess I did. I wasn't sure if it would help, but I figured knowledge can't hurt, right? I learned about nicotine replacement therapy and some of the withdrawal symptoms to expect.",
+        "patient_context": "Patient opens up about their thought process and what they learned",
+        "practitioner_choices": [
+          {
+            "text": "So you approached this methodically - gathering information before making decisions. And you were willing to face potentially uncomfortable information about withdrawal.",
+            "technique": "Affirmation (recognizing qualities)",
+            "next_node_id": "node_3b",
+            "feedback": "Excellent! This affirms the qualities demonstrated - being methodical and brave enough to face difficult information. This builds self-efficacy."
+          },
+          {
+            "text": "That's wonderful! Knowledge is power!",
+            "technique": "Cheerleading with cliché",
+            "next_node_id": "node_3c",
+            "feedback": "This is cheerleading paired with a cliché. It's generic rather than specific to what they did. Genuine affirmations are specific and sincere."
+          },
+          {
+            "text": "You learned about NRT and withdrawal symptoms.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3d",
+            "feedback": "This is a reflection, not an affirmation. It's MI-adherent and appropriate, but you missed an opportunity to recognize the strength they demonstrated. Both reflections and affirmations have their place."
+          }
+        ]
+      },
+      {
+        "id": "node_2c",
+        "patient_statement": "Yeah. I wanted to know what I'd be getting into. Withdrawal sounds pretty rough, honestly. But at least now I know.",
+        "patient_context": "Patient researched even though they found concerning information",
+        "practitioner_choices": [
+          {
+            "text": "You kept researching even when you found information that was intimidating. That takes courage.",
+            "technique": "Affirmation (courage)",
+            "next_node_id": "node_3e",
+            "feedback": "Excellent! This affirms a specific quality (courage) in the face of a specific challenge (intimidating information). This kind of affirmation builds confidence."
+          },
+          {
+            "text": "Don't worry! Lots of people get through withdrawal just fine! You'll be okay!",
+            "technique": "False reassurance (ineffective)",
+            "next_node_id": "node_3f",
+            "feedback": "This is false reassurance - minimizing their concerns and making promises you can't keep. It dismisses their realistic concerns rather than affirming their courage in facing them."
+          },
+          {
+            "text": "The information about withdrawal concerned you.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3g",
+            "feedback": "This is an accurate reflection. While MI-adherent, you missed the opportunity to affirm their persistence in researching despite finding concerning information."
+          }
+        ]
+      },
+      {
+        "id": "node_3a",
+        "patient_statement": "I am taking it seriously. More seriously than I expected to, honestly. Especially since my granddaughter was born last week. She's... perfect.",
+        "patient_context": "Significant life event; patient's motivation may be increasing",
+        "practitioner_choices": [
+          {
+            "text": "Congratulations! Now you have the perfect reason to quit!",
+            "technique": "Cheerleading + prescriptive (ineffective)",
+            "next_node_id": "node_4a",
+            "feedback": "While congratulations is appropriate, saying they 'have the perfect reason to quit' prescribes their motivation and creates pressure. Let them tell you what it means to them."
+          },
+          {
+            "text": "Congratulations on becoming a grandparent. It sounds like meeting her has stirred something in you.",
+            "technique": "Acknowledgment + reflection",
+            "next_node_id": "node_4b",
+            "feedback": "Good! This offers appropriate congratulations while reflecting their experience without prescribing what it should mean. Both MI-adherent options work - the next one adds an affirmation."
+          },
+          {
+            "text": "Congratulations. You're noticing that becoming a grandparent is shifting your perspective on this. You're paying attention to those shifts.",
+            "technique": "Acknowledgment + affirmation (awareness)",
+            "next_node_id": "node_4c",
+            "feedback": "Excellent! This acknowledges the milestone, reflects their experience, and affirms their self-awareness - noticing their own shifts is a strength worth recognizing."
+          }
+        ]
+      },
+      {
+        "id": "node_3b",
+        "patient_statement": "I hadn't thought of it that way, but yeah, I guess I do like to understand things before I jump in. And the withdrawal stuff was hard to read, but I needed to know what I'd be facing.",
+        "patient_context": "Patient recognizes and accepts affirmation of their qualities",
+        "practitioner_choices": [
+          {
+            "text": "You don't shy away from difficult realities. You'd rather face them head-on, even when they're uncomfortable.",
+            "technique": "Affirmation (character strength)",
+            "next_node_id": "node_4d",
+            "feedback": "Perfect! This affirms a character strength (facing reality) that will serve them well in making and implementing a difficult decision. This builds self-efficacy."
+          },
+          {
+            "text": "See? You're already showing the kind of strength and determination you'll need to quit!",
+            "technique": "Cheerleading + premature conclusions",
+            "next_node_id": "node_4e",
+            "feedback": "This jumps ahead to assuming they'll quit and frames the affirmation in terms of future success. Stay present-focused - affirm what they're demonstrating now."
+          }
+        ]
+      },
+      {
+        "id": "node_3c",
+        "patient_statement": "I guess. I'm not sure 'power' is the word I'd use. I feel kind of overwhelmed, actually.",
+        "patient_context": "Patient rejects cheerleading; feeling overwhelmed",
+        "practitioner_choices": [
+          {
+            "text": "You're feeling overwhelmed by the information, which makes sense given how serious this decision is. And you're sitting with it anyway rather than avoiding it.",
+            "technique": "Reflection + understated affirmation",
+            "next_node_id": "node_4f",
+            "feedback": "Good recovery! This validates their feeling while gently affirming that they're engaging despite being overwhelmed. This is more attuned to where they are."
+          },
+          {
+            "text": "Don't be overwhelmed! You can do this! I believe in you!",
+            "technique": "False reassurance + cheerleading",
+            "next_node_id": "node_end_uncomfortable",
+            "feedback": "This dismisses their feeling and continues cheerleading. When someone says they're overwhelmed, validate that experience rather than trying to cheer them out of it."
+          }
+        ]
+      },
+      {
+        "id": "node_3d",
+        "patient_statement": "Right. I wanted to be realistic about it. My friend quit last year and said the first two weeks were hell. I needed to know if I could handle that.",
+        "patient_context": "Patient is assessing their own capabilities - important preparation work",
+        "practitioner_choices": [
+          {
+            "text": "You're not just gathering information - you're honestly assessing whether you're up for this challenge. That's wise.",
+            "technique": "Affirmation (wisdom/self-assessment)",
+            "next_node_id": "node_4g",
+            "feedback": "Excellent! This affirms both their self-assessment process and the wisdom of that approach. It recognizes a strength they're demonstrating."
+          },
+          {
+            "text": "Of course you can handle it! You're stronger than you think!",
+            "technique": "False reassurance (ineffective)",
+            "next_node_id": "node_4h",
+            "feedback": "This is false reassurance - claiming to know they can handle something they're uncertain about. It dismisses their legitimate question about their capabilities."
+          }
+        ]
+      },
+      {
+        "id": "node_3e",
+        "patient_statement": "Courage? I don't know about that. But I figured if I'm going to consider this, I should know the worst-case scenario, not just the success stories.",
+        "patient_context": "Patient demonstrates realistic thinking and willingness to face difficulty",
+        "practitioner_choices": [
+          {
+            "text": "You wanted the full picture - the difficult parts alongside the hopeful parts. That's a realistic, mature approach.",
+            "technique": "Affirmation (realistic thinking)",
+            "next_node_id": "node_4i",
+            "feedback": "Excellent! This affirms their realistic approach without overselling it as courage (which they rejected). It meets them where they are."
+          },
+          {
+            "text": "That's exactly the right attitude! You're going to succeed because you're being so realistic!",
+            "technique": "Cheerleading + false reassurance",
+            "next_node_id": "node_4j",
+            "feedback": "This is cheerleading and makes premature predictions about success. Affirm what they're doing now without jumping to future outcomes."
+          }
+        ]
+      },
+      {
+        "id": "node_3f",
+        "patient_statement": "I hope you're right, but I don't know. My friend who quit said it was the hardest thing he'd ever done. I'm not sure I'm as strong as he is.",
+        "patient_context": "Patient doubts their ability; false reassurance didn't help",
+        "practitioner_choices": [
+          {
+            "text": "You're comparing yourself to your friend and wondering if you have what it takes. What strengths have helped you get through other difficult times?",
+            "technique": "Reflection + question to evoke strengths",
+            "next_node_id": "node_4k",
+            "feedback": "Good recovery! Instead of more reassurance, you're inviting them to identify their own strengths and past successes. This builds genuine confidence."
+          },
+          {
+            "text": "You are absolutely strong enough! Stop doubting yourself!",
+            "technique": "Continued false reassurance (ineffective)",
+            "next_node_id": "node_end_uncomfortable",
+            "feedback": "Continuing to insist they're capable when they're expressing doubt creates pressure and disconnection. Help them discover their own strengths instead."
+          }
+        ]
+      },
+      {
+        "id": "node_3g",
+        "patient_statement": "It did. But I kept reading anyway. If I'm going to make a decision, I want it to be informed, not based on fantasy.",
+        "patient_context": "Patient values making informed decisions",
+        "practitioner_choices": [
+          {
+            "text": "You value making informed decisions based on reality, even when reality is daunting. That's a strength that will serve you well, whatever you decide.",
+            "technique": "Affirmation (values and strength)",
+            "next_node_id": "node_4l",
+            "feedback": "Perfect! This affirms both a value (informed decisions) and how it manifests as strength (facing daunting reality). The phrase 'whatever you decide' honors their autonomy."
+          },
+          {
+            "text": "Smart! Being informed means you'll be more likely to succeed!",
+            "technique": "Cheerleading + making predictions",
+            "next_node_id": "node_4m",
+            "feedback": "While acknowledging their approach, this makes assumptions about outcomes and sounds cheerleader-ish. Stay focused on the strength itself, not predicted results."
+          }
+        ]
+      },
+      {
+        "id": "node_4a",
+        "patient_statement": "I mean... maybe. But I don't want to quit just because everyone thinks I should. I need to want it for myself, or it won't stick.",
+        "patient_context": "Patient asserts need for autonomous motivation - this is important insight",
+        "practitioner_choices": [
+          {
+            "text": "You understand something important - that change works best when the motivation comes from inside you, not from external pressure. That self-awareness is valuable.",
+            "technique": "Affirmation (insight/self-awareness)",
+            "next_node_id": "node_5a",
+            "feedback": "Excellent! This affirms their insight about autonomous motivation without pressuring them. You're recognizing their wisdom about the change process."
+          },
+          {
+            "text": "That's fine! As long as you quit eventually, it doesn't matter what motivates you!",
+            "technique": "Dismissive + goal-focused (non-MI)",
+            "next_node_id": "node_5b",
+            "feedback": "This dismisses their important insight and reveals goal-focused thinking (wanting them to quit) over process-focused (supporting their autonomy). This breaks MI spirit."
+          }
+        ]
+      },
+      {
+        "id": "node_4b",
+        "patient_statement": "It has. When I hold her, I think about being around to see her grow up. And I think about what kind of grandfather I want to be.",
+        "patient_context": "Patient connecting change to values about grandparent role",
+        "practitioner_choices": [
+          {
+            "text": "Becoming a grandfather is making you think about the kind of person and role model you want to be. Those reflections matter.",
+            "technique": "Reflection + understated affirmation",
+            "next_node_id": "node_5c",
+            "feedback": "Good! This reflects their thinking and gently affirms that this reflection is meaningful. Both options are MI-adherent - the next one is a fuller affirmation."
+          },
+          {
+            "text": "You're connecting this decision to your values about being a grandfather. That kind of values-based thinking often leads to lasting change.",
+            "technique": "Affirmation (values-based thinking)",
+            "next_node_id": "node_5c",
+            "feedback": "Excellent! This affirms their values-based thinking process and notes (without guaranteeing) that this approach often works. It's informational rather than prescriptive."
+          }
+        ]
+      },
+      {
+        "id": "node_4c",
+        "patient_statement": "I am. It's kind of surprising to me, actually. I didn't expect her birth to affect me this much. But something shifted when I held her.",
+        "patient_context": "Patient experiencing internal shift; self-aware about it",
+        "practitioner_choices": [
+          {
+            "text": "You're open to being affected and changed by this experience, even though it surprised you. That openness is a strength.",
+            "technique": "Affirmation (openness to change)",
+            "next_node_id": "node_5d",
+            "feedback": "Perfect! This affirms their openness to being transformed by experience - a quality that serves change well. You're noticing and naming a strength."
+          },
+          {
+            "text": "That's beautiful! Grandchildren change everything! Now you'll definitely want to quit!",
+            "technique": "Cheerleading + prescriptive (ineffective)",
+            "next_node_id": "node_5e",
+            "feedback": "This is cheerleading and prescribes what they should feel/do. Let them discover what this means for them rather than telling them."
+          }
+        ]
+      },
+      {
+        "id": "node_4d",
+        "patient_statement": "I guess I do try to face things rather than avoid them. It doesn't always feel good, but it's how I operate.",
+        "patient_context": "Patient accepts affirmation and recognizes this quality in themselves",
+        "practitioner_choices": [
+          {
+            "text": "That approach has probably served you well in other areas of your life.",
+            "technique": "Affirmation (connecting to broader life)",
+            "next_node_id": "node_5f",
+            "feedback": "Good! This helps them see this strength as something that's been useful beyond just this situation. This builds confidence in their capabilities."
+          },
+          {
+            "text": "Exactly! And that's why you're going to be successful at quitting!",
+            "technique": "Premature conclusions (ineffective)",
+            "next_node_id": "node_5g",
+            "feedback": "This jumps to conclusions about what they'll do and whether they'll succeed. Keep affirmations present-focused on the strengths they're demonstrating now."
+          }
+        ]
+      },
+      {
+        "id": "node_4e",
+        "patient_statement": "Hold on. I haven't decided to quit yet. I'm just... looking into it.",
+        "patient_context": "Patient pulls back when practitioner assumes too much",
+        "practitioner_choices": [
+          {
+            "text": "You're right - I got ahead of you there. You're in the information-gathering phase, not the decision-making phase yet.",
+            "technique": "Acknowledgment of error + clarification",
+            "next_node_id": "node_5h",
+            "feedback": "Good recovery! Acknowledging when you got ahead of the patient and correcting course maintains trust and honors their autonomy."
+          },
+          {
+            "text": "Okay, okay, but you're clearly thinking about it seriously, which is basically the first step!",
+            "technique": "Continued pressure (ineffective)",
+            "next_node_id": "node_end_resistance",
+            "feedback": "This continues to push them forward when they just pulled back. Respect their pace - affirm where they actually are, not where you want them to be."
+          }
+        ]
+      },
+      {
+        "id": "node_4f",
+        "patient_statement": "Yeah. I'm trying to sit with it even though it's uncomfortable. I think that's important.",
+        "patient_context": "Patient demonstrates tolerance for discomfort and reflection",
+        "practitioner_choices": [
+          {
+            "text": "You're willing to sit with discomfort because you know it's part of working through a big decision. That takes maturity.",
+            "technique": "Affirmation (tolerance for discomfort)",
+            "next_node_id": "node_5i",
+            "feedback": "Excellent! This affirms their ability to tolerate discomfort in service of thoughtful decision-making - an important capacity for change."
+          }
+        ]
+      },
+      {
+        "id": "node_4g",
+        "patient_statement": "Thanks. I've been burned before by jumping into things without thinking them through. I'm trying to be different about this.",
+        "patient_context": "Patient is applying learning from past experiences",
+        "practitioner_choices": [
+          {
+            "text": "You're applying what you've learned from past experiences - using that wisdom to approach this differently. That's growth.",
+            "technique": "Affirmation (learning and growth)",
+            "next_node_id": "node_5j",
+            "feedback": "Perfect! This affirms their ability to learn from experience and apply that learning - a key strength for successful change."
+          },
+          {
+            "text": "Good! Learning from mistakes is how we grow!",
+            "technique": "Generic cliché (weak affirmation)",
+            "next_node_id": "node_5k",
+            "feedback": "While true, this is generic and cliché rather than specific to what they shared. Specific affirmations are more powerful and meaningful."
+          }
+        ]
+      },
+      {
+        "id": "node_4h",
+        "patient_statement": "But can you know that? I mean, you don't know me that well. What if I'm not strong enough?",
+        "patient_context": "Patient rightfully questions false reassurance",
+        "practitioner_choices": [
+          {
+            "text": "You're right - I can't know that. What I do notice is that you're asking yourself honest questions about your capabilities rather than assuming you can or can't do this. That kind of honest self-assessment is actually a strength.",
+            "technique": "Acknowledgment + genuine affirmation",
+            "next_node_id": "node_5l",
+            "feedback": "Excellent recovery! You acknowledge the false reassurance was inappropriate, then offer a genuine affirmation based on what you actually observe - their honest self-assessment."
+          },
+          {
+            "text": "I just have a feeling about you! You're going to do great!",
+            "technique": "Continued false reassurance (ineffective)",
+            "next_node_id": "node_end_uncomfortable",
+            "feedback": "Continuing with feelings and predictions when they've questioned your basis is not helpful. Affirm real, observable strengths instead."
+          }
+        ]
+      },
+      {
+        "id": "node_4i",
+        "patient_statement": "Thanks. I've always believed in facing reality, even when it's hard. My dad taught me that.",
+        "patient_context": "Patient connects strength to personal values and family",
+        "practitioner_choices": [
+          {
+            "text": "That's a valuable inheritance from your father - the courage to face reality. And now you're applying that same principle to this decision.",
+            "technique": "Affirmation (connecting to values/family)",
+            "next_node_id": "node_5m",
+            "feedback": "Beautiful! This affirms the strength while honoring its source (father) and noting how they're applying it now. This connects the affirmation to their deeper values."
+          }
+        ]
+      },
+      {
+        "id": "node_4j",
+        "patient_statement": "I don't think being realistic guarantees success. That seems like magical thinking.",
+        "patient_context": "Patient rejects false promise",
+        "practitioner_choices": [
+          {
+            "text": "You're right - there are no guarantees. What I notice is that you're approaching this thoughtfully and realistically, which are qualities that serve people well when they're facing difficult decisions.",
+            "technique": "Acknowledgment + specific affirmation",
+            "next_node_id": "node_5n",
+            "feedback": "Good recovery! You acknowledge their point and then offer a more genuine affirmation - noting qualities without promising outcomes."
+          }
+        ]
+      },
+      {
+        "id": "node_4k",
+        "patient_statement": "Hmm. I guess... I got through my divorce. That was hell. And I raised my daughter mostly on my own after that. I've handled hard things before.",
+        "patient_context": "Patient identifies significant past challenges they've overcome",
+        "practitioner_choices": [
+          {
+            "text": "So you've already demonstrated that you can get through really difficult periods - a divorce and single parenting. Those weren't easy, and you came through them.",
+            "technique": "Affirmation (past successes)",
+            "next_node_id": "node_5o",
+            "feedback": "Excellent! This affirms their past resilience specifically and concretely. Helping patients recognize their own track record builds genuine confidence."
+          },
+          {
+            "text": "See? You're definitely strong enough to quit smoking!",
+            "technique": "Premature conclusion (ineffective)",
+            "next_node_id": "node_5p",
+            "feedback": "This jumps too quickly to conclusions about smoking. Let them make connections at their own pace - affirm the strengths without prescribing how to apply them."
+          }
+        ]
+      },
+      {
+        "id": "node_4l",
+        "patient_statement": "Thanks. I appreciate that you're not pushing me one way or the other. Just helping me think it through.",
+        "patient_context": "Patient explicitly values practitioner's approach",
+        "practitioner_choices": [
+          {
+            "text": "That's important to you - having space to make your own decision without pressure. I respect that.",
+            "technique": "Reflection + acknowledging autonomy",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! You reflect their value (autonomy) and explicitly honor it. This strengthens the therapeutic relationship and demonstrates MI spirit."
+          }
+        ]
+      },
+      {
+        "id": "node_4m",
+        "patient_statement": "Maybe. I'm not really thinking about success or failure right now. I'm just trying to figure out what I want.",
+        "patient_context": "Patient focuses on discernment rather than outcomes",
+        "practitioner_choices": [
+          {
+            "text": "You're focusing on the right question first - what do you actually want - rather than worrying about whether you can achieve it. That's a wise approach.",
+            "technique": "Affirmation (process wisdom)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This affirms their process - focusing on values/desires before strategies/outcomes. This is sophisticated thinking worth recognizing."
+          }
+        ]
+      },
+      {
+        "id": "node_5a",
+        "patient_statement": "I've learned that the hard way. When I've made changes because people nagged me, they never lasted. I need to own it.",
+        "patient_context": "Patient demonstrates learning from experience",
+        "practitioner_choices": [
+          {
+            "text": "You've learned through experience what makes change last for you - it has to come from inside. That self-knowledge is powerful.",
+            "technique": "Affirmation (self-knowledge)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This affirms their experiential learning and self-knowledge - both strengths that predict successful change when they're ready."
+          }
+        ]
+      },
+      {
+        "id": "node_5b",
+        "patient_statement": "Actually, it does matter to me. A lot. I'm not interested in quitting just to check a box.",
+        "patient_context": "Patient asserts their values against practitioner pressure",
+        "practitioner_choices": [
+          {
+            "text": "You're right, and I apologize for missing that. The quality of how you make this decision matters as much as the decision itself. That integrity is important to you.",
+            "technique": "Apology + affirmation of values",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! Apologizing and then affirming their value for integrity shows respect and repairs the relationship."
+          }
+        ]
+      },
+      {
+        "id": "node_5c",
+        "patient_statement": "They do. I want to be someone she can be proud of. Someone who's around and healthy.",
+        "patient_context": "Patient articulates values-based vision",
+        "practitioner_choices": [
+          {
+            "text": "You're letting your love for her and your vision of the grandfather you want to be inform how you think about this. That's grounding this in what matters most.",
+            "technique": "Affirmation (values-driven thinking)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This affirms that they're using their deepest values to guide their thinking - the kind of motivation that sustains difficult change."
+          }
+        ]
+      },
+      {
+        "id": "node_5d",
+        "patient_statement": "I guess it is. I'm usually pretty set in my ways, but this... she opened something up in me I didn't know was there.",
+        "patient_context": "Patient recognizes unexpected capacity for change",
+        "practitioner_choices": [
+          {
+            "text": "You're discovering capacities in yourself you didn't know you had. That discovery is meaningful.",
+            "technique": "Affirmation (self-discovery)",
+            "next_node_id": "node_end_good",
+            "feedback": "Beautiful! This affirms their openness to self-discovery and transformation - a profound strength for someone 'usually set in their ways.'"
+          }
+        ]
+      },
+      {
+        "id": "node_5e",
+        "patient_statement": "Please don't tell me what I'll definitely want. I need to figure that out for myself.",
+        "patient_context": "Patient sets boundary around autonomy",
+        "practitioner_choices": [
+          {
+            "text": "You're absolutely right, and I apologize. Your ability to advocate for your autonomy, even with me, shows real clarity about what you need.",
+            "technique": "Apology + affirmation (self-advocacy)",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Excellent recovery! Apologizing and then affirming their self-advocacy shows respect and models that it's okay to push back when someone oversteps."
+          }
+        ]
+      },
+      {
+        "id": "node_5f",
+        "patient_statement": "It has. When I got divorced, people told me to ignore the problems and hope they went away. But I knew I needed to face reality, even though it hurt.",
+        "patient_context": "Patient provides example of strength in action",
+        "practitioner_choices": [
+          {
+            "text": "You trusted your own judgment over others' advice, even when your path was more painful. That takes both courage and wisdom.",
+            "technique": "Affirmation (multiple strengths)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This affirms multiple related strengths - trusting themselves, choosing the harder right path, courage, and wisdom."
+          }
+        ]
+      },
+      {
+        "id": "node_5g",
+        "patient_statement": "I haven't decided to quit. Can you stop assuming I'm going to?",
+        "patient_context": "Patient frustrated by being pushed",
+        "practitioner_choices": [
+          {
+            "text": "I apologize - I keep getting ahead of where you actually are. You're exploring, not deciding. I'll do better at staying with you where you are.",
+            "technique": "Genuine apology + commitment",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! Acknowledging the pattern, apologizing sincerely, and committing to change shows respect for their process and autonomy."
+          }
+        ]
+      },
+      {
+        "id": "node_5h",
+        "patient_statement": "Right. I'm gathering information. Making an informed decision matters to me, whether that decision is to quit or not.",
+        "patient_context": "Patient reiterates their process and values",
+        "practitioner_choices": [
+          {
+            "text": "You value making thoughtful, informed decisions regardless of the outcome. That integrity in your decision-making process is admirable.",
+            "technique": "Affirmation (process integrity)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This affirms their value for process integrity and explicitly honors that the outcome is theirs to determine."
+          }
+        ]
+      },
+      {
+        "id": "node_5i",
+        "patient_statement": "I think it is. My whole life I've made impulsive decisions and regretted them. I'm trying to do this differently.",
+        "patient_context": "Patient applying learning to current situation",
+        "practitioner_choices": [
+          {
+            "text": "You're breaking a lifelong pattern - that's significant. Instead of impulsivity, you're choosing reflection and patience.",
+            "technique": "Affirmation (pattern change)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This affirms the difficulty and significance of changing long-standing patterns. This recognizes real growth."
+          }
+        ]
+      },
+      {
+        "id": "node_5j",
+        "patient_statement": "Yeah. I'm tired of repeating the same mistakes. I want this to be different.",
+        "patient_context": "Patient desires to break patterns",
+        "practitioner_choices": [
+          {
+            "text": "That desire to break patterns and do things differently - that's coming from you, from your own learning. That's the foundation for real change.",
+            "technique": "Affirmation (autonomous motivation)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This affirms that their motivation is intrinsic and based on their own learning - the strongest foundation for sustained change."
+          }
+        ]
+      },
+      {
+        "id": "node_5k",
+        "patient_statement": "Sure, but I'm trying to do more than just grow. I'm trying to make a really difficult decision carefully.",
+        "patient_context": "Patient wants specific recognition, not generic praise",
+        "practitioner_choices": [
+          {
+            "text": "You're right - I was being too general. What you're doing specifically is taking time to carefully consider a major life decision, drawing on your past experiences to approach it more wisely. That's more than just 'growth' - that's intentional transformation.",
+            "technique": "Acknowledgment + specific affirmation",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent recovery! You acknowledge the generic affirmation was insufficient and offer a much more specific one that captures what they're actually doing."
+          }
+        ]
+      },
+      {
+        "id": "node_5l",
+        "patient_statement": "Okay, that makes sense. I guess I am trying to be honest with myself about what I can and can't do.",
+        "patient_context": "Patient accepts genuine affirmation",
+        "practitioner_choices": [
+          {
+            "text": "That honest self-assessment, even when the answers are uncertain, is a real strength. It's how people make decisions they can live with.",
+            "technique": "Affirmation (self-assessment skill)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This affirms the specific skill and its value for decision-making, without making predictions about outcomes."
+          }
+        ]
+      },
+      {
+        "id": "node_5m",
+        "patient_statement": "He'd be proud of me for thinking this through carefully, I think. He always said 'face the facts, then decide.'",
+        "patient_context": "Patient connects current approach to father's values",
+        "practitioner_choices": [
+          {
+            "text": "You're honoring your father by applying his wisdom to your own life. And you're doing exactly what he taught - facing the facts first.",
+            "technique": "Affirmation (honoring values/legacy)",
+            "next_node_id": "node_end_good",
+            "feedback": "Beautiful! This affirms how they're living out their father's values while making their own decision. This connects the affirmation to something deeply meaningful."
+          }
+        ]
+      },
+      {
+        "id": "node_5n",
+        "patient_statement": "Yeah, that's more realistic. Thanks for not over-promising. That actually makes me trust you more.",
+        "patient_context": "Patient values realistic affirmation over cheerleading",
+        "practitioner_choices": [
+          {
+            "text": "That tells me something important about you - you value authenticity over flattery. That keeps you grounded in reality.",
+            "technique": "Affirmation (valuing authenticity)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! You've turned their feedback into an affirmation - recognizing that valuing authenticity is itself a strength."
+          }
+        ]
+      },
+      {
+        "id": "node_5o",
+        "patient_statement": "I did. They were awful times, but I survived them. Maybe... maybe that means I could handle quitting too. I don't know.",
+        "patient_context": "Patient making tentative connections between past success and current challenge",
+        "practitioner_choices": [
+          {
+            "text": "You're starting to wonder if the resilience that got you through those other challenges might be available to you here too. That's worth considering.",
+            "technique": "Reflection + understated affirmation",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects their emerging thought without pushing it. You're affirming that this consideration is worth having, not that they should definitely quit."
+          }
+        ]
+      },
+      {
+        "id": "node_5p",
+        "patient_statement": "That's not what I said. I just said I've handled hard things. Smoking is different.",
+        "patient_context": "Patient resists leap to conclusions",
+        "practitioner_choices": [
+          {
+            "text": "You're right - I jumped ahead. Each challenge is different. What you did identify is that you have a track record of getting through difficult periods. Whether or how that applies here is for you to figure out.",
+            "technique": "Apology + affirmation without prescription",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! You acknowledge overstepping while still affirming what they actually said - that they have resilience - without prescribing its application."
+          }
+        ]
+      },
+      {
+        "id": "node_end_good",
+        "patient_statement": "This has been helpful. I feel like you see the strengths I'm trying to use here, and that makes me more confident in my process, whatever I end up deciding.",
+        "is_ending": true,
+        "outcome": "Strong engagement - Genuine affirmations helped the patient recognize their own strengths and built confidence in their decision-making process",
+        "learning_summary": "Effective affirmations are specific, genuine, and focused on observable strengths or efforts. They differ from cheerleading (overly enthusiastic), false reassurance (promising outcomes), and generic praise (non-specific). Good affirmations build self-efficacy by helping patients recognize strengths they're already demonstrating, without prescribing how they should use those strengths or what decisions they should make."
+      },
+      {
+        "id": "node_end_moderate",
+        "patient_statement": "Okay. I appreciate you hearing me when I pushed back. That helps.",
+        "is_ending": true,
+        "outcome": "Moderate engagement - Some missteps occurred but were repaired through acknowledgment and genuine affirmation",
+        "learning_summary": "When affirmations miss the mark - becoming cheerleading, false reassurance, or prescriptive - the key is to acknowledge it, apologize genuinely, and then offer more accurate, specific affirmations. Patients appreciate practitioners who can admit errors and course-correct, which actually strengthens the relationship."
+      },
+      {
+        "id": "node_end_uncomfortable",
+        "patient_statement": "Look, I appreciate your enthusiasm, but this doesn't feel helpful anymore. I think I need to process this on my own.",
+        "is_ending": true,
+        "outcome": "Poor engagement - Cheerleading and false reassurance created discomfort and distance",
+        "learning_summary": "Cheerleading, false reassurance, and premature enthusiasm can actually decrease motivation and damage rapport. Patients need practitioners to see and affirm their real strengths without exaggeration or prediction. When we over-promise or push too hard, even with good intentions, we break the collaborative spirit of MI."
+      },
+      {
+        "id": "node_end_resistance",
+        "patient_statement": "You're not listening to me. I'm leaving.",
+        "is_ending": true,
+        "outcome": "Engagement failed - Continued pressure despite patient pulling back caused rupture",
+        "learning_summary": "When a patient signals they're being pushed too far or too fast, we must honor that immediately. Continuing to push, even with affirmations or encouragement, violates their autonomy and breaks trust. Effective affirmations honor where the patient actually is, not where we want them to be."
+      }
+    ]
+  }
+}

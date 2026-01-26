@@ -1,0 +1,826 @@
+{
+  "dialogue_tree": {
+    "title": "Module 5: Summarizing - Linking and Transitioning",
+    "learning_objective": "Learn to create effective summaries that gather discussions, highlight key themes, and facilitate transitions between MI processes",
+    "technique_focus": "Summarizing",
+    "stage_of_change": "Contemplation to Preparation",
+    "mi_process": "Evoking to Planning",
+    "description": "Summaries pull together what's been discussed, demonstrate listening, and create natural transitions. Effective summaries are: (1) Collecting - gathering what's been said, (2) Linking - connecting themes, (3) Transitional - moving to next steps. They can strategically emphasize change talk and are offered with humility ('Let me see if I have this right...').",
+    "start_node": "node_1",
+    "nodes": [
+      {
+        "id": "node_1",
+        "patient_statement": "So yeah, I've been going back and forth on this smoking thing for weeks now. My granddaughter's three months old already. When I'm with her, I really want to quit. But then I get stressed at work and can't imagine getting through the day without cigarettes. I looked up some quitting methods like we talked about. Patches, gum, that prescription medication. I don't know... it all seems complicated.",
+        "patient_context": "Patient has shared multiple elements: ambivalence, motivation (granddaughter), barrier (work stress), action taken (research), and concern (complexity). This is a good moment for a summary.",
+        "practitioner_choices": [
+          {
+            "text": "You're stressed about quitting and it seems complicated.",
+            "technique": "Minimal summary (incomplete)",
+            "next_node_id": "node_2a",
+            "feedback": "This captures only a small part of what they shared and focuses on the negative/sustain talk side. A more complete summary would gather all the elements they mentioned."
+          },
+          {
+            "text": "Let me see if I'm following you. You're experiencing this pull in different directions - when you're with your granddaughter, quitting feels important and right. At work, especially under stress, smoking feels necessary. You've taken the step of researching methods, and now you're weighing the complexity of the different options. How am I doing?",
+            "technique": "Collecting summary (comprehensive)",
+            "next_node_id": "node_2b",
+            "feedback": "Excellent! This collecting summary gathers the key elements: ambivalence, specific contexts, action taken, and current concerns. Asking 'How am I doing?' invites correction and shows humility."
+          },
+          {
+            "text": "You want to quit for your granddaughter but work stress makes it hard, and you've researched some methods.",
+            "technique": "Simple summary (adequate but flat)",
+            "next_node_id": "node_2c",
+            "feedback": "This is accurate and includes key elements, but it's somewhat flat and list-like. The previous option has more depth and uses language that reflects the emotional quality of their experience."
+          }
+        ]
+      },
+      {
+        "id": "node_2a",
+        "patient_statement": "Well, it's not just that. I mean, the stress is real, but so is wanting to be around for my granddaughter. You're making it sound like I'm just focused on the negatives.",
+        "patient_context": "Patient corrects incomplete summary that emphasized sustain talk",
+        "practitioner_choices": [
+          {
+            "text": "You're absolutely right - I missed the big picture there. Let me try again. You're pulled between two strong forces: your granddaughter, who makes you want to quit, and work stress, where smoking feels like a necessary coping tool. And you've been actively researching options even while feeling uncertain. Is that more complete?",
+            "technique": "Corrected collecting summary",
+            "next_node_id": "node_3a",
+            "feedback": "Excellent recovery! You acknowledged the incomplete summary and offered a more balanced one that includes both change talk and sustain talk. Asking for confirmation shows respect."
+          },
+          {
+            "text": "Right, but the stress is a major barrier for you.",
+            "technique": "Defending incomplete summary (non-MI)",
+            "next_node_id": "node_3b",
+            "feedback": "Defending your incomplete summary rather than correcting it dismisses their feedback. When a patient says you missed something, believe them and adjust."
+          }
+        ]
+      },
+      {
+        "id": "node_2b",
+        "patient_statement": "Yeah, that's pretty much it. I feel like I'm in limbo. I know I need to make a decision, but I keep waiting for the 'right moment' or for it to feel easier.",
+        "patient_context": "Patient confirms summary and adds new information about waiting/readiness",
+        "practitioner_choices": [
+          {
+            "text": "So you're in this in-between place - you know a decision is needed, but you're waiting for conditions that would make it feel more manageable. There's a gap between knowing and being ready.",
+            "technique": "Linking summary (connecting themes)",
+            "next_node_id": "node_3c",
+            "feedback": "Excellent! This linking summary connects the concepts they've shared - the in-between place, the need for decision, the waiting, and the gap between knowing and readiness. This shows deeper understanding."
+          },
+          {
+            "text": "You're waiting for the right moment. What would that look like?",
+            "technique": "Simple reflection + open question",
+            "next_node_id": "node_3d",
+            "feedback": "This is MI-adherent and the question could be useful. However, you just received confirmation of a complex situation - a summary that links themes would demonstrate deeper understanding before moving to questions."
+          },
+          {
+            "text": "There's never going to be a perfect moment. You just have to decide and do it.",
+            "technique": "Righting reflex (non-MI)",
+            "next_node_id": "node_3e",
+            "feedback": "This is the righting reflex - telling them what they need to do. It dismisses their experience and creates pressure. A summary would show understanding of their dilemma."
+          }
+        ]
+      },
+      {
+        "id": "node_2c",
+        "patient_statement": "Yeah. It's frustrating being stuck like this. Part of me thinks I should just pick a method and try, but another part says I'm not ready.",
+        "patient_context": "Patient adds more about their internal conflict",
+        "practitioner_choices": [
+          {
+            "text": "You're experiencing an internal tug-of-war - one voice says 'just try something' and another says 'not yet.' And underneath that, there's frustration with being in this stuck place.",
+            "technique": "Linking summary (internal conflict)",
+            "next_node_id": "node_3f",
+            "feedback": "Excellent! This linking summary names the internal conflict and connects it to the emotion (frustration). This shows you understand the complexity of their experience."
+          },
+          {
+            "text": "Part of you wants to try and part of you doesn't feel ready.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_3g",
+            "feedback": "This is a good double-sided reflection and is MI-adherent. However, since they've now shared quite a bit, a fuller summary might demonstrate more complete listening than another single reflection."
+          }
+        ]
+      },
+      {
+        "id": "node_3a",
+        "patient_statement": "Yes, that's much better. And honestly, the research was harder than I expected. There are so many options and everyone has opinions. My doctor says patches, my friend swears by the prescription medication, my wife thinks I should just quit cold turkey like her dad did.",
+        "patient_context": "Patient elaborates on the challenge of too many conflicting opinions",
+        "practitioner_choices": [
+          {
+            "text": "So on top of your own ambivalence about whether to quit, you're now dealing with ambivalence about how to quit, and everyone's well-meaning advice is adding to the confusion rather than clarity.",
+            "technique": "Linking summary (layers of complexity)",
+            "next_node_id": "node_4a",
+            "feedback": "Perfect! This linking summary shows how the confusion about methods compounds their existing ambivalence about quitting. It names the irony that advice meant to help is actually complicating things."
+          },
+          {
+            "text": "There are a lot of options and a lot of opinions.",
+            "technique": "Simple summary (minimal)",
+            "next_node_id": "node_4b",
+            "feedback": "Accurate but doesn't capture the emotional impact - the overwhelm and confusion. A more robust summary would show deeper understanding of their predicament."
+          }
+        ]
+      },
+      {
+        "id": "node_3b",
+        "patient_statement": "You're not hearing me. Yes, stress is a barrier, but you keep ignoring that I WANT to quit for my granddaughter. That matters to me.",
+        "patient_context": "Patient is frustrated by practitioner not hearing change talk",
+        "practitioner_choices": [
+          {
+            "text": "You're absolutely right, and I apologize. Your desire to quit for your granddaughter is significant - that's the part that's pulling you toward change. And it's important to you that I understand that alongside the stress barrier. Let me make sure I've got both sides now.",
+            "technique": "Apology + balanced summary",
+            "next_node_id": "node_4c",
+            "feedback": "Good recovery! You apologized, explicitly acknowledged the change talk you'd been missing, and committed to holding both sides. This repairs the relationship."
+          },
+          {
+            "text": "Okay, okay, you want to quit. I get it.",
+            "technique": "Dismissive acknowledgment (non-MI)",
+            "next_node_id": "node_end_poor",
+            "feedback": "This sounds dismissive and impatient. When someone says you're not hearing them, take it seriously and demonstrate that you're truly listening now."
+          }
+        ]
+      },
+      {
+        "id": "node_3c",
+        "patient_statement": "Exactly. And I'm starting to wonder if there is such a thing as a 'right moment.' Maybe I'm just scared and making excuses.",
+        "patient_context": "Important insight - patient questioning their own waiting/avoidance",
+        "practitioner_choices": [
+          {
+            "text": "You're wondering if waiting for the right moment might be a way of avoiding something that scares you. That's an honest, uncomfortable question to ask yourself.",
+            "technique": "Complex reflection (self-awareness)",
+            "next_node_id": "node_4d",
+            "feedback": "Excellent! This reflects their emerging insight without pushing it. You're honoring their self-questioning without telling them they are making excuses."
+          },
+          {
+            "text": "You are making excuses. The right moment is now.",
+            "technique": "Confrontation (non-MI)",
+            "next_node_id": "node_4e",
+            "feedback": "This confronts rather than reflects. Even when a patient questions themselves, we don't pile on. Reflect their self-awareness and let them draw their own conclusions."
+          },
+          {
+            "text": "So let me gather what we've talked about so far. You're pulled between your granddaughter - who makes quitting feel important - and work stress, where smoking feels essential. You've researched methods, which shows you're taking this seriously. And now you're starting to wonder if waiting for the perfect moment might be fear in disguise. Does that capture where you are?",
+            "technique": "Collecting + linking summary (transitional)",
+            "next_node_id": "node_4f",
+            "feedback": "Perfect! This comprehensive summary gathers the conversation so far and ends with their latest insight. It positions you to potentially transition to exploring what they might want to do. This is advanced summarizing."
+          }
+        ]
+      },
+      {
+        "id": "node_3d",
+        "patient_statement": "I guess... a time when work isn't so stressful? Or when I feel more confident I can actually do it? I don't know. Maybe there's no such thing.",
+        "patient_context": "Patient identifies ideal conditions but doubts they'll come",
+        "practitioner_choices": [
+          {
+            "text": "You've identified what ideal conditions might look like - less stress, more confidence - and at the same time you're doubting whether you'll ever feel that way. So waiting might mean waiting forever.",
+            "technique": "Linking summary (capturing dilemma)",
+            "next_node_id": "node_4g",
+            "feedback": "Excellent! This linking summary connects their ideal conditions with their doubt, revealing the dilemma: the conditions they're waiting for may never arrive."
+          },
+          {
+            "text": "Right, so you should probably just do it now rather than waiting.",
+            "technique": "Advice-giving (non-MI)",
+            "next_node_id": "node_4e",
+            "feedback": "This is advice-giving that pushes them toward action. Instead, reflect the dilemma and let them wrestle with what it means."
+          }
+        ]
+      },
+      {
+        "id": "node_3e",
+        "patient_statement": "Easy for you to say. You're not the one who has to actually do it.",
+        "patient_context": "Patient feels lectured and defensive",
+        "practitioner_choices": [
+          {
+            "text": "You're right - I got into telling you what to do, and that's not helpful. Let me step back. You're navigating this really complex situation where you're pulled in different directions, you've taken steps to learn more, and you're trying to figure out when or if you're ready. That's where you actually are.",
+            "technique": "Apology + corrective summary",
+            "next_node_id": "node_4h",
+            "feedback": "Good recovery! You acknowledge the righting reflex and offer a summary that shows you actually understand their experience without prescribing action."
+          },
+          {
+            "text": "I'm just trying to help you see that waiting won't make it easier.",
+            "technique": "Defending/continuing to prescribe (non-MI)",
+            "next_node_id": "node_end_poor",
+            "feedback": "Defending the righting reflex makes it worse. When you notice you've slipped into expert mode, acknowledge it and return to MI spirit."
+          }
+        ]
+      },
+      {
+        "id": "node_3f",
+        "patient_statement": "Yes! That's exactly how it feels. And I hate feeling stuck. I'm usually pretty decisive, but this has me paralyzed.",
+        "patient_context": "Patient resonates with summary and adds that this is unusual for them",
+        "practitioner_choices": [
+          {
+            "text": "So this stuck feeling is especially frustrating because it's not typical for you - you usually make decisions and move forward. This one's different, and that itself is uncomfortable.",
+            "technique": "Linking summary (connecting to identity)",
+            "next_node_id": "node_4i",
+            "feedback": "Excellent! This linking summary connects their current stuck feeling to their self-concept as a decisive person, showing why this is particularly frustrating for them."
+          },
+          {
+            "text": "Why do you think this decision is different?",
+            "technique": "Open question",
+            "next_node_id": "node_4j",
+            "feedback": "This is a good open question and is MI-adherent. However, they've just shared a lot - a summary that gathers everything would demonstrate comprehensive listening before moving to a question."
+          }
+        ]
+      },
+      {
+        "id": "node_3g",
+        "patient_statement": "Right. And being stuck in the middle is exhausting. I keep going in circles.",
+        "patient_context": "Patient emphasizes exhaustion from ambivalence",
+        "practitioner_choices": [
+          {
+            "text": "Let me see if I can pull together what you've shared. You're experiencing this push and pull - your granddaughter drawing you toward quitting, work stress keeping smoking in place. You've researched methods, showing you're taking this seriously. And now you're recognizing that this circular pattern is wearing you down. Part of you wants to break out of the circle by trying something, but another part questions if you're ready. Is that a fair summary?",
+            "technique": "Comprehensive collecting summary",
+            "next_node_id": "node_4k",
+            "feedback": "Perfect! This collecting summary gathers all the elements they've shared across the conversation and checks for accuracy. This demonstrates thorough listening and creates a foundation for moving forward."
+          },
+          {
+            "text": "Being stuck is exhausting.",
+            "technique": "Minimal summary/reflection",
+            "next_node_id": "node_4l",
+            "feedback": "Accurate but minimal. They've shared quite a bit - a more comprehensive summary would show you've been tracking the whole conversation, not just the last thing they said."
+          }
+        ]
+      },
+      {
+        "id": "node_4a",
+        "patient_statement": "Yes! Everyone means well, but I feel like I'm drowning in input. And then I feel guilty for not just being grateful that people care.",
+        "patient_context": "Patient adds guilt about not appreciating others' input",
+        "practitioner_choices": [
+          {
+            "text": "So there are layers here - the original decision about whether to quit, then the complexity of how to quit, then the overwhelm from everyone's advice, and now guilt about not being more grateful for that advice. It's getting more complicated, not simpler.",
+            "technique": "Linking summary (escalating complexity)",
+            "next_node_id": "node_5a",
+            "feedback": "Excellent! This linking summary shows how each layer adds to the previous one, creating an increasingly complex emotional and practical situation. This validates why they feel so stuck."
+          },
+          {
+            "text": "What if you just told everyone to stop giving you advice?",
+            "technique": "Advice-giving (non-MI)",
+            "next_node_id": "node_5b",
+            "feedback": "This jumps to problem-solving without first fully understanding their situation. A summary would demonstrate understanding before exploring solutions."
+          },
+          {
+            "text": "It sounds like what you need is some space to figure out what you actually want, separate from everyone else's opinions.",
+            "technique": "Complex reflection (need)",
+            "next_node_id": "node_5c",
+            "feedback": "Good complex reflection identifying an underlying need. Both this and the linking summary are MI-adherent - the summary demonstrates more comprehensive listening of the whole conversation."
+          }
+        ]
+      },
+      {
+        "id": "node_4b",
+        "patient_statement": "Yeah. Too many options, too many opinions. I thought researching would help me feel more in control, but I feel less in control now.",
+        "patient_context": "Patient's attempt to gain control backfired",
+        "practitioner_choices": [
+          {
+            "text": "The research had the opposite effect of what you hoped - instead of creating clarity and control, it created more confusion and overwhelm. That's got to be disappointing.",
+            "technique": "Linking summary (unintended consequence + emotion)",
+            "next_node_id": "node_5d",
+            "feedback": "Excellent! This linking summary shows how their well-intentioned action had an unintended consequence and names the emotional impact (disappointment). This shows deep empathy."
+          },
+          {
+            "text": "Sometimes less information is better.",
+            "technique": "Advice/interpretation (non-MI)",
+            "next_node_id": "node_5e",
+            "feedback": "This offers unsolicited interpretation/advice. Instead, reflect their experience and let them draw their own conclusions about what they need."
+          }
+        ]
+      },
+      {
+        "id": "node_4c",
+        "patient_statement": "Thank you. Yes, both matter - the desire to change and the things that make it hard. I need both sides to be heard.",
+        "patient_context": "Patient appreciates balanced understanding",
+        "practitioner_choices": [
+          {
+            "text": "So let me make sure I have the full picture now. Your granddaughter has awakened this real desire to quit - that's the pull toward change. Work stress, and your reliance on smoking to cope with it, that's what makes quitting feel difficult or even impossible. You've taken initiative to research methods, which shows you're taking this seriously. And you're dealing with lots of conflicting advice about how to proceed. You need all of that acknowledged - both the pull toward change and the very real barriers. How's that?",
+            "technique": "Comprehensive balanced summary",
+            "next_node_id": "node_5f",
+            "feedback": "Perfect! This is a balanced collecting summary that honors both change talk and sustain talk equally. It demonstrates complete listening and invites correction. This repairs the relationship."
+          },
+          {
+            "text": "Okay, so you want to quit for your granddaughter but work stress makes it hard.",
+            "technique": "Minimal summary",
+            "next_node_id": "node_5g",
+            "feedback": "This is accurate but too brief after they just told you how important it is to have both sides fully heard. A more comprehensive summary would show you really got the message."
+          }
+        ]
+      },
+      {
+        "id": "node_4d",
+        "patient_statement": "It is uncomfortable. Because if I am making excuses, then what does that say about me? But if I'm genuinely not ready, then I shouldn't push myself. I don't know which it is.",
+        "patient_context": "Patient wrestling with self-judgment vs. self-compassion",
+        "practitioner_choices": [
+          {
+            "text": "You're caught between two very different interpretations of your waiting - is it self-protection or self-sabotage? And that uncertainty itself is uncomfortable because it affects how you see yourself.",
+            "technique": "Linking summary (internal dilemma + identity)",
+            "next_node_id": "node_5h",
+            "feedback": "Excellent! This linking summary captures the core dilemma and connects it to its deeper meaning - how they understand themselves. This shows sophisticated understanding."
+          },
+          {
+            "text": "Only you can know which it is.",
+            "technique": "Platitude (unhelpful)",
+            "next_node_id": "node_5i",
+            "feedback": "While technically true, this platitude doesn't help. They've just shared a complex internal struggle - a summary would show you understand its depth and complexity."
+          }
+        ]
+      },
+      {
+        "id": "node_4e",
+        "patient_statement": "Look, I don't need you to tell me what to do. I need help figuring out what I want to do.",
+        "patient_context": "Patient asserts need for autonomy",
+        "practitioner_choices": [
+          {
+            "text": "You're absolutely right, and I apologize for slipping into telling you what you should do. What you're looking for is support in your own process of figuring this out, not someone directing you. Let me get back to that.",
+            "technique": "Apology + clarification of role",
+            "next_node_id": "node_5j",
+            "feedback": "Excellent! You acknowledge the misstep, apologize, clarify their need for autonomous decision-making, and commit to returning to that approach. This honors MI spirit."
+          },
+          {
+            "text": "Fine. What do you want to do?",
+            "technique": "Frustrated question (non-MI)",
+            "next_node_id": "node_end_poor",
+            "feedback": "This sounds frustrated and puts all the burden on them. When you've made an error, acknowledge it genuinely before moving forward."
+          }
+        ]
+      },
+      {
+        "id": "node_4f",
+        "patient_statement": "Yes, that's exactly where I am. And hearing it all laid out like that... I think I've been avoiding really looking at whether this 'waiting' is serving me or hurting me.",
+        "patient_context": "Summary helped patient gain clarity; this is a good moment to transition",
+        "practitioner_choices": [
+          {
+            "text": "The summary helped you see something you'd been avoiding looking at directly. Where would you like to go from here with that question - whether the waiting is serving you or hurting you?",
+            "technique": "Transitional summary + open question",
+            "next_node_id": "node_5k",
+            "feedback": "Perfect! This is a transitional summary - it acknowledges what the summary just illuminated and then offers an open question about where to go next. This is advanced MI - using summary as a bridge."
+          },
+          {
+            "text": "So are you ready to stop waiting and take action?",
+            "technique": "Leading question (non-MI)",
+            "next_node_id": "node_5l",
+            "feedback": "This is a leading question that pushes toward your agenda (action). Instead, invite them to explore where they want to go with this new awareness."
+          },
+          {
+            "text": "That's an important question to explore - whether waiting is serving you or hurting you.",
+            "technique": "Reflection",
+            "next_node_id": "node_5m",
+            "feedback": "Good reflection. Both this and the transitional summary are MI-adherent. The transitional summary has the added benefit of explicitly inviting them to determine the direction."
+          }
+        ]
+      },
+      {
+        "id": "node_4g",
+        "patient_statement": "Yeah. That's what's scary. If I keep waiting for those conditions, I might never quit. But if I try without them... I don't know if I'll make it.",
+        "patient_context": "Patient sees the dilemma clearly - both paths feel risky",
+        "practitioner_choices": [
+          {
+            "text": "You're seeing the dilemma clearly now - waiting might mean never acting, but acting without ideal conditions feels like setting yourself up to fail. Both paths involve risk, just different kinds of risk.",
+            "technique": "Linking summary (naming the paradox)",
+            "next_node_id": "node_5n",
+            "feedback": "Excellent! This linking summary names the paradox - both action and inaction involve risk. This validates why the decision is so difficult."
+          },
+          {
+            "text": "So what are you going to do?",
+            "technique": "Closed question (premature)",
+            "next_node_id": "node_5o",
+            "feedback": "This closed question pushes for a decision before they've fully explored the dilemma. A summary would show understanding and create space for them to continue processing."
+          }
+        ]
+      },
+      {
+        "id": "node_4h",
+        "patient_statement": "Okay. Yeah. It is complex. And I don't know what to do with all this complexity.",
+        "patient_context": "Patient accepts corrective summary; still feels stuck",
+        "practitioner_choices": [
+          {
+            "text": "Let me see if I can help organize what you've shared. You're experiencing strong pulls in different directions - your granddaughter toward change, work stress toward staying the same. You've researched actively, but that created more questions than answers. Everyone's offering advice, which adds noise rather than clarity. And you're in this in-between place, knowing you need to decide something but not clear on what or when. Given all that complexity, it makes sense you're feeling stuck. What part of all this feels most important to focus on right now?",
+            "technique": "Organizing summary + focusing question",
+            "next_node_id": "node_5p",
+            "feedback": "Perfect! This comprehensive summary organizes the complexity into understandable parts, normalizes their stuck feeling given the complexity, then offers a focusing question to help them narrow down. This is sophisticated MI."
+          },
+          {
+            "text": "The complexity is the problem. Let's simplify.",
+            "technique": "Advice-giving (non-MI)",
+            "next_node_id": "node_5q",
+            "feedback": "This prescribes your solution to their problem. Instead, help them organize the complexity through summary and then invite them to identify what matters most."
+          }
+        ]
+      },
+      {
+        "id": "node_4i",
+        "patient_statement": "It is. I pride myself on being someone who makes decisions and follows through. This is out of character for me, and that makes me question myself even more.",
+        "patient_context": "Patient's identity as decisive person is being challenged",
+        "practitioner_choices": [
+          {
+            "text": "So there's the original struggle about smoking itself, and then there's this layer of struggling with the struggle - questioning yourself because this doesn't match who you understand yourself to be. That second layer adds its own weight.",
+            "technique": "Linking summary (meta-level struggle)",
+            "next_node_id": "node_5r",
+            "feedback": "Excellent! This linking summary identifies that there's the primary struggle (what to do about smoking) and a secondary struggle (what it means that they're struggling). This meta-level insight is valuable."
+          },
+          {
+            "text": "You're a decisive person.",
+            "technique": "Simple reflection (minimal)",
+            "next_node_id": "node_5s",
+            "feedback": "Accurate but misses the complexity they just shared - that their current indecisiveness is challenging their self-concept. A linking summary would show deeper understanding."
+          }
+        ]
+      },
+      {
+        "id": "node_4j",
+        "patient_statement": "I think... this one affects so much. It's not just about me. It's about my granddaughter, my wife, my health, my future. The stakes feel really high.",
+        "patient_context": "Patient identifies why this decision is uniquely difficult",
+        "practitioner_choices": [
+          {
+            "text": "So let me gather what makes this decision so weighty. It's not just about you and a habit - it's about your granddaughter and the grandfather you want to be, your wife and her concerns, your health and longevity, your future. All these important relationships and values are wrapped up in this one decision. That's why it feels so much bigger than deciding about other things. Does that capture it?",
+            "technique": "Comprehensive linking summary",
+            "next_node_id": "node_5t",
+            "feedback": "Perfect! This linking summary gathers all the stakes they identified and shows how they're interconnected. It validates why this decision is uniquely difficult and checks for accuracy."
+          },
+          {
+            "text": "The stakes are high.",
+            "technique": "Minimal summary",
+            "next_node_id": "node_5u",
+            "feedback": "True but doesn't capture what makes the stakes high - all the relationships and values involved. A more comprehensive summary would show deeper listening."
+          }
+        ]
+      },
+      {
+        "id": "node_4k",
+        "patient_statement": "That's it exactly. You've really captured what's going on. And honestly, hearing it all laid out like that... I think the exhaustion is telling me something. I can't keep going in circles forever.",
+        "patient_context": "Summary helps patient recognize they can't stay stuck; good transition moment",
+        "practitioner_choices": [
+          {
+            "text": "The exhaustion itself is information - it's signaling that this circular pattern isn't sustainable. Something needs to shift. What do you think that shift might look like?",
+            "technique": "Transitional summary + open question",
+            "next_node_id": "node_5v",
+            "feedback": "Excellent! This transitional summary acknowledges their insight about the exhaustion and then invites them to explore what change might look like. This bridges from understanding to considering action."
+          },
+          {
+            "text": "Right, so you need to make a decision and commit to it.",
+            "technique": "Advice-giving (non-MI)",
+            "next_node_id": "node_5w",
+            "feedback": "This prescribes what they should do. They just had an insight - invite them to explore what it means rather than telling them what to do with it."
+          }
+        ]
+      },
+      {
+        "id": "node_4l",
+        "patient_statement": "It really is. And I'm worried I'm wasting precious time. My granddaughter is already three months old and I'm still stuck.",
+        "patient_context": "Patient adds time pressure concern",
+        "practitioner_choices": [
+          {
+            "text": "So to everything else, there's now a time dimension - a sense that while you're circling, time with your granddaughter is passing. That adds urgency to an already complex situation.",
+            "technique": "Linking summary (adding time pressure)",
+            "next_node_id": "node_5x",
+            "feedback": "Excellent! This linking summary shows how the time dimension adds another layer to an already complex situation. This validates the urgency they're feeling."
+          },
+          {
+            "text": "Then you should decide soon.",
+            "technique": "Advice-giving (non-MI)",
+            "next_node_id": "node_5y",
+            "feedback": "This is the righting reflex. Instead of prescribing urgency, reflect the time pressure they're feeling and let them decide what to do with it."
+          }
+        ]
+      },
+      {
+        "id": "node_5a",
+        "patient_statement": "Yes. And I don't know how to simplify it. Do I just ignore everyone? Do I tell them to back off? I don't want to be ungrateful or push people away.",
+        "patient_context": "Patient wants to reduce complexity but doesn't know how without damaging relationships",
+        "practitioner_choices": [
+          {
+            "text": "So you're looking for a way to get some clarity and space without hurting the people who care about you. That's a real dilemma - how to honor your need for autonomy while honoring their care and concern.",
+            "technique": "Linking summary (identifying core tension)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This linking summary identifies the core tension - autonomy vs. connection - and validates that it's a real dilemma, not a simple problem to solve."
+          }
+        ]
+      },
+      {
+        "id": "node_5b",
+        "patient_statement": "I can't just tell people who care about me to stop caring. That's not who I am.",
+        "patient_context": "Patient rejects advice that conflicts with their values",
+        "practitioner_choices": [
+          {
+            "text": "You're right - that wouldn't fit with your values around relationships. Let me step back. You're dealing with caring people whose input is creating overwhelm, and you need to find your own clarity while maintaining those relationships. That's the challenge.",
+            "technique": "Acknowledgment + corrective summary",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good! You acknowledge the advice was wrong and offer a summary that shows you understand their actual dilemma - needing clarity while preserving relationships."
+          }
+        ]
+      },
+      {
+        "id": "node_5c",
+        "patient_statement": "Yes. That's exactly what I need. But I don't know how to create that space when everyone keeps weighing in.",
+        "patient_context": "Patient confirms need for space; seeking way forward",
+        "practitioner_choices": [
+          {
+            "text": "So the challenge is how to create internal clarity and space for your own decision-making while you're surrounded by external input and opinions. That's what you're trying to figure out.",
+            "technique": "Linking summary (clarifying the challenge)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This linking summary clarifies the specific challenge they're facing - creating internal space amid external noise. This sets up potential exploration of how to do that."
+          }
+        ]
+      },
+      {
+        "id": "node_5d",
+        "patient_statement": "It is disappointing. I thought I was being smart and proactive, and instead I just made myself more confused.",
+        "patient_context": "Patient feels their good intention backfired",
+        "practitioner_choices": [
+          {
+            "text": "Your intention was good - to make an informed, thoughtful decision. The unintended consequence was overwhelm. So now the question is how to use what you learned without being paralyzed by it.",
+            "technique": "Linking summary + gentle transition",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This validates their good intention, acknowledges the unintended outcome, and gently frames the next question without prescribing an answer."
+          }
+        ]
+      },
+      {
+        "id": "node_5e",
+        "patient_statement": "Maybe. But I also think I need to know what I'm getting into. I just... I need to process it all somehow.",
+        "patient_context": "Patient defends their need for information while acknowledging overwhelm",
+        "practitioner_choices": [
+          {
+            "text": "You're caught between two needs - the need to be informed and the need to not be overwhelmed. Both are valid. You're trying to figure out how to honor both.",
+            "technique": "Linking summary (competing needs)",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good! This linking summary shows the tension between competing valid needs and validates the challenge of honoring both."
+          }
+        ]
+      },
+      {
+        "id": "node_5f",
+        "patient_statement": "Yes, that's much better. That's the full picture. And now that I hear it all together... I realize the desire to quit is actually pretty strong. It's the 'how' that scares me, not the 'whether.'",
+        "patient_context": "Important insight - problem is method/confidence, not importance",
+        "practitioner_choices": [
+          {
+            "text": "That's a significant realization - when you see the whole picture, you recognize that the desire is there. The uncertainty is more about whether you can do it and how to do it than whether you want to. That's an important distinction.",
+            "technique": "Transitional summary (highlighting shift)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This transitional summary highlights the important shift they just identified - from ambivalence about wanting to change to uncertainty about ability/method. This is readiness emerging."
+          }
+        ]
+      },
+      {
+        "id": "node_5g",
+        "patient_statement": "That's still too simple. There's more to it than that.",
+        "patient_context": "Patient needs more comprehensive acknowledgment",
+        "practitioner_choices": [
+          {
+            "text": "You're right. Let me be more thorough. You have this desire to quit for your granddaughter - that's real and important. Work stress and how you rely on smoking to cope with it makes quitting feel daunting. You've researched methods, showing you're serious about this. And you're dealing with a lot of input from others. All of that is part of the picture, and all of it needs to be acknowledged.",
+            "technique": "More comprehensive summary",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good! You responded to their feedback by providing a more comprehensive summary that gathers the key elements."
+          }
+        ]
+      },
+      {
+        "id": "node_5h",
+        "patient_statement": "Exactly. Am I being wise and self-aware, or am I being a coward? I keep going back and forth on that too.",
+        "patient_context": "Patient oscillates between self-compassion and self-judgment",
+        "practitioner_choices": [
+          {
+            "text": "That oscillation between self-compassion and self-judgment is another circle you're caught in - on top of the circle about whether to quit. These layers of circling make it even harder to find solid ground.",
+            "technique": "Linking summary (meta-level pattern)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This linking summary shows how the self-judgment creates another layer of circling on top of the ambivalence about smoking. This validates why finding clarity is so difficult."
+          }
+        ]
+      },
+      {
+        "id": "node_5i",
+        "patient_statement": "That's not helpful. I know only I can know. I'm asking for help figuring it out.",
+        "patient_context": "Patient rejects platitude; wants real help",
+        "practitioner_choices": [
+          {
+            "text": "You're right, that was a platitude and not helpful. What you're asking for is support in exploring this question - is your hesitation self-protection or avoidance? That's a hard question to answer, and you want to think it through rather than be told the answer. Let me help you explore it.",
+            "technique": "Apology + clarification + commitment",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! You acknowledge the unhelpful platitude and clarify their need - support in exploration, not answers. This returns to MI spirit."
+          }
+        ]
+      },
+      {
+        "id": "node_5j",
+        "patient_statement": "Thank you. I appreciate that. What I'm looking for is someone to help me think through this, not someone to tell me what the answer is.",
+        "patient_context": "Patient clarifies what they need from practitioner",
+        "practitioner_choices": [
+          {
+            "text": "I understand, and I'm here to help you think through it. Let me make sure I'm with you on where things stand. You're experiencing pulls in different directions, you've researched actively, you're dealing with lots of input, and you're trying to sort through what you genuinely want versus what others want for you. Does that capture the complexity you're working through?",
+            "technique": "Commitment + collecting summary",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! You confirm your role, then offer a summary that demonstrates you understand their situation. This rebuilds the collaborative relationship."
+          }
+        ]
+      },
+      {
+        "id": "node_5k",
+        "patient_statement": "I think... I think the waiting is hurting me. It's keeping me stuck, and I'm using 'not being ready' as an excuse to avoid the discomfort of actually trying.",
+        "patient_context": "Significant change talk - patient recognizing avoidance",
+        "practitioner_choices": [
+          {
+            "text": "That's a courageous thing to acknowledge - that the waiting might be protective against discomfort but is keeping you stuck in a place you don't want to be. What does recognizing that make you think about doing?",
+            "technique": "Affirmation + transitional question",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This affirms their courage in facing this truth and then invites them to explore what action might follow from this awareness. This is transitioning from contemplation to preparation."
+          }
+        ]
+      },
+      {
+        "id": "node_5l",
+        "patient_statement": "Don't put words in my mouth. I didn't say I was ready to take action. I said I realized something about my waiting.",
+        "patient_context": "Patient resists being pushed",
+        "practitioner_choices": [
+          {
+            "text": "You're absolutely right - I jumped ahead again. You had an insight about your waiting, and that's significant on its own. Where you go with that insight is up to you, not me.",
+            "technique": "Apology + honoring autonomy",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! You acknowledge jumping ahead and explicitly honor their autonomy about what to do with their insight."
+          }
+        ]
+      },
+      {
+        "id": "node_5m",
+        "patient_statement": "It is. And I'm not sure what the answer is yet, but at least now I know what the question is.",
+        "patient_context": "Patient values clarity about the question",
+        "practitioner_choices": [
+          {
+            "text": "So our conversation has helped you move from confusion to clarity - not clarity about the answer yet, but clarity about the real question you're wrestling with. That's meaningful progress.",
+            "technique": "Transitional summary (acknowledging progress)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This transitional summary acknowledges the value of gaining clarity about the question, validating that this is real progress even without having an answer yet."
+          }
+        ]
+      },
+      {
+        "id": "node_5n",
+        "patient_statement": "Yes. Both feel risky. I guess... I guess the question is which risk I'd rather take. Or which risk I can live with if it doesn't work out.",
+        "patient_context": "Patient reframing from avoiding risk to choosing risk",
+        "practitioner_choices": [
+          {
+            "text": "That's a shift - from trying to find a risk-free path to recognizing you need to choose which risk makes sense for you. That's a more realistic and empowered way to think about it.",
+            "technique": "Transitional summary (cognitive shift)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This transitional summary names an important cognitive shift - from avoidance to active choice. This is movement toward readiness."
+          }
+        ]
+      },
+      {
+        "id": "node_5o",
+        "patient_statement": "I don't know yet. That's what I'm trying to figure out.",
+        "patient_context": "Patient not ready for decision question",
+        "practitioner_choices": [
+          {
+            "text": "Let me step back. You're seeing this dilemma clearly now - both waiting and acting involve risk. You're still in the process of weighing those risks and what they mean for you. You're not at decision yet, you're at understanding. Is that right?",
+            "technique": "Corrective summary",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! This summary shows you understand they're still in the weighing/understanding phase, not the decision phase. This honors their process."
+          }
+        ]
+      },
+      {
+        "id": "node_5p",
+        "patient_statement": "I think... I think the most important part is figuring out how I cope with stress if not smoking. That's the piece that scares me most.",
+        "patient_context": "Patient identifies core barrier to focus on",
+        "practitioner_choices": [
+          {
+            "text": "So of all the complexity, the question that rises to the top for you is: how would you manage stress without cigarettes? That's the core concern that needs addressing before you can move forward.",
+            "technique": "Focusing summary",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This focusing summary shows how the comprehensive discussion has helped them identify the core issue. This is advanced MI - using summary to help clarify what matters most."
+          }
+        ]
+      },
+      {
+        "id": "node_5q",
+        "patient_statement": "It's not that simple. The complexity is real. I can't just ignore it.",
+        "patient_context": "Patient resists oversimplification",
+        "practitioner_choices": [
+          {
+            "text": "You're right - the complexity is real and important. Let me try a different approach. What I hear you saying is that you're dealing with multiple layers - the decision itself, the methods, the input from others, your own self-judgment. Rather than simplifying, what might help is identifying which layer feels most important to address first. Does that make sense?",
+            "technique": "Apology + organizing summary + focusing invitation",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! You acknowledge the complexity, organize it into layers, and invite them to identify what matters most rather than prescribing simplification."
+          }
+        ]
+      },
+      {
+        "id": "node_5r",
+        "patient_statement": "Yes! There's the problem itself and then there's what it means that I'm having this problem. Both are hard.",
+        "patient_context": "Patient recognizes double burden",
+        "practitioner_choices": [
+          {
+            "text": "You're carrying a double weight - the actual struggle with smoking and what that struggle means about you as a person. That's a lot. And recognizing that second layer exists is important, because maybe addressing both requires different approaches.",
+            "technique": "Linking summary + gentle implication",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This validates the double burden and gently suggests that seeing the two layers clearly might help address them differently. This is sophisticated guidance without prescription."
+          }
+        ]
+      },
+      {
+        "id": "node_5s",
+        "patient_statement": "I usually am. But not about this. And I don't know why this is so different.",
+        "patient_context": "Patient still exploring why this is hard",
+        "practitioner_choices": [
+          {
+            "text": "So there's something about this particular decision that's different from how you usually operate, and that difference itself is puzzling to you. Part of what you're trying to understand is not just what to do about smoking but why this decision feels so different from others.",
+            "technique": "Linking summary (expanding the question)",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good! This linking summary shows how they're wrestling with two questions - what to do and why it's so hard. This validates the meta-level confusion."
+          }
+        ]
+      },
+      {
+        "id": "node_5t",
+        "patient_statement": "Yes, exactly. It's all connected. I can't make this decision in isolation because it affects everyone and everything I care about.",
+        "patient_context": "Patient sees interconnectedness",
+        "practitioner_choices": [
+          {
+            "text": "So this decision sits at the center of a web of relationships and values - you can't pull one thread without affecting the whole web. That's why it feels so weighty and why simple answers don't work. You need a decision that honors all these connections.",
+            "technique": "Linking summary (metaphor)",
+            "next_node_id": "node_end_good",
+            "feedback": "Beautiful! This linking summary uses the web metaphor to capture how interconnected everything is and validates why this requires careful thought. This is sophisticated empathy."
+          }
+        ]
+      },
+      {
+        "id": "node_5u",
+        "patient_statement": "They are. And knowing the stakes are high doesn't make the decision easier - it makes it harder.",
+        "patient_context": "Patient notes paradox - high stakes increase difficulty",
+        "practitioner_choices": [
+          {
+            "text": "That's the paradox - the very importance of this decision, all these relationships and values at stake, that makes it more difficult rather than clearer. The weight of the decision is both motivation and burden.",
+            "technique": "Linking summary (paradox)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This linking summary names the paradox - high stakes create both motivation and paralysis. This validates their experience."
+          }
+        ]
+      },
+      {
+        "id": "node_5v",
+        "patient_statement": "I don't know exactly, but I know I can't just keep thinking about it in circles. Maybe I need to try something, even if I'm not 100% ready. Maybe readiness comes from doing, not from thinking.",
+        "patient_context": "Significant change talk - patient considering action despite uncertainty",
+        "practitioner_choices": [
+          {
+            "text": "That's a significant shift in your thinking - from 'I need to be ready before I act' to 'maybe acting is how I become ready.' You're considering that movement might create clarity rather than clarity creating movement. That's a different way of approaching this.",
+            "technique": "Transitional summary (major cognitive shift)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This transitional summary captures a major cognitive shift that often precedes behavior change - from preparation to action. This is exactly the kind of change talk that suggests readiness emerging."
+          }
+        ]
+      },
+      {
+        "id": "node_5w",
+        "patient_statement": "That's not what I said. I said something needs to shift. I didn't say it needs to be a decision right now.",
+        "patient_context": "Patient resists prescription",
+        "practitioner_choices": [
+          {
+            "text": "You're right - I pushed you toward a specific kind of shift (decision and commitment) when you said something more open ('something needs to shift'). What kind of shift do you think needs to happen?",
+            "technique": "Apology + open question",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! You acknowledge prescribing your interpretation and invite them to clarify what kind of shift they mean."
+          }
+        ]
+      },
+      {
+        "id": "node_5x",
+        "patient_statement": "Yes. I don't want to look back in five years and realize I wasted all this time being stuck when I could have been smoke-free and present with her.",
+        "patient_context": "Strong change talk - fear of regret",
+        "practitioner_choices": [
+          {
+            "text": "That's a powerful motivator - the image of future regret, of lost time you can't get back with your granddaughter. That feels more urgent than the theoretical health risks. It's personal and immediate.",
+            "technique": "Linking summary (amplifying motivation)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This linking summary amplifies their change talk and contrasts it with abstract health concerns - showing that this particular motivation (lost time with granddaughter) carries special weight for them."
+          }
+        ]
+      },
+      {
+        "id": "node_5y",
+        "patient_statement": "Don't tell me what I should do. I'm sharing what I'm feeling.",
+        "patient_context": "Patient rejects prescription",
+        "practitioner_choices": [
+          {
+            "text": "I apologize. You were sharing an important feeling - the sense of time passing and opportunities with your granddaughter slipping by. That urgency is real for you, and it's not my place to tell you what to do with it.",
+            "technique": "Apology + reflection",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good! You apologize for the righting reflex and reflect their feeling without prescribing action. This returns to MI spirit."
+          }
+        ]
+      },
+      {
+        "id": "node_end_good",
+        "patient_statement": "This conversation has been really helpful. You helped me organize my thinking and see things I wasn't seeing before. I feel like I have more clarity about what I'm actually dealing with, even if I don't have all the answers yet.",
+        "is_ending": true,
+        "outcome": "Strong engagement - Effective summaries helped organize complexity, create clarity, highlight key themes, and facilitate natural transitions in the patient's thinking",
+        "learning_summary": "Effective summaries are: (1) Collecting - gathering what's been shared, (2) Linking - connecting themes and showing patterns, (3) Transitional - bridging to next steps. Good summaries are offered with humility ('Let me see if I have this right...'), check for accuracy, and can strategically emphasize change talk while honoring sustain talk. They demonstrate comprehensive listening and help patients organize their own thinking."
+      },
+      {
+        "id": "node_end_moderate",
+        "patient_statement": "Thanks for listening and for correcting course when I pointed out you were getting off track. That helps.",
+        "is_ending": true,
+        "outcome": "Moderate engagement - Some missteps occurred but were corrected through acknowledgment and improved summaries",
+        "learning_summary": "When summaries are incomplete, one-sided, or dismissive, patients will let you know. The key is to accept that feedback, apologize, and offer a more complete or balanced summary. Being willing to acknowledge errors and course-correct actually strengthens the therapeutic relationship and models that patient feedback is valued."
+      },
+      {
+        "id": "node_end_poor",
+        "patient_statement": "This isn't helpful. I don't think we're on the same page here.",
+        "is_ending": true,
+        "outcome": "Poor engagement - Inadequate summaries and defensiveness prevented effective collaboration",
+        "learning_summary": "Summaries that are incomplete, one-sided, or focused only on what the practitioner thinks is important can make patients feel unheard. Defending incomplete summaries instead of correcting them breaks the collaborative spirit. Effective summarizing requires humility, comprehensiveness, and willingness to be corrected by the patient."
+      }
+    ]
+  }
+}

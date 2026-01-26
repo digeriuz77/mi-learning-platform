@@ -1,0 +1,95 @@
+{
+  "dialogue_tree": {
+    "title": "Module 1: Simple Reflections - Building Engagement",
+    "learning_objective": "Learn to create simple, accurate reflections that demonstrate understanding and build therapeutic alliance",
+    "technique_focus": "Simple Reflections",
+    "stage_of_change": "Precontemplation",
+    "mi_process": "Engaging",
+    "description": "Simple reflections capture the essence of what the client said without adding interpretation or judgment. They demonstrate listening, build trust, and encourage clients to elaborate. Effective reflections are brief, accurate, and focused on observable content.",
+    "start_node": "node_1",
+    "nodes": [
+      {
+        "id": "node_1",
+        "patient_statement": "I was sent here because I smoke. I don't really think it's a problem.",
+        "patient_context": "Client is in precontemplation stage, resistant to change",
+        "practitioner_choices": [
+          {
+            "text": "Smoking can cause cancer, heart disease, and many other health problems.",
+            "technique": "Education/Warning (Non-MI)",
+            "next_node_id": "node_2a",
+            "feedback": "This is education/warning, not reflection. You're providing information instead of reflecting what they said. This can create resistance."
+          },
+          {
+            "text": "You don't see smoking as a problem for you.",
+            "technique": "Simple Reflection (Effective)",
+            "next_node_id": "node_2b",
+            "feedback": "Perfect! This is a simple, accurate reflection of exactly what they said. It demonstrates you're listening without judgment."
+          },
+          {
+            "text": "Why do you think it's not a problem?",
+            "technique": "Open Question (Premature)",
+            "next_node_id": "node_2c",
+            "feedback": "While questions can be useful, starting with a reflection demonstrates better listening. You missed an opportunity to reflect first."
+          }
+        ]
+      },
+      {
+        "id": "node_2a",
+        "patient_statement": "Yeah, I know all that. They've been telling me that for years. It hasn't made any difference.",
+        "patient_context": "Client reacts to education/warning with resistance",
+        "practitioner_choices": [
+          {
+            "text": "But the risks are real and serious.",
+            "technique": "Confrontation (Non-MI)",
+            "next_node_id": "node_3a",
+            "feedback": "This confronts and argues with the client, which increases resistance. You're defending your position rather than understanding theirs."
+          },
+          {
+            "text": "All that information about risks hasn't changed anything for you so far.",
+            "technique": "Reflection (Recovery)",
+            "next_node_id": "node_3b",
+            "feedback": "Good! This reflects their experience without arguing. You acknowledge the information hasn't helped them change."
+          }
+        ]
+      },
+      {
+        "id": "node_2b",
+        "patient_statement": "That's right. I enjoy smoking. It helps me relax. I don't want to quit.",
+        "patient_context": "Client elaborates on sustain talk",
+        "practitioner_choices": [
+          {
+            "text": "You enjoy smoking and it helps you relax, so you don't want to quit.",
+            "technique": "Complex Reflection (Effective)",
+            "next_node_id": "node_3c",
+            "feedback": "Excellent! This reflects both their enjoyment of smoking and their desire not to quit. This honors their perspective."
+          },
+          {
+            "text": "But relaxation is important, and there are healthier ways to achieve it.",
+            "technique": "Education/Alternative (Non-MI)",
+            "next_node_id": "node_3d",
+            "feedback": "This jumps to solutions and alternatives rather than reflecting their current perspective. This can create resistance."
+          }
+        ]
+      },
+      {
+        "id": "node_2c",
+        "patient_statement": "Because I don't. It's something I choose to do, and I'm not hurting anyone.",
+        "patient_context": "Client defends their choice",
+        "practitioner_choices": [
+          {
+            "text": "You see this as your choice and you don't see it as hurting anyone.",
+            "technique": "Simple Reflection (Effective)",
+            "next_node_id": "node_3e",
+            "feedback": "Good! This reflects both their sense of choice and their view about not hurting others."
+          },
+          {
+            "text": "But secondhand smoke can hurt people around you.",
+            "technique": "Confrontation/Education (Non-MI)",
+            "next_node_id": "node_3f",
+            "feedback": "This confronts and argues rather than reflecting their perspective. This will likely increase resistance."
+          }
+        ]
+      }
+    ]
+  }
+}

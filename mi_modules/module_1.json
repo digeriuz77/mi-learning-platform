@@ -1,0 +1,243 @@
+{
+  "dialogue_tree": {
+    "title": "Module 1: Simple Reflections - Building Engagement",
+    "learning_objective": "Learn to use simple reflections to demonstrate understanding and build rapport with a patient in precontemplation",
+    "technique_focus": "Simple Reflections",
+    "stage_of_change": "Precontemplation",
+    "mi_process": "Engaging",
+    "description": "Simple reflections repeat or rephrase what the patient said to show you're listening and understand. They build trust and encourage the patient to continue exploring.",
+    "start_node": "node_1",
+    "nodes": [
+      {
+        "id": "node_1",
+        "patient_statement": "My doctor sent me here to talk about quitting smoking, but honestly, I don't see what the big deal is. I've been smoking for 20 years and I'm fine.",
+        "patient_context": "Precontemplation - Patient doesn't see smoking as a problem and may feel coerced into the conversation",
+        "practitioner_choices": [
+          {
+            "text": "Your doctor is concerned about your smoking.",
+            "technique": "Simple reflection (partial)",
+            "next_node_id": "node_2a",
+            "feedback": "This reflects only part of what the patient said - you missed their perspective that they don't see it as a problem. A more complete reflection would acknowledge their view."
+          },
+          {
+            "text": "You don't see your smoking as a problem right now.",
+            "technique": "Simple reflection (complete)",
+            "next_node_id": "node_2b",
+            "feedback": "Excellent! This simple reflection captures the patient's perspective without judgment. It shows you heard them and creates space for them to continue."
+          },
+          {
+            "text": "Even though you've been smoking for 20 years, it's actually causing damage you can't see yet.",
+            "technique": "Righting reflex (non-MI)",
+            "next_node_id": "node_2c",
+            "feedback": "This contradicts the patient and jumps to educating them. The 'righting reflex' often increases resistance in precontemplation. Try reflecting their perspective first."
+          }
+        ]
+      },
+      {
+        "id": "node_2a",
+        "patient_statement": "Yeah, she is. But she worries about everything. I feel fine, my breathing is okay. I don't get what everyone's so worried about.",
+        "patient_context": "Patient continues to minimize concerns",
+        "practitioner_choices": [
+          {
+            "text": "From your perspective, everything feels fine with your health.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3a",
+            "feedback": "Good reflection! You're continuing to show understanding of their perspective, which builds rapport even when they're resistant."
+          },
+          {
+            "text": "Your breathing feels okay to you right now.",
+            "technique": "Simple reflection (specific)",
+            "next_node_id": "node_3a",
+            "feedback": "Excellent! This reflects a specific detail the patient mentioned, showing you're listening carefully. Specificity strengthens the reflection."
+          },
+          {
+            "text": "But are you sure your breathing is really okay? Sometimes people don't notice gradual changes.",
+            "technique": "Questioning/challenging (non-MI)",
+            "next_node_id": "node_3b",
+            "feedback": "This challenges the patient's perception and can increase defensiveness. In precontemplation, reflecting their view builds more rapport than questioning it."
+          }
+        ]
+      },
+      {
+        "id": "node_2b",
+        "patient_statement": "Exactly! I mean, if I had a problem, I'd know it, right? I can still do everything I used to do.",
+        "patient_context": "Patient feels validated and continues to share their perspective",
+        "practitioner_choices": [
+          {
+            "text": "You feel like you'd notice if smoking was affecting you.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3c",
+            "feedback": "Perfect! This reflection captures their reasoning and continues to build understanding. You're resisting the urge to correct or educate."
+          },
+          {
+            "text": "You can still do everything you used to do.",
+            "technique": "Simple reflection (literal)",
+            "next_node_id": "node_3c",
+            "feedback": "Good! This is a very literal reflection. While accurate, the previous option added slightly more depth by capturing the underlying belief."
+          },
+          {
+            "text": "Actually, many smokers don't realize they're being affected until serious damage has occurred.",
+            "technique": "Educating/righting reflex (non-MI)",
+            "next_node_id": "node_3b",
+            "feedback": "This is the 'righting reflex' - jumping to educate. While factually correct, it breaks rapport and increases resistance. Stay with reflections in early engagement."
+          }
+        ]
+      },
+      {
+        "id": "node_2c",
+        "patient_statement": "Look, I appreciate you trying to help, but I didn't come here to be lectured. I get enough of that from my family.",
+        "patient_context": "Patient is becoming resistant due to feeling lectured",
+        "practitioner_choices": [
+          {
+            "text": "You're feeling lectured, and that's frustrating for you.",
+            "technique": "Simple reflection (emotion)",
+            "next_node_id": "node_3d",
+            "feedback": "Excellent recovery! Reflecting their emotion (frustration) shows empathy and can help repair the rapport. This is 'rolling with resistance.'"
+          },
+          {
+            "text": "I'm not here to lecture you. I genuinely want to help you be healthier.",
+            "technique": "Defending/explaining (non-MI)",
+            "next_node_id": "node_end_resistance",
+            "feedback": "Defending yourself can make things worse. Instead, reflect the patient's experience to show you understand their frustration."
+          }
+        ]
+      },
+      {
+        "id": "node_3a",
+        "patient_statement": "Right. I mean, sure, I cough in the morning sometimes, but that's normal for smokers, isn't it?",
+        "patient_context": "Patient mentions a symptom but normalizes it",
+        "practitioner_choices": [
+          {
+            "text": "You notice some coughing, and you see that as just part of being a smoker.",
+            "technique": "Simple reflection (neutral)",
+            "next_node_id": "node_4a",
+            "feedback": "Excellent! This reflects both parts - the symptom and their interpretation - without judgment. You're building a complete picture of their perspective."
+          },
+          {
+            "text": "You cough in the mornings.",
+            "technique": "Simple reflection (minimal)",
+            "next_node_id": "node_4a",
+            "feedback": "This is accurate but misses the patient's interpretation (that they see it as normal). The more complete reflection captures their full meaning."
+          },
+          {
+            "text": "That morning cough is actually called 'smoker's cough' and it means your lungs are trying to clear out tar and toxins.",
+            "technique": "Educating (premature)",
+            "next_node_id": "node_3b",
+            "feedback": "While educational, this breaks the engagement process. You're still building rapport - save education for later when they're more open to it."
+          }
+        ]
+      },
+      {
+        "id": "node_3b",
+        "patient_statement": "You know what, I don't think this is for me. Thanks anyway.",
+        "patient_context": "Patient is disengaging due to feeling pressured or challenged",
+        "is_ending": true,
+        "outcome": "Poor engagement - Patient has withdrawn from the conversation",
+        "learning_summary": "When we challenge, educate, or contradict a patient in precontemplation, we often increase resistance rather than build motivation. Simple reflections that demonstrate understanding - even when we disagree - build the foundation for future change conversations."
+      },
+      {
+        "id": "node_3c",
+        "patient_statement": "Yeah. I walk my dog every day, I work a physical job. If smoking was really hurting me, I couldn't do those things.",
+        "patient_context": "Patient provides evidence for their view",
+        "practitioner_choices": [
+          {
+            "text": "Your daily activities - walking your dog, your physical job - those are evidence to you that you're doing okay.",
+            "technique": "Simple reflection (amplifying)",
+            "next_node_id": "node_4b",
+            "feedback": "Perfect! This reflection amplifies what they said, showing you really understand their reasoning. This builds strong rapport."
+          },
+          {
+            "text": "You work a physical job.",
+            "technique": "Simple reflection (incomplete)",
+            "next_node_id": "node_4b",
+            "feedback": "Accurate but incomplete. You captured one detail but missed the connection they're making between their activities and their health assessment."
+          }
+        ]
+      },
+      {
+        "id": "node_3d",
+        "patient_statement": "Yeah, it is. Everyone acts like they know what's best for me better than I do.",
+        "patient_context": "Patient feels their autonomy is being violated",
+        "practitioner_choices": [
+          {
+            "text": "You feel like people aren't respecting that you know yourself best.",
+            "technique": "Simple reflection (underlying meaning)",
+            "next_node_id": "node_4c",
+            "feedback": "Excellent! This reflection captures the deeper meaning - their need for autonomy and respect. This kind of reflection deepens rapport."
+          },
+          {
+            "text": "People are telling you what to do.",
+            "technique": "Simple reflection (surface level)",
+            "next_node_id": "node_4c",
+            "feedback": "Accurate but stays at the surface. The previous option captures the emotional impact - feeling disrespected - which shows deeper empathy."
+          }
+        ]
+      },
+      {
+        "id": "node_4a",
+        "patient_statement": "Exactly. My dad smoked till he was 75 and lived a good life. I figure genetics matter more than people think.",
+        "patient_context": "Patient shares family history as evidence",
+        "practitioner_choices": [
+          {
+            "text": "Your dad's experience - smoking and still living to 75 - that shapes how you think about risk.",
+            "technique": "Simple reflection (contextual)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflection shows you understand where their beliefs come from. You've built solid rapport through consistent reflection."
+          },
+          {
+            "text": "You think genetics are more important than smoking.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Good reflection. Both options are MI-adherent; the first adds slightly more context about why they believe this."
+          }
+        ]
+      },
+      {
+        "id": "node_4b",
+        "patient_statement": "Right. So when my doctor gets all serious about it, it's hard to take seriously, you know?",
+        "patient_context": "Patient feels there's a disconnect between medical advice and their lived experience",
+        "practitioner_choices": [
+          {
+            "text": "There's a gap between what your doctor is saying and what you're experiencing in your body.",
+            "technique": "Simple reflection (identifying discrepancy)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflection identifies the discrepancy they're experiencing. You've demonstrated deep understanding throughout this conversation."
+          },
+          {
+            "text": "It's hard to take your doctor seriously about this.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Good reflection! Both options work well here - the first adds a bit more depth about why it's hard to take seriously."
+          }
+        ]
+      },
+      {
+        "id": "node_4c",
+        "patient_statement": "Thanks for understanding that. I guess I'm just tired of feeling judged, you know?",
+        "patient_context": "Patient appreciates feeling heard and understood",
+        "practitioner_choices": [
+          {
+            "text": "You're tired of feeling judged about your smoking.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! By consistently reflecting without judgment, you've repaired the relationship and created an opening for future conversations."
+          }
+        ]
+      },
+      {
+        "id": "node_end_good",
+        "patient_statement": "Yeah. Look, I appreciate you actually listening instead of just telling me what to do. Maybe we can talk again sometime.",
+        "is_ending": true,
+        "outcome": "Good engagement - Through consistent simple reflections, you built rapport with a resistant patient. They're open to future conversations.",
+        "learning_summary": "Simple reflections are the foundation of MI, especially in precontemplation. They demonstrate understanding, build trust, and avoid triggering resistance. By consistently reflecting the patient's perspective - even when you disagree - you create a relationship where change becomes possible in the future."
+      },
+      {
+        "id": "node_end_resistance",
+        "patient_statement": "Right. Well, I think I'm done here. Have a good day.",
+        "is_ending": true,
+        "outcome": "Engagement failed - Patient withdrew due to feeling pressured or misunderstood",
+        "learning_summary": "In precontemplation, the 'righting reflex' - our urge to fix, educate, or convince - often backfires. Simple reflections that honor the patient's current perspective build the foundation for change, even when we strongly disagree with their view."
+      }
+    ]
+  }
+}

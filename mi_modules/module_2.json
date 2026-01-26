@@ -1,0 +1,385 @@
+{
+  "dialogue_tree": {
+    "title": "Module 2: Open-Ended Questions - Inviting Exploration",
+    "learning_objective": "Learn to ask open-ended questions that invite patients to explore their thoughts and feelings, rather than closed questions that limit responses",
+    "technique_focus": "Open-Ended Questions vs. Closed Questions",
+    "stage_of_change": "Precontemplation to Contemplation",
+    "mi_process": "Engaging to Focusing",
+    "description": "Open-ended questions invite elaboration and exploration. They typically start with 'What,' 'How,' or 'Tell me about...' rather than requiring yes/no answers. In MI, we follow the general rule of asking one open question followed by 2-3 reflections.",
+    "start_node": "node_1",
+    "nodes": [
+      {
+        "id": "node_1",
+        "patient_statement": "My wife is really on my case about my smoking. She says it bothers her, but I always smoke outside.",
+        "patient_context": "Patient mentions interpersonal tension around smoking but minimizes it",
+        "practitioner_choices": [
+          {
+            "text": "Does your wife want you to quit?",
+            "technique": "Closed question",
+            "next_node_id": "node_2a",
+            "feedback": "This closed question will likely get a yes/no answer, which limits exploration. Open-ended questions invite the patient to share more."
+          },
+          {
+            "text": "What does your wife say about your smoking?",
+            "technique": "Open-ended question",
+            "next_node_id": "node_2b",
+            "feedback": "Excellent! This open-ended question invites the patient to explore the interpersonal dimension without limiting their response. 'What' questions open up conversation."
+          },
+          {
+            "text": "Your wife is concerned, even though you smoke outside.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_2c",
+            "feedback": "Good reflection! This is MI-adherent and shows understanding. Both reflections and open questions work here - the open question invites more exploration of this important issue."
+          }
+        ]
+      },
+      {
+        "id": "node_2a",
+        "patient_statement": "Yeah, she does. She's been bugging me about it for years.",
+        "patient_context": "Short response - closed question limited exploration",
+        "practitioner_choices": [
+          {
+            "text": "Tell me more about what she says.",
+            "technique": "Open-ended invitation",
+            "next_node_id": "node_3a",
+            "feedback": "Good recovery! This open invitation encourages them to elaborate. 'Tell me more' is a simple but powerful way to open up conversation."
+          },
+          {
+            "text": "Is it causing problems in your relationship?",
+            "technique": "Closed question",
+            "next_node_id": "node_3b",
+            "feedback": "Another closed question. While the topic is important, closed questions tend to keep responses brief. Try 'How is this affecting your relationship?' instead."
+          },
+          {
+            "text": "She's been asking you to quit for years.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3c",
+            "feedback": "Good reflection! In MI, we aim for a balance - after a closed question, following with a reflection or open question helps keep the conversation flowing."
+          }
+        ]
+      },
+      {
+        "id": "node_2b",
+        "patient_statement": "She says she can still smell it on my clothes. And she worries about my health. She actually got pretty emotional last week, saying she doesn't want to lose me. That kind of hit me.",
+        "patient_context": "Open question yielded rich information - multiple concerns and emotional impact",
+        "practitioner_choices": [
+          {
+            "text": "Sounds like her worry about losing you really affected you.",
+            "technique": "Simple reflection (emotional)",
+            "next_node_id": "node_3d",
+            "feedback": "Excellent! Following an open question with a reflection is ideal MI practice (the OARS pattern: one open question, then 2-3 reflections). You captured the emotional impact."
+          },
+          {
+            "text": "What was it like for you when she said that?",
+            "technique": "Open-ended question (deepening)",
+            "next_node_id": "node_3e",
+            "feedback": "Good open question that goes deeper. However, the general MI guideline is one open question followed by reflections. You might save this question for after a reflection or two."
+          },
+          {
+            "text": "Did that make you think about quitting?",
+            "technique": "Closed question",
+            "next_node_id": "node_3b",
+            "feedback": "This closed question will likely get yes/no. After rich information from an open question, reflections usually work better to keep the person exploring."
+          }
+        ]
+      },
+      {
+        "id": "node_2c",
+        "patient_statement": "Yeah. She acts like I'm smoking in the house or something. I'm trying to be considerate.",
+        "patient_context": "Patient feels their efforts aren't recognized",
+        "practitioner_choices": [
+          {
+            "text": "From your perspective, you're already making an effort by smoking outside.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_3f",
+            "feedback": "Good reflection showing you understand their view. Since we just reflected, this would be a good time for an open question to explore further."
+          },
+          {
+            "text": "What does being considerate about smoking mean to you?",
+            "technique": "Open-ended question",
+            "next_node_id": "node_3g",
+            "feedback": "Excellent! This open question invites them to explore their values around consideration and relationships. After a reflection, an open question deepens the conversation."
+          },
+          {
+            "text": "Do you think smoking outside is enough?",
+            "technique": "Closed question (slightly confrontational)",
+            "next_node_id": "node_3b",
+            "feedback": "This closed question has a confrontational edge that might create defensiveness. Open questions explore rather than challenge."
+          }
+        ]
+      },
+      {
+        "id": "node_3a",
+        "patient_statement": "Well, she talks about her dad - he died of lung cancer when she was 20. She was really close to him. I think my smoking brings up a lot of fear for her.",
+        "patient_context": "Patient shares important context about wife's concerns",
+        "practitioner_choices": [
+          {
+            "text": "Your smoking connects to a painful loss in her past.",
+            "technique": "Simple reflection (complex meaning)",
+            "next_node_id": "node_4a",
+            "feedback": "Excellent reflection! You've captured the deeper meaning - this isn't just about smoking, but about her trauma and fear of loss."
+          },
+          {
+            "text": "How do you feel knowing that your smoking triggers those fears for her?",
+            "technique": "Open-ended question (impact)",
+            "next_node_id": "node_4b",
+            "feedback": "Good open question exploring emotional impact. However, we've just had an open question - the MI pattern suggests following with reflections before another question."
+          }
+        ]
+      },
+      {
+        "id": "node_3b",
+        "patient_statement": "Yeah, sometimes.",
+        "patient_context": "Minimal response due to closed questions",
+        "practitioner_choices": [
+          {
+            "text": "How would you describe what's happening between you two around this issue?",
+            "technique": "Open-ended question (broader)",
+            "next_node_id": "node_4c",
+            "feedback": "Good recovery! This open question invites a fuller picture. 'How would you describe...' is an excellent way to open up exploration."
+          },
+          {
+            "text": "Have you two talked about this recently?",
+            "technique": "Closed question",
+            "next_node_id": "node_end_stuck",
+            "feedback": "Continuing with closed questions keeps the conversation stuck in brief exchanges. Open questions would help you understand their situation better."
+          }
+        ]
+      },
+      {
+        "id": "node_3c",
+        "patient_statement": "Yeah. And honestly, I'm getting a bit tired of it. I feel like I can't do anything right.",
+        "patient_context": "Patient expresses frustration and possibly some guilt",
+        "practitioner_choices": [
+          {
+            "text": "What's the hardest part about these conversations with her?",
+            "technique": "Open-ended question",
+            "next_node_id": "node_4d",
+            "feedback": "Excellent! This open question invites exploration of the difficulty. 'What's the hardest part' helps people identify what really matters."
+          },
+          {
+            "text": "You're feeling criticized and frustrated.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_4e",
+            "feedback": "Good reflection of their emotions. Both options are MI-adherent - the open question invites deeper exploration while the reflection validates their feelings."
+          }
+        ]
+      },
+      {
+        "id": "node_3d",
+        "patient_statement": "It did. I mean, I don't want to hurt her. I don't want her to be scared. But quitting smoking... I don't know if I can.",
+        "patient_context": "Patient shows care for wife but doubts their ability to change",
+        "practitioner_choices": [
+          {
+            "text": "You care about her feelings and you're uncertain about your ability to quit.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_4f",
+            "feedback": "Excellent double-sided reflection! You've captured the ambivalence. This is a more advanced reflection technique, but very MI-adherent here."
+          },
+          {
+            "text": "What makes you uncertain about quitting?",
+            "technique": "Open-ended question",
+            "next_node_id": "node_4g",
+            "feedback": "Good open question. However, we just used an open question, so following the OARS pattern of question then reflections would suggest a reflection first."
+          }
+        ]
+      },
+      {
+        "id": "node_3e",
+        "patient_statement": "It made me realize this is really serious for her. It's not just nagging - she's actually scared of losing me. I felt bad, honestly. Like maybe I'm being selfish.",
+        "patient_context": "Deep emotional exploration - patient is connecting with impact on relationship",
+        "practitioner_choices": [
+          {
+            "text": "You saw her fear and it shifted something for you - you started wondering about your own role in this.",
+            "technique": "Complex reflection",
+            "next_node_id": "node_4h",
+            "feedback": "Excellent complex reflection! You've captured both the emotional shift and the internal questioning. This deepens the exploration beautifully."
+          },
+          {
+            "text": "Are you feeling guilty about your smoking now?",
+            "technique": "Closed question",
+            "next_node_id": "node_4i",
+            "feedback": "This closed question will likely get yes/no. The patient just shared rich emotional content - a reflection would honor that more than a question."
+          }
+        ]
+      },
+      {
+        "id": "node_3f",
+        "patient_statement": "Right! I'm not smoking around her or the kids. I thought that was the compromise.",
+        "patient_context": "Patient defends their approach",
+        "practitioner_choices": [
+          {
+            "text": "What would your ideal solution look like, if you could wave a magic wand?",
+            "technique": "Open-ended question (hypothetical)",
+            "next_node_id": "node_4j",
+            "feedback": "Excellent! This hypothetical open question invites creative thinking beyond their current stuck position. These kinds of questions can help people access deeper wishes."
+          }
+        ]
+      },
+      {
+        "id": "node_3g",
+        "patient_statement": "I guess... not exposing them to it directly. Not making them deal with the smell constantly. Being respectful of their space. But I don't know if that's enough anymore.",
+        "patient_context": "Patient articulates their values and begins questioning if they're living up to them",
+        "practitioner_choices": [
+          {
+            "text": "You're wondering if your current approach really matches your values about respect and consideration.",
+            "technique": "Complex reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This complex reflection captures the discrepancy they're beginning to notice between their values and behavior - a key moment in building motivation."
+          }
+        ]
+      },
+      {
+        "id": "node_4a",
+        "patient_statement": "Yeah. I never really thought about it that way, but you're right. Every time I light up, she probably thinks about her dad.",
+        "patient_context": "Patient gains new insight into wife's experience",
+        "practitioner_choices": [
+          {
+            "text": "How does that realization sit with you?",
+            "technique": "Open-ended question (processing)",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This open question invites them to process this new awareness. After reflecting to build understanding, an open question helps them explore the implications."
+          }
+        ]
+      },
+      {
+        "id": "node_4b",
+        "patient_statement": "Pretty terrible, actually. I don't want to cause her pain. But I also feel trapped - like my own choices don't matter.",
+        "patient_context": "Patient experiencing conflict between care for wife and sense of autonomy",
+        "practitioner_choices": [
+          {
+            "text": "You're caught between caring for her and feeling like you've lost your autonomy.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent double-sided reflection! You've named both sides of their internal conflict, which helps them hold the complexity of their situation."
+          }
+        ]
+      },
+      {
+        "id": "node_4c",
+        "patient_statement": "It's tense. She's worried, I'm defensive. We end up in the same argument over and over. I smoke, she worries, I tell her I'm fine, she gets upset. Repeat.",
+        "patient_context": "Patient describes a stuck pattern in the relationship",
+        "practitioner_choices": [
+          {
+            "text": "You're both stuck in a painful cycle.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good reflection! You've captured the stuck pattern. This opens the door for future exploration of what might break the cycle."
+          }
+        ]
+      },
+      {
+        "id": "node_4d",
+        "patient_statement": "The hardest part is that I know she's right. I know smoking is bad. I know it worries her. But I also feel like smoking is my choice, you know? I don't like being told what to do.",
+        "patient_context": "Patient articulates autonomy concerns alongside some acknowledgment of the problem",
+        "practitioner_choices": [
+          {
+            "text": "Part of you agrees with her concerns, and part of you wants your choices to be respected.",
+            "technique": "Double-sided reflection",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect double-sided reflection! You've honored both their emerging awareness of the problem and their need for autonomy - both are valid and important."
+          }
+        ]
+      },
+      {
+        "id": "node_4e",
+        "patient_statement": "Yeah. And guilty too, if I'm honest. I know it bothers her. I just don't know what to do about it.",
+        "patient_context": "Patient acknowledges guilt and feeling stuck",
+        "practitioner_choices": [
+          {
+            "text": "What would need to be different for you to feel like you could make a change?",
+            "technique": "Open-ended question (barriers)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This open question explores what needs to shift. After reflecting their emotions, this invites problem-solving without prescribing solutions."
+          }
+        ]
+      },
+      {
+        "id": "node_4f",
+        "patient_statement": "Exactly. I'm stuck. I care about her, but I don't know if I'm strong enough to actually quit.",
+        "patient_context": "Patient clearly articulates ambivalence - both caring and doubting",
+        "practitioner_choices": [
+          {
+            "text": "What gives you any confidence at all that you might be able to do this?",
+            "technique": "Open-ended question (evoking strengths)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This open question looks for strengths and resources, which builds self-efficacy. Even asking about 'any confidence at all' honors their doubt while inviting them to identify positive resources."
+          }
+        ]
+      },
+      {
+        "id": "node_4g",
+        "patient_statement": "I've tried before and failed. Twice. I'm not sure I have it in me to go through that again.",
+        "patient_context": "Patient shares past attempts and fear of failure",
+        "practitioner_choices": [
+          {
+            "text": "You've tried before - twice - and those experiences left you doubting whether you can succeed.",
+            "technique": "Simple reflection",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good reflection! You've captured both their effort (trying twice) and their current doubt. This validates their experience."
+          }
+        ]
+      },
+      {
+        "id": "node_4h",
+        "patient_statement": "Yeah. I mean, I always knew it bothered her, but I kind of dismissed it as nagging. Seeing her actually scared... that's different. Makes me wonder if I need to take this more seriously.",
+        "patient_context": "Significant change talk - patient is reconsidering their perspective",
+        "practitioner_choices": [
+          {
+            "text": "Something shifted when you saw her fear rather than just hearing complaints.",
+            "technique": "Simple reflection (change moment)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflection highlights a pivotal moment. You're amplifying their own recognition that something has changed in how they see this."
+          }
+        ]
+      },
+      {
+        "id": "node_4i",
+        "patient_statement": "Yeah, I guess I do.",
+        "patient_context": "Brief response to closed question",
+        "practitioner_choices": [
+          {
+            "text": "Tell me about that guilt.",
+            "technique": "Open-ended invitation",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! This open invitation encourages elaboration. After closed questions lead to brief responses, opening up with invitations helps restart exploration."
+          }
+        ]
+      },
+      {
+        "id": "node_4j",
+        "patient_statement": "Ideal? I guess I'd either quit completely, or she'd be okay with it. But I don't think either is realistic. She's never going to be okay with it, and quitting seems impossible.",
+        "patient_context": "Patient articulates desires but sees barriers to both",
+        "practitioner_choices": [
+          {
+            "text": "You can imagine what you'd want - either you'd quit or she'd accept it - but both feel out of reach right now.",
+            "technique": "Complex reflection",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good complex reflection capturing their wishes and their sense of impossibility. This validates where they are while leaving space for future exploration."
+          }
+        ]
+      },
+      {
+        "id": "node_end_good",
+        "patient_statement": "You know, talking this through... I think I need to really think about what I want here. This conversation helped.",
+        "is_ending": true,
+        "outcome": "Strong engagement - Open-ended questions combined with reflections helped the patient explore their situation deeply and gain new insights",
+        "learning_summary": "Open-ended questions invite exploration and yield rich information. The MI pattern is typically one open question followed by 2-3 reflections, which creates a rhythm of inviting exploration and demonstrating understanding. This builds both rapport and insight."
+      },
+      {
+        "id": "node_end_moderate",
+        "patient_statement": "Thanks for listening. I need to think about all this.",
+        "is_ending": true,
+        "outcome": "Moderate engagement - Some exploration occurred, but the conversation could have gone deeper with better use of open questions and reflections",
+        "learning_summary": "While closed questions can sometimes be useful for specific information, open-ended questions generally yield richer responses and deeper exploration. The OARS pattern (Open question, followed by Affirmations/Reflections, then Summary) creates the rhythm of effective MI conversations."
+      },
+      {
+        "id": "node_end_stuck",
+        "patient_statement": "Yeah. Look, I should get going. Thanks for your time.",
+        "is_ending": true,
+        "outcome": "Poor engagement - Conversation remained surface-level due to overuse of closed questions",
+        "learning_summary": "Closed questions that require only yes/no answers keep conversations brief and surface-level. Open-ended questions beginning with 'What,' 'How,' or 'Tell me about' invite patients to explore and share more deeply, building both rapport and understanding."
+      }
+    ]
+  }
+}

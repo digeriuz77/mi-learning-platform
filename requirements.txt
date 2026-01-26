@@ -2,6 +2,7 @@ asgiref==3.11.0
 certifi==2026.1.4
 charset-normalizer==3.4.4
 Django==4.2
+psycopg2-binary==2.9.7
 dotenv==0.9.9
 idna==3.11
 Pillow==10.1.0

@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-is&m)_3fo6v1&ptmezisd0=t3d%q_w9v_bp485pvrl+tj6)%&i'
+SECRET_KEY = 'django-insecure-mi-learning-platform-2026-dev-key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -58,7 +58,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'RoboQuiz.urls'
+ROOT_URLCONF = 'MILearning.urls'
 
 TEMPLATES = [
     {
@@ -77,16 +77,30 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'RoboQuiz.wsgi.application'
+WSGI_APPLICATION = 'MILearning.wsgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Supabase PostgreSQL Database Configuration
+# Add to .env file:
+# DB_NAME=your_db_name
+# DB_USER=your_db_user  
+# DB_PASSWORD=your_db_password
+# DB_HOST=your_db_host.supabase.co
+# DB_PORT=5432
+
+import os
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'mi_learning'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 

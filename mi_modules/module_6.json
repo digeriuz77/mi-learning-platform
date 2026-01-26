@@ -1,0 +1,1018 @@
+{
+  "dialogue_tree": {
+    "title": "Module 6: Recognizing and Evoking Change Talk (DARN-CAT)",
+    "learning_objective": "Learn to recognize different types of change talk, selectively reflect change talk to strengthen it, and use strategic questions to evoke change talk across the DARN-CAT spectrum",
+    "technique_focus": "Change Talk Recognition and Evocation (DARN-CAT)",
+    "stage_of_change": "Contemplation to Preparation",
+    "mi_process": "Evoking",
+    "description": "Change talk is any patient statement about desire, ability, reasons, or need for change (DARN - preparatory change talk) or commitment, activation, or taking steps (CAT - mobilizing change talk). Skilled practitioners recognize change talk, reflect it to strengthen it, and use strategic questions to evoke it. This shifts the balance from ambivalence toward change.",
+    "start_node": "node_1",
+    "nodes": [
+      {
+        "id": "node_1",
+        "patient_statement": "I've been thinking more about my smoking since we last talked. My granddaughter had a cough last week, and even though I always smoke outside, I kept wondering if somehow it was affecting her. I felt terrible.",
+        "patient_context": "Patient expresses Reason for change (concern about granddaughter) with emotional weight (felt terrible)",
+        "change_talk_present": "Reason (R)",
+        "practitioner_choices": [
+          {
+            "text": "But you always smoke outside, so it probably wasn't your smoking.",
+            "technique": "Responding to sustain talk (missing change talk)",
+            "next_node_id": "node_2a",
+            "feedback": "This responds to the sustain talk (smoking outside) and minimizes their concern. You missed the change talk (worry about granddaughter, feeling terrible). Always prioritize reflecting change talk."
+          },
+          {
+            "text": "Your granddaughter's health and safety really matters to you. That worry - wondering if your smoking could somehow affect her - that was hard to sit with.",
+            "technique": "Selective reflection of change talk (emotion + reason)",
+            "next_node_id": "node_2b",
+            "feedback": "Excellent! This selectively reflects the change talk (concern for granddaughter) and the emotion (feeling terrible). Reflecting change talk strengthens it."
+          },
+          {
+            "text": "You felt terrible when she had a cough.",
+            "technique": "Simple reflection (partial)",
+            "next_node_id": "node_2c",
+            "feedback": "This reflects part of the change talk but misses the connection they're making between their smoking and her wellbeing. A fuller reflection would capture more."
+          }
+        ]
+      },
+      {
+        "id": "node_2a",
+        "patient_statement": "Yeah, you're probably right. It was probably just a regular cough. I'm probably overthinking it.",
+        "patient_context": "Patient backs away from change talk when it wasn't reflected",
+        "practitioner_choices": [
+          {
+            "text": "But that worry you had - that feeling of wondering if somehow your smoking could affect her - tell me more about that.",
+            "technique": "Redirecting back to change talk",
+            "next_node_id": "node_3a",
+            "feedback": "Good recovery! You're redirecting attention back to the change talk they initially offered. When we miss change talk the first time, we can still circle back to it."
+          },
+          {
+            "text": "Right, kids get coughs all the time.",
+            "technique": "Continuing to miss change talk",
+            "next_node_id": "node_end_poor",
+            "feedback": "This continues to reinforce sustain talk and dismiss their concern. You're missing opportunities to evoke and strengthen their motivation for change."
+          }
+        ]
+      },
+      {
+        "id": "node_2b",
+        "patient_statement": "It was. I mean, logically I know I smoke outside and wash my hands and all that. But seeing her cough, I just kept thinking 'what if?' What if it's on my clothes? What if I'm hurting her without meaning to? I couldn't shake that feeling.",
+        "patient_context": "Patient elaborates on concern - expressing more Reason (worry about harming her) and Desire (doesn't want to hurt her)",
+        "change_talk_present": "Reason (R) + Desire (D)",
+        "practitioner_choices": [
+          {
+            "text": "You're doing everything right by smoking outside and washing your hands.",
+            "technique": "Reassurance (misses change talk)",
+            "next_node_id": "node_3b",
+            "feedback": "This reassures about the sustain talk side but ignores the powerful change talk - their fear of harming their granddaughter. This dismisses their motivation."
+          },
+          {
+            "text": "Even doing everything you can think of to minimize exposure, the thought that you might somehow be hurting her is unbearable. You don't want to cause her any harm.",
+            "technique": "Selective reflection of change talk (amplified)",
+            "next_node_id": "node_3c",
+            "feedback": "Perfect! This selectively reflects and even amplifies the change talk - their desire not to harm her. Using words like 'unbearable' honors the emotional intensity they expressed."
+          },
+          {
+            "text": "What would it take for you to feel confident she's not being affected by your smoking?",
+            "technique": "Question evoking change talk (implicit)",
+            "next_node_id": "node_3d",
+            "feedback": "This question could evoke change talk ('quit smoking'), but we have rich change talk already offered that should be reflected first. The general MI pattern is: reflect change talk when it appears, then ask questions to evoke more."
+          }
+        ]
+      },
+      {
+        "id": "node_2c",
+        "patient_statement": "Yeah. And it made me think about what kind of grandfather I want to be. Do I want to be the grandpa who's always stepping outside to smoke? Or the one who's fully present?",
+        "patient_context": "Patient adds Reason for change (values about grandparent role) and begins exploring Discrepancy between current and desired self",
+        "change_talk_present": "Reason (R) + Discrepancy",
+        "practitioner_choices": [
+          {
+            "text": "You're thinking about the grandfather you want to be - fully present, not someone who needs to step away.",
+            "technique": "Selective reflection of change talk (values)",
+            "next_node_id": "node_3e",
+            "feedback": "Excellent! This reflects the change talk about their values and desired identity. Reflecting values-based change talk is particularly powerful."
+          },
+          {
+            "text": "But you can be present even if you step out occasionally to smoke.",
+            "technique": "Arguing against change talk",
+            "next_node_id": "node_3f",
+            "feedback": "This argues against their change talk and defends their smoking. When patients express discrepancy between current and ideal, reflect it rather than minimizing it."
+          }
+        ]
+      },
+      {
+        "id": "node_3a",
+        "patient_statement": "Well, it just hit me that I can't fully protect her if I'm still smoking. Even if it's outside, even if I'm careful. There's still some risk, and I don't want her exposed to any risk from me.",
+        "patient_context": "Strong change talk - Desire (wants to protect her) and Reason (can't fully protect while smoking)",
+        "change_talk_present": "Desire (D) + Reason (R)",
+        "practitioner_choices": [
+          {
+            "text": "Protecting her completely is important to you, and you're recognizing that smoking - even with all your precautions - still carries some risk you don't want her exposed to.",
+            "technique": "Selective reflection of change talk",
+            "next_node_id": "node_4a",
+            "feedback": "Perfect! This reflects both pieces of change talk - the desire to protect and the reason (recognition that smoking carries unavoidable risk)."
+          },
+          {
+            "text": "The risk from thirdhand smoke is actually quite small if you smoke outside.",
+            "technique": "Diminishing change talk with information",
+            "next_node_id": "node_4b",
+            "feedback": "While factually true, this diminishes their change talk. When patients express strong motivation, reflect it rather than minimizing their concerns."
+          }
+        ]
+      },
+      {
+        "id": "node_3b",
+        "patient_statement": "I know I'm being careful, but maybe careful isn't enough. Maybe I need to actually quit.",
+        "patient_context": "Strong change talk - Need (N) statement ('I need to quit')",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "You're recognizing that being careful might not be enough - that quitting might be what's actually needed to fully protect her.",
+            "technique": "Selective reflection of change talk (Need)",
+            "next_node_id": "node_4c",
+            "feedback": "Excellent! This reflects the 'Need' change talk - one of the strongest forms of preparatory change talk. Reflecting 'need' statements strengthens them."
+          },
+          {
+            "text": "Well, let's not jump to conclusions. Being careful might be perfectly adequate.",
+            "technique": "Minimizing change talk",
+            "next_node_id": "node_4d",
+            "feedback": "This dismisses their change talk and pulls them back from the edge of commitment. When patients express need for change, reflect it rather than pulling them back."
+          }
+        ]
+      },
+      {
+        "id": "node_3c",
+        "patient_statement": "That's it exactly. I couldn't live with myself if I found out I hurt her. And that feeling... it's stronger than I expected. It's making me seriously consider quitting.",
+        "patient_context": "Very strong change talk - Desire (D) + Reason (R) + beginning of Commitment (C) - 'seriously considering'",
+        "change_talk_present": "Desire (D) + Reason (R) + Activation (A)",
+        "practitioner_choices": [
+          {
+            "text": "This feeling about protecting her is powerful enough that it's moving you from thinking about quitting to seriously considering it. That's a shift.",
+            "technique": "Reflection highlighting movement (Activation)",
+            "next_node_id": "node_4e",
+            "feedback": "Perfect! This reflects the shift from contemplation to activation ('seriously considering'). Highlighting movement from DARN to CAT is important - it shows change talk becoming more mobilized."
+          },
+          {
+            "text": "That's great! So you're ready to quit! When should we set a quit date?",
+            "technique": "Jumping ahead (premature commitment)",
+            "next_node_id": "node_4f",
+            "feedback": "'Seriously considering' is activation change talk, not commitment. Pushing to commitment before they're ready can trigger resistance. Reflect the activation and let them continue to build toward commitment."
+          },
+          {
+            "text": "What about your concern about work stress? Have you thought about how you'd cope without smoking?",
+            "technique": "Bringing up sustain talk",
+            "next_node_id": "node_4g",
+            "feedback": "When strong change talk is flowing, don't interrupt it by bringing up sustain talk or barriers. Stay with the change talk and let it build momentum."
+          }
+        ]
+      },
+      {
+        "id": "node_3d",
+        "patient_statement": "The only way I'd feel confident she's truly safe is if I quit entirely. Even thirdhand smoke on my clothes worries me now.",
+        "patient_context": "Strong change talk - Need (N) implied in 'only way'",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "So quitting entirely is what would give you that peace of mind about her safety. That's what it would take.",
+            "technique": "Selective reflection of change talk (Need)",
+            "next_node_id": "node_4h",
+            "feedback": "Excellent! This reflects the need change talk clearly. When patients identify that quitting is 'the only way' or 'what it would take,' that's strong need change talk."
+          },
+          {
+            "text": "Are you prepared for how difficult quitting will be?",
+            "technique": "Evoking sustain talk",
+            "next_node_id": "node_4i",
+            "feedback": "This question evokes sustain talk (difficulty, barriers) just when strong change talk is emerging. Stay with change talk when it's flowing."
+          }
+        ]
+      },
+      {
+        "id": "node_3e",
+        "patient_statement": "Exactly. I want to be the grandpa who's there - really there. Not preoccupied with when I can get my next cigarette or smelling like smoke when she wants to cuddle.",
+        "patient_context": "Strong values-based change talk - Desire (D) and Reason (R)",
+        "change_talk_present": "Desire (D) + Reason (R)",
+        "practitioner_choices": [
+          {
+            "text": "You have a clear picture of the grandfather you want to be - fully present, available for cuddles, not distracted by cravings. That vision matters to you.",
+            "technique": "Selective reflection of change talk (values/vision)",
+            "next_node_id": "node_4j",
+            "feedback": "Perfect! This reflects their values-based change talk and the clear vision they have. Vision of the future self is powerful change talk."
+          },
+          {
+            "text": "That's a nice vision. But lots of grandpas smoke and still have great relationships with their grandkids.",
+            "technique": "Minimizing change talk",
+            "next_node_id": "node_4k",
+            "feedback": "This minimizes their values-based change talk by suggesting it's not necessary. When patients articulate values, honor them rather than dismissing them."
+          },
+          {
+            "text": "What would being that kind of grandfather mean to you?",
+            "technique": "Evoking question (elaboration)",
+            "next_node_id": "node_4l",
+            "feedback": "Good question to deepen change talk. Both this and the selective reflection are MI-adherent. The reflection acknowledges what they've said; the question invites elaboration. Either works here."
+          }
+        ]
+      },
+      {
+        "id": "node_3f",
+        "patient_statement": "Maybe. But I don't want to be 'present except when I'm smoking.' I want to be just... present. All the way.",
+        "patient_context": "Patient asserts their vision despite pushback",
+        "change_talk_present": "Desire (D)",
+        "practitioner_choices": [
+          {
+            "text": "You want full presence, not partial presence. You have a standard for yourself and 'present except when smoking' doesn't meet it.",
+            "technique": "Selective reflection of change talk (values/standards)",
+            "next_node_id": "node_4m",
+            "feedback": "Excellent! This reflects their high standard for themselves. When patients articulate clear values despite pushback, that's particularly strong change talk worth reflecting."
+          },
+          {
+            "text": "That might be an unrealistic standard.",
+            "technique": "Challenging change talk",
+            "next_node_id": "node_end_poor",
+            "feedback": "Challenging their values and standards is likely to create resistance. Reflect their vision rather than questioning it."
+          }
+        ]
+      },
+      {
+        "id": "node_4a",
+        "patient_statement": "Right. And I've been thinking... I could probably do it if I really tried. I've quit before for a few weeks. I know what to expect now.",
+        "patient_context": "Ability change talk (A) - 'I could probably do it' and past success evidence",
+        "change_talk_present": "Ability (A) + Reason (R - past experience)",
+        "practitioner_choices": [
+          {
+            "text": "You have some confidence in your ability to do this - you've done it before, you know the territory. That past experience is something you can draw on.",
+            "technique": "Selective reflection of change talk (Ability)",
+            "next_node_id": "node_5a",
+            "feedback": "Excellent! This reflects the ability change talk and the reason (past success). Reflecting ability builds self-efficacy."
+          },
+          {
+            "text": "But you also relapsed after those few weeks. What makes you think this time would be different?",
+            "technique": "Challenging/evoking sustain talk",
+            "next_node_id": "node_5b",
+            "feedback": "This challenges their ability change talk and evokes sustain talk about past failure. When ability change talk emerges, strengthen it rather than undermining it."
+          },
+          {
+            "text": "What strengths did you use during those weeks when you weren't smoking?",
+            "technique": "Evoking question (elaborating on Ability)",
+            "next_node_id": "node_5c",
+            "feedback": "Excellent question! This evokes more ability change talk by asking them to identify strengths from past success. Both this and the reflection work well."
+          }
+        ]
+      },
+      {
+        "id": "node_4b",
+        "patient_statement": "Maybe the risk is small, but it's still a risk. And for her, even a small risk feels too big.",
+        "patient_context": "Patient maintains change talk despite minimization",
+        "change_talk_present": "Reason (R) + Desire (D)",
+        "practitioner_choices": [
+          {
+            "text": "For her, any risk - even a small one - is unacceptable to you. Her wellbeing is that important.",
+            "technique": "Selective reflection of change talk (amplified)",
+            "next_node_id": "node_5d",
+            "feedback": "Perfect! This reflects and even amplifies their change talk despite your earlier minimization. This shows you're hearing them now."
+          },
+          {
+            "text": "You seem really anxious about this.",
+            "technique": "Labeling emotion (misses change talk)",
+            "next_node_id": "node_5e",
+            "feedback": "While noting emotion can be useful, this frames it as anxiety rather than as values-driven concern. The change talk is about values (protecting her), not anxiety."
+          }
+        ]
+      },
+      {
+        "id": "node_4c",
+        "patient_statement": "Yeah, I think I do need to quit. Not just want to, or should. Need to. For her.",
+        "patient_context": "Very strong Need (N) change talk with clear motivation",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "That's a strong word - 'need.' This has moved beyond wanting or thinking you should. For her sake, quitting feels necessary.",
+            "technique": "Reflection emphasizing strength of change talk",
+            "next_node_id": "node_5f",
+            "feedback": "Perfect! This highlights the strength of 'need' change talk and the clear motivation (for her). Emphasizing the strength of change talk amplifies it."
+          },
+          {
+            "text": "So you're committed to quitting then?",
+            "technique": "Jumping to commitment (premature)",
+            "next_node_id": "node_5g",
+            "feedback": "'Need' is strong preparatory change talk but not yet commitment. Let them continue to build toward commitment rather than pushing them there."
+          },
+          {
+            "text": "What makes you say 'need' specifically?",
+            "technique": "Evoking question (elaboration)",
+            "next_node_id": "node_5h",
+            "feedback": "Good question to elaborate on need change talk. Both this and the reflection work. The reflection affirms their language; the question invites them to explain it further."
+          }
+        ]
+      },
+      {
+        "id": "node_4d",
+        "patient_statement": "Maybe. But I'm starting to think adequate isn't good enough. I want to do everything I can to protect her.",
+        "patient_context": "Patient maintains change talk; adds Desire (D)",
+        "change_talk_present": "Desire (D)",
+        "practitioner_choices": [
+          {
+            "text": "You want to go beyond 'adequate' - you want to do everything possible. That's the standard you're setting for yourself as her grandfather.",
+            "technique": "Selective reflection of change talk",
+            "next_node_id": "node_5i",
+            "feedback": "Excellent! This reflects their higher standard and connects it to their grandparent role. When patients reject 'adequate' for a higher standard, that's strong change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_4e",
+        "patient_statement": "It is a shift. I've thought about quitting before, but this feels different. More urgent. More real.",
+        "patient_context": "Patient confirms shift; Activation (A) change talk - 'more urgent, more real'",
+        "change_talk_present": "Activation (A)",
+        "practitioner_choices": [
+          {
+            "text": "Something has shifted - this isn't abstract anymore. It's urgent and real in a way it hasn't been before. What's making it feel so different this time?",
+            "technique": "Reflection + evoking question",
+            "next_node_id": "node_5j",
+            "feedback": "Excellent! This reflects the activation change talk and then asks what's creating this shift. This invites them to articulate what's different, which often strengthens change talk further."
+          },
+          {
+            "text": "Good! Let's make a plan then.",
+            "technique": "Jumping to planning (premature)",
+            "next_node_id": "node_5k",
+            "feedback": "Activation is movement toward commitment but isn't commitment yet. Continue evoking and reflecting change talk before moving to planning."
+          }
+        ]
+      },
+      {
+        "id": "node_4f",
+        "patient_statement": "Whoa, I said I'm seriously considering it, not that I'm definitely doing it. Don't push me.",
+        "patient_context": "Patient pulls back when pushed too fast",
+        "practitioner_choices": [
+          {
+            "text": "You're absolutely right - I got ahead of you. 'Seriously considering' is where you are, and that's significant on its own. What's making you consider it seriously?",
+            "technique": "Apology + reflection + evoking question",
+            "next_node_id": "node_5l",
+            "feedback": "Excellent recovery! You acknowledge jumping ahead, reflect their actual level of change talk (activation), and then ask a question to continue evoking. This respects their pace."
+          },
+          {
+            "text": "Sorry, I'm just excited that you're thinking about this seriously.",
+            "technique": "Apology (minimal)",
+            "next_node_id": "node_5m",
+            "feedback": "This apologizes but makes it about your excitement rather than their autonomy. A better recovery would acknowledge their pace and invite them to continue exploring."
+          }
+        ]
+      },
+      {
+        "id": "node_4g",
+        "patient_statement": "I mean, yes, work stress is real, but right now I'm thinking about my granddaughter. Can we stay with that?",
+        "patient_context": "Patient redirects back to change talk",
+        "practitioner_choices": [
+          {
+            "text": "Absolutely. Your granddaughter and protecting her - that's what's most alive for you right now. Let's stay there.",
+            "technique": "Honoring their direction",
+            "next_node_id": "node_5n",
+            "feedback": "Perfect! This honors their request to stay with the change talk. When patients explicitly redirect you back to change talk, follow their lead."
+          }
+        ]
+      },
+      {
+        "id": "node_4h",
+        "patient_statement": "It is. And I'm tired of worrying about it. I want that peace of mind. I want to know for sure she's safe from any harm I might cause.",
+        "patient_context": "Need (N) + Desire (D) change talk with emotional weight",
+        "change_talk_present": "Need (N) + Desire (D)",
+        "practitioner_choices": [
+          {
+            "text": "That peace of mind - knowing for certain she's safe from any potential harm from you - that's what you're looking for. And the only way to have that certainty is to quit.",
+            "technique": "Selective reflection amplifying Need",
+            "next_node_id": "node_5o",
+            "feedback": "Excellent! This reflects both the desire (peace of mind) and the need (certainty requires quitting). When patients connect desire and need, that's very strong preparatory change talk."
+          },
+          {
+            "text": "But you can never guarantee complete safety in life. There are always risks.",
+            "technique": "Arguing against change talk",
+            "next_node_id": "node_5p",
+            "feedback": "This philosophical argument dismisses their change talk. When patients express strong desire and need, reflect it rather than arguing against it."
+          }
+        ]
+      },
+      {
+        "id": "node_4i",
+        "patient_statement": "I know it will be difficult. I've done it before and it was hard. But I think it's worth it if it means protecting her.",
+        "patient_context": "Patient acknowledges difficulty but counters with Reason change talk - 'worth it'",
+        "change_talk_present": "Reason (R) - outweighing difficulty",
+        "practitioner_choices": [
+          {
+            "text": "So even knowing the difficulty from experience, you're thinking it's worth going through that for her sake. She tips the scale.",
+            "technique": "Selective reflection of change talk (decisional balance)",
+            "next_node_id": "node_5q",
+            "feedback": "Perfect! This reflects that they're weighing difficulty against reasons and the reasons are winning. When patients acknowledge barriers but override them with change talk, that's significant."
+          },
+          {
+            "text": "It will be very difficult. Are you sure you're ready for that?",
+            "technique": "Emphasizing sustain talk",
+            "next_node_id": "node_5r",
+            "feedback": "This emphasizes the sustain talk (difficulty) when they just said the reasons outweigh it. Reflect the change talk side of the balance."
+          }
+        ]
+      },
+      {
+        "id": "node_4j",
+        "patient_statement": "It does. And I'm realizing that as long as I smoke, I can't fully be that grandfather. Smoking gets in the way.",
+        "patient_context": "Discrepancy statement - recognizing gap between current behavior and values",
+        "change_talk_present": "Reason (R) - discrepancy",
+        "practitioner_choices": [
+          {
+            "text": "You're seeing clearly now that smoking is incompatible with being the grandfather you want to be. There's a gap between who you are while smoking and who you want to be.",
+            "technique": "Selective reflection of discrepancy (powerful change talk)",
+            "next_node_id": "node_5s",
+            "feedback": "Excellent! Reflecting discrepancy between current behavior and values is one of the most powerful forms of change talk reflection. This is a key motivator for change."
+          },
+          {
+            "text": "Well, you could be a great grandfather even if you smoke. Many people do.",
+            "technique": "Minimizing discrepancy",
+            "next_node_id": "node_5t",
+            "feedback": "This minimizes the discrepancy they're recognizing. When patients see incompatibility between behavior and values, reflect it rather than dismissing it."
+          }
+        ]
+      },
+      {
+        "id": "node_4k",
+        "patient_statement": "I'm sure they do, but that's not the grandfather I want to be. I have my own standards.",
+        "patient_context": "Patient asserts their values despite minimization",
+        "change_talk_present": "Desire (D) + values",
+        "practitioner_choices": [
+          {
+            "text": "Your vision for yourself as a grandfather is your own, not based on what others do. You have clear standards for who you want to be in this role.",
+            "technique": "Selective reflection of values-based change talk",
+            "next_node_id": "node_5u",
+            "feedback": "Excellent! This honors their autonomy and their personal standards. When patients assert their own values despite minimization, that's strong change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_4l",
+        "patient_statement": "It would mean everything. It would mean being someone she can count on completely. Someone who puts her first, above my own habits.",
+        "patient_context": "Strong values-based change talk - Desire (D) and Reason (R)",
+        "change_talk_present": "Desire (D) + Reason (R)",
+        "practitioner_choices": [
+          {
+            "text": "Being completely reliable and putting her needs above your habits - that's the kind of grandfather you want to be. That's what would make this meaningful to you.",
+            "technique": "Selective reflection of values (amplified)",
+            "next_node_id": "node_5v",
+            "feedback": "Perfect! This reflects their deep values about the grandparent they want to be. Values-based change talk is particularly powerful and worth reflecting fully."
+          }
+        ]
+      },
+      {
+        "id": "node_4m",
+        "patient_statement": "Exactly. And I'm starting to think the only way to meet that standard is to quit.",
+        "patient_context": "Need (N) change talk emerging from values discrepancy",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "Your standard for yourself as a grandfather is leading you to recognize that quitting might be necessary. That's the only way to fully be who you want to be for her.",
+            "technique": "Linking reflection (values leading to need)",
+            "next_node_id": "node_5w",
+            "feedback": "Excellent! This linking reflection shows how their values are generating the sense of need to change. This validates the internal logic of their change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_5a",
+        "patient_statement": "Right. I was determined then, and I can be determined again. Maybe even more so now that I have her to motivate me.",
+        "patient_context": "Ability (A) + Reason (R) - stronger motivation this time",
+        "change_talk_present": "Ability (A) + Reason (R)",
+        "practitioner_choices": [
+          {
+            "text": "So you have past evidence of your determination, and this time you have even stronger motivation. You're seeing reasons why this attempt might be different.",
+            "technique": "Selective reflection linking ability and reason",
+            "next_node_id": "node_6a",
+            "feedback": "Perfect! This reflects both the ability (determination) and the reason (stronger motivation) and links them. This helps them see why this time could be different."
+          },
+          {
+            "text": "On a scale of 0 to 10, how confident are you that you could quit successfully?",
+            "technique": "Confidence ruler (evoking tool)",
+            "next_node_id": "node_6b",
+            "feedback": "The confidence ruler can evoke ability change talk. However, ability change talk is already flowing - better to reflect it first before introducing a ruler. Save tools for when change talk isn't already present."
+          }
+        ]
+      },
+      {
+        "id": "node_5b",
+        "patient_statement": "That's not helpful. I'm trying to focus on the positive - that I've done it before and I know I can do it again.",
+        "patient_context": "Patient rejects focus on past failure, asserts ability",
+        "change_talk_present": "Ability (A)",
+        "practitioner_choices": [
+          {
+            "text": "You're right - focusing on past success is more useful than focusing on relapse. You've proven you can do this, and that's what you're drawing on now.",
+            "technique": "Apology + selective reflection of ability",
+            "next_node_id": "node_6c",
+            "feedback": "Excellent recovery! You acknowledge the unhelpful focus and redirect to their ability change talk. This strengthens their confidence."
+          }
+        ]
+      },
+      {
+        "id": "node_5c",
+        "patient_statement": "I used a lot of distraction - going for walks instead of smoking, chewing gum. And I told myself I was doing it for my daughter, to set an example. Determination, I guess. Stubbornness.",
+        "patient_context": "Patient identifies specific strengths and strategies from past success",
+        "change_talk_present": "Ability (A)",
+        "practitioner_choices": [
+          {
+            "text": "So you have a toolkit - distraction strategies, substitutes, using your values as motivation, and that stubbornness that won't quit. These are resources you can draw on again.",
+            "technique": "Selective reflection affirming resources (Ability)",
+            "next_node_id": "node_6d",
+            "feedback": "Perfect! This reflects their specific strategies and reframes stubbornness as a resource. This builds their sense of ability and self-efficacy."
+          },
+          {
+            "text": "Those are good strategies, but they didn't work long-term last time.",
+            "technique": "Undermining ability change talk",
+            "next_node_id": "node_6e",
+            "feedback": "This undermines the ability change talk by focusing on past failure. Reflect the strengths and resources rather than the outcome."
+          }
+        ]
+      },
+      {
+        "id": "node_5d",
+        "patient_statement": "Yes. I think I'd do anything to keep her safe. Including quit smoking, even though it terrifies me.",
+        "patient_context": "Strong Desire (D) with acknowledgment of fear",
+        "change_talk_present": "Desire (D) + Commitment language ('I'd do anything')",
+        "practitioner_choices": [
+          {
+            "text": "Your desire to protect her is stronger than your fear of quitting. You'd face that terror for her sake.",
+            "technique": "Selective reflection emphasizing change talk over sustain talk",
+            "next_node_id": "node_6f",
+            "feedback": "Excellent! This shows how change talk (desire to protect) outweighs sustain talk (fear). Reflecting this balance highlights their movement toward change."
+          },
+          {
+            "text": "Quitting terrifies you? Tell me about that fear.",
+            "technique": "Focusing on sustain talk",
+            "next_node_id": "node_6g",
+            "feedback": "This focuses on the fear (sustain talk) when powerful change talk ('I'd do anything') just appeared. Reflect change talk when it emerges."
+          }
+        ]
+      },
+      {
+        "id": "node_5e",
+        "patient_statement": "It's not anxiety - it's love. I love her and I don't want to hurt her.",
+        "patient_context": "Patient corrects framing; emphasizes Desire (D)",
+        "change_talk_present": "Desire (D)",
+        "practitioner_choices": [
+          {
+            "text": "Love for her - that's what's driving this. You're considering quitting because you love her and want to protect her.",
+            "technique": "Corrected selective reflection",
+            "next_node_id": "node_6h",
+            "feedback": "Perfect! You accept their correction and reflect the change talk accurately - it's about love and protection, not anxiety. This honors their framing."
+          }
+        ]
+      },
+      {
+        "id": "node_5f",
+        "patient_statement": "It does feel necessary. Not optional anymore. I need to do this.",
+        "patient_context": "Confirmation of strong Need (N) change talk",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "This has moved from 'should' or 'want' to 'need' - it feels non-negotiable now. Something has shifted to make this feel necessary rather than optional.",
+            "technique": "Reflection emphasizing shift to Need",
+            "next_node_id": "node_6i",
+            "feedback": "Excellent! This highlights the shift to need language, which is the strongest form of preparatory change talk. This often precedes commitment."
+          },
+          {
+            "text": "So when will you quit?",
+            "technique": "Jumping to commitment (premature)",
+            "next_node_id": "node_6j",
+            "feedback": "Need is very strong but not yet commitment. Continue reflecting and evoking before pushing to 'when.'"
+          }
+        ]
+      },
+      {
+        "id": "node_5g",
+        "patient_statement": "I didn't say committed. I said I need to. There's a difference.",
+        "patient_context": "Patient distinguishes between Need and Commitment",
+        "practitioner_choices": [
+          {
+            "text": "You're right - there is a difference. Needing to do something and committing to do it are different steps. You're at 'I need to' and that's significant.",
+            "technique": "Acknowledgment + reflection of Need",
+            "next_node_id": "node_6k",
+            "feedback": "Excellent! This acknowledges the distinction they made and honors where they actually are. This respects the progression from DARN to CAT."
+          }
+        ]
+      },
+      {
+        "id": "node_5h",
+        "patient_statement": "Because 'want' doesn't capture it. 'Should' is what other people think. 'Need' is... it's what I feel in my gut. It's what being her grandfather requires of me.",
+        "patient_context": "Patient explains Need language with values basis",
+        "change_talk_present": "Need (N) + values",
+        "practitioner_choices": [
+          {
+            "text": "Need comes from deep inside - from your gut, from your understanding of what being her grandfather requires. This isn't external pressure, it's internal conviction.",
+            "technique": "Selective reflection emphasizing autonomous motivation",
+            "next_node_id": "node_6l",
+            "feedback": "Perfect! This reflects that the need is autonomous and values-based, not external. Autonomous need is the strongest predictor of change."
+          }
+        ]
+      },
+      {
+        "id": "node_5i",
+        "patient_statement": "Exactly. And I don't want to settle for adequate when it comes to her. She deserves my best.",
+        "patient_context": "Strong values-based Desire (D) and Reason (R)",
+        "change_talk_present": "Desire (D) + Reason (R)",
+        "practitioner_choices": [
+          {
+            "text": "She deserves your best, and smoking prevents you from giving her your best. That's why adequate isn't enough.",
+            "technique": "Selective reflection linking values to behavior",
+            "next_node_id": "node_6m",
+            "feedback": "Excellent! This reflects how their values (giving her their best) are incompatible with smoking. This is powerful discrepancy-based change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_5j",
+        "patient_statement": "Her. She's what makes it different. Before, I was quitting for abstract reasons - health, money, whatever. But seeing her, holding her... it's concrete. It's real. I can't rationalize it away.",
+        "patient_context": "Patient identifies concrete vs. abstract motivation",
+        "change_talk_present": "Reason (R) - specificity and immediacy",
+        "practitioner_choices": [
+          {
+            "text": "The difference between abstract reasons and holding her in your arms - that makes this real in a way it hasn't been before. You can't distance yourself from this motivation.",
+            "technique": "Selective reflection amplifying Reason",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects why this motivation is more powerful - it's concrete, immediate, and tangible. This kind of specific, personal motivation is very powerful."
+          }
+        ]
+      },
+      {
+        "id": "node_5k",
+        "patient_statement": "Hold on. I'm not ready to plan yet. I need to sit with this feeling a bit more.",
+        "patient_context": "Patient asserts need for more time before planning",
+        "practitioner_choices": [
+          {
+            "text": "You need time with this shift before moving to action. The urgency is there, and so is the need to let this settle. Both are valid.",
+            "technique": "Honoring their process",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This honors both their activation change talk and their need for time. Respecting their pace is essential to maintaining autonomy."
+          }
+        ]
+      },
+      {
+        "id": "node_5l",
+        "patient_statement": "What's making me consider it seriously is her. When she looks at me with those big eyes, I think about who I want to be for her. And a smoker isn't it.",
+        "patient_context": "Strong values-based Reason (R) and Desire (D)",
+        "change_talk_present": "Reason (R) + Desire (D)",
+        "practitioner_choices": [
+          {
+            "text": "She's the reason. When you're with her, you see clearly who you want to be, and smoking doesn't fit with that person. That vision is what's creating this serious consideration.",
+            "technique": "Selective reflection linking Reason and Desire",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects how their granddaughter evokes a vision of who they want to be, and that vision is driving the change talk. This is powerful values-based motivation."
+          }
+        ]
+      },
+      {
+        "id": "node_5m",
+        "patient_statement": "It's not about your excitement. It's about me figuring this out at my own pace.",
+        "patient_context": "Patient reasserts autonomy",
+        "practitioner_choices": [
+          {
+            "text": "You're absolutely right. This is your process, your timeline. I'll follow your lead rather than pushing you.",
+            "technique": "Honoring autonomy",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good! This explicitly honors their autonomy and commits to following their lead. This repairs the relationship."
+          }
+        ]
+      },
+      {
+        "id": "node_5n",
+        "patient_statement": "Thank you. Because when I think about her, everything else fades. The stress, the habit, the fear - it all gets quieter when I think about what she needs from me.",
+        "patient_context": "Powerful statement about values overriding barriers",
+        "change_talk_present": "Reason (R) - values outweighing sustain talk",
+        "practitioner_choices": [
+          {
+            "text": "She clarifies everything. When you focus on her and what she needs, all the reasons to keep smoking - stress, habit, fear - they lose their power. She's the thing that matters most.",
+            "technique": "Selective reflection (values trumping barriers)",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflects how their love for her outweighs all the sustain talk. When values override barriers, that's very strong change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_5o",
+        "patient_statement": "Right. I can't have peace of mind any other way. So I guess the question isn't whether to quit, but when and how.",
+        "patient_context": "Shift from Need to beginning of Commitment/Activation - 'when and how' not 'whether'",
+        "change_talk_present": "Activation (A) moving toward Commitment (C)",
+        "practitioner_choices": [
+          {
+            "text": "That's a significant shift - from 'whether to quit' to 'when and how to quit.' The decision about quitting feels made, and now you're thinking about implementation.",
+            "technique": "Reflection highlighting shift toward Commitment",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This highlights the major shift from contemplation (whether) to preparation (when/how). This is mobilizing change talk emerging."
+          }
+        ]
+      },
+      {
+        "id": "node_5p",
+        "patient_statement": "Maybe not, but I can eliminate the risks I have control over. And this is one I can control.",
+        "patient_context": "Patient maintains change talk; adds Ability (A)",
+        "change_talk_present": "Ability (A) + Reason (R)",
+        "practitioner_choices": [
+          {
+            "text": "You're focusing on what's in your control - and smoking is something you can change. That sense of agency is important to you.",
+            "technique": "Selective reflection of Ability and values",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflects both their ability and their value for controlling what they can. This is empowering change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_5q",
+        "patient_statement": "She does. The difficulty is real, but she's more real. More important.",
+        "patient_context": "Clear statement that Reasons outweigh barriers",
+        "change_talk_present": "Reason (R) - decisional balance tipping",
+        "practitioner_choices": [
+          {
+            "text": "When you put her on one side of the scale and the difficulty on the other, she outweighs it. She's what tips the balance toward change.",
+            "technique": "Reflection of decisional balance",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects the decisional balance tipping toward change. When reasons outweigh barriers, that's very strong preparatory change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_5r",
+        "patient_statement": "Stop focusing on the difficulty. I'm telling you I think it's worth it. Can you hear that part?",
+        "patient_context": "Patient frustrated by focus on sustain talk",
+        "practitioner_choices": [
+          {
+            "text": "I hear you - it's worth it. Even knowing how hard it will be, for her sake it's worth going through that. I apologize for not focusing on that.",
+            "technique": "Apology + selective reflection of change talk",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Good recovery! You acknowledge missing their change talk and reflect it now. This shows you're listening to what matters to them."
+          }
+        ]
+      },
+      {
+        "id": "node_5s",
+        "patient_statement": "Exactly. I can't be both a smoker and the grandfather I want to be. They're incompatible. Something has to give.",
+        "patient_context": "Clear discrepancy recognition; Need (N) emerging",
+        "change_talk_present": "Reason (R - discrepancy) + Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "You're seeing clearly that these two things can't coexist - being a smoker and being the grandfather you envision. That incompatibility is leading you to recognize that something needs to change.",
+            "technique": "Reflection of discrepancy generating Need",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects how discrepancy is generating the sense of need to change. This is a key mechanism of motivation in MI."
+          }
+        ]
+      },
+      {
+        "id": "node_5t",
+        "patient_statement": "I'm not interested in what many people do. I'm talking about what I need to do. For me. For her.",
+        "patient_context": "Patient asserts autonomous values-based Need",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "This is about your standards for yourself, not comparing to others. What you need to do based on your own values as her grandfather.",
+            "technique": "Reflection emphasizing autonomous Need",
+            "next_node_id": "node_end_moderate",
+            "feedback": "Excellent! This reflects that their need is autonomous and values-based. This is the strongest form of need change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_5u",
+        "patient_statement": "Right. This is about who I want to be, not who someone else is. And who I want to be doesn't smoke.",
+        "patient_context": "Clear identity-based change talk",
+        "change_talk_present": "Desire (D) + identity",
+        "practitioner_choices": [
+          {
+            "text": "Your vision of your future self - the grandfather you're becoming - that person is a non-smoker. You're letting that vision guide you.",
+            "technique": "Reflection of identity-based change talk",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! Identity-based change talk (who I want to be) is particularly powerful. This reflects their emerging identity as a non-smoker."
+          }
+        ]
+      },
+      {
+        "id": "node_5v",
+        "patient_statement": "Yes. And I'm starting to think I'm ready to try. Not just think about it - actually try.",
+        "patient_context": "Activation (A) to Commitment (C) - 'ready to try'",
+        "change_talk_present": "Activation (A) / Commitment (C)",
+        "practitioner_choices": [
+          {
+            "text": "Something has shifted from contemplation to readiness. You're moving from thinking about quitting to being ready to actually attempt it. That's significant.",
+            "technique": "Reflection of shift to mobilizing change talk",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflects the shift from DARN (preparatory) to CAT (mobilizing) change talk. This is the transition from contemplation to preparation/action."
+          }
+        ]
+      },
+      {
+        "id": "node_5w",
+        "patient_statement": "It is. Being the grandfather she deserves means quitting. There's no way around it.",
+        "patient_context": "Strong Need (N) from values; possibly moving toward Commitment",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "Your values about being her grandfather lead directly to the conclusion that quitting is necessary. There's a clear path from who you want to be to what you need to do.",
+            "technique": "Reflection linking values to Need",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects how their values create a logical necessity for change. This kind of values-driven need is very powerful and often leads to commitment."
+          }
+        ]
+      },
+      {
+        "id": "node_6a",
+        "patient_statement": "Right. I have evidence I can do it, and better reasons this time. I think... I think I might be ready to set a date.",
+        "patient_context": "Commitment (C) change talk emerging - 'ready to set a date'",
+        "change_talk_present": "Commitment (C)",
+        "practitioner_choices": [
+          {
+            "text": "You're moving toward commitment - thinking about actually setting a date. That's the next step from recognizing you need to quit to deciding you will quit.",
+            "technique": "Reflection of Commitment change talk",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects the emergence of commitment change talk. Setting a date is a concrete commitment. This is the transition to planning."
+          }
+        ]
+      },
+      {
+        "id": "node_6b",
+        "patient_statement": "Maybe a 7? I have some confidence. But I'd rather talk about my granddaughter and why this matters than rate my confidence on a scale.",
+        "patient_context": "Patient prefers staying with change talk momentum",
+        "practitioner_choices": [
+          {
+            "text": "Let's stay with what's most alive for you - your granddaughter and why this matters. That's where the energy is.",
+            "technique": "Following patient's direction",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! When patients redirect you back to what's important to them, follow their lead. The ruler can wait - the change talk momentum is more important."
+          }
+        ]
+      },
+      {
+        "id": "node_6c",
+        "patient_statement": "Thank you. Yes, I can do this. I've done it before and I can do it again. Maybe even better this time.",
+        "patient_context": "Strong Ability (A) change talk",
+        "change_talk_present": "Ability (A)",
+        "practitioner_choices": [
+          {
+            "text": "You have confidence in your ability based on past success, and you're even thinking this time could be better. That's a strong foundation to build on.",
+            "technique": "Reflection of Ability",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflects their ability change talk and optimism. This builds self-efficacy."
+          }
+        ]
+      },
+      {
+        "id": "node_6d",
+        "patient_statement": "Right. I have tools. I just need to use them again. And maybe find some new ones too.",
+        "patient_context": "Ability (A) + openness to learning",
+        "change_talk_present": "Ability (A) + Activation (A)",
+        "practitioner_choices": [
+          {
+            "text": "You're recognizing you have a foundation to build on, and you're open to adding to your toolkit. That combination of using what worked and being open to new strategies is wise.",
+            "technique": "Reflection of Ability + planning orientation",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects both their existing resources and their openness to growth. This is preparation-stage thinking."
+          }
+        ]
+      },
+      {
+        "id": "node_6e",
+        "patient_statement": "They worked for several weeks, which is more than zero. I'm building on something, not starting from scratch.",
+        "patient_context": "Patient reframes past attempt as partial success",
+        "change_talk_present": "Ability (A)",
+        "practitioner_choices": [
+          {
+            "text": "You're reframing those weeks not as a failure but as evidence that you can quit and as a foundation to build on. That's a more helpful way to think about it.",
+            "technique": "Reflection affirming reframe",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This affirms their reframe from failure to partial success. This strengthens ability change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_6f",
+        "patient_statement": "Yes. She's worth more than my comfort. Worth more than avoiding fear. She's worth everything.",
+        "patient_context": "Very strong Desire (D) and values",
+        "change_talk_present": "Desire (D) + values",
+        "practitioner_choices": [
+          {
+            "text": "She's worth everything - including facing your greatest fears and giving up long-standing habits. That's the depth of your love for her and your commitment to being her grandfather.",
+            "technique": "Reflection amplifying values-based Desire",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects the profound depth of their motivation. Values-based desire this strong often leads directly to commitment."
+          }
+        ]
+      },
+      {
+        "id": "node_6g",
+        "patient_statement": "I don't want to focus on the fear. I want to focus on her and what she needs from me.",
+        "patient_context": "Patient redirects to change talk",
+        "practitioner_choices": [
+          {
+            "text": "You're right. Let's stay with what she needs from you and what that means for your smoking.",
+            "technique": "Following patient's lead back to change talk",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! You honor their request to focus on change talk rather than sustain talk. Follow their wisdom about what to explore."
+          }
+        ]
+      },
+      {
+        "id": "node_6h",
+        "patient_statement": "Yes. Love is what this is about. And love sometimes means making hard choices.",
+        "patient_context": "Values-based Reason (R) for change",
+        "change_talk_present": "Reason (R) + values",
+        "practitioner_choices": [
+          {
+            "text": "Love is calling you to make a hard choice - to give up smoking for her sake. That's what love means to you in this situation.",
+            "technique": "Reflection of values-based Reason",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects how love is driving the difficult choice. Values-based change talk is the most powerful motivator."
+          }
+        ]
+      },
+      {
+        "id": "node_6i",
+        "patient_statement": "Her cough shifted it. Seeing her vulnerable like that... I can't be part of anything that might hurt her. I need to eliminate every risk I can control.",
+        "patient_context": "Clear Need (N) with urgency",
+        "change_talk_present": "Need (N)",
+        "practitioner_choices": [
+          {
+            "text": "That moment of seeing her vulnerable crystallized this from something you were thinking about to something you need to do. It made the need visceral and immediate.",
+            "technique": "Reflection of shift to Need",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflects how a specific moment created urgency and shifted them to need. This kind of crystallizing moment often precedes commitment."
+          }
+        ]
+      },
+      {
+        "id": "node_6j",
+        "patient_statement": "I don't know when. I just know I need to. Can we work with that?",
+        "patient_context": "Patient at Need but not yet ready for specific commitment",
+        "practitioner_choices": [
+          {
+            "text": "Absolutely. 'I need to' is significant and important. When that shifts to 'I will' and 'when,' you'll know. There's no need to rush that.",
+            "technique": "Honoring their pace",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This honors where they are (Need) without pushing to where they're not yet (Commitment with timeline). This respects the natural progression."
+          }
+        ]
+      },
+      {
+        "id": "node_6k",
+        "patient_statement": "Right. I'm at 'I need to.' And that feels like progress from where I was - which was 'I should probably think about it.'",
+        "patient_context": "Patient recognizes own progress through change talk spectrum",
+        "change_talk_present": "Need (N) + self-awareness of progress",
+        "practitioner_choices": [
+          {
+            "text": "That is real progress - from vague 'should probably' to clear 'need to.' You're moving through stages of readiness, and recognizing that movement is important.",
+            "technique": "Reflection affirming progress",
+            "next_node_id": "node_end_good",
+            "feedback": "Excellent! This reflects and validates their progress along the change talk continuum from weak to strong preparatory change talk."
+          }
+        ]
+      },
+      {
+        "id": "node_6l",
+        "patient_statement": "Right. This isn't about pressure from others. This is what I know I need to do. That feels different. Stronger.",
+        "patient_context": "Autonomous Need (N) - very strong",
+        "change_talk_present": "Need (N) - autonomous",
+        "practitioner_choices": [
+          {
+            "text": "Autonomous need - coming from your own values and convictions - that's the strongest foundation for change. This is your decision, based on your understanding of what being her grandfather requires.",
+            "technique": "Reflection emphasizing autonomous motivation",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This highlights that autonomous need is the strongest predictor of successful behavior change. This is exactly the kind of motivation that leads to lasting change."
+          }
+        ]
+      },
+      {
+        "id": "node_6m",
+        "patient_statement": "Exactly. And I don't want to settle. Not with her. She deserves my absolute best, and I can't give her that while I'm smoking.",
+        "patient_context": "Clear discrepancy and Need (N)",
+        "change_talk_present": "Need (N) + discrepancy",
+        "practitioner_choices": [
+          {
+            "text": "The gap between 'adequate grandfather who smokes' and 'the best grandfather you can be' is clear to you now. And that gap requires quitting. That's what would allow you to give her your best.",
+            "technique": "Reflection of discrepancy driving Need",
+            "next_node_id": "node_end_good",
+            "feedback": "Perfect! This reflects how clear discrepancy (gap between current and ideal) creates the need to change. This is powerful motivational architecture."
+          }
+        ]
+      },
+      {
+        "id": "node_end_good",
+        "patient_statement": "This conversation has been really helpful. I came in unsure, and I'm leaving with clarity about what I need to do and why. I feel ready to take the next step, whatever that is.",
+        "is_ending": true,
+        "outcome": "Strong engagement - Skilled recognition and reflection of change talk strengthened the patient's motivation and moved them from ambivalence toward readiness for change",
+        "learning_summary": "Effective MI practitioners recognize change talk across the DARN-CAT spectrum: Desire, Ability, Reasons, Need (preparatory), and Commitment, Activation, Taking Steps (mobilizing). They selectively reflect change talk to strengthen it, avoid reflecting sustain talk unnecessarily, and use strategic questions to evoke change talk when it's not flowing. The progression from DARN to CAT represents movement from contemplation toward action. Values-based and autonomous change talk is particularly powerful and predictive of lasting change."
+      },
+      {
+        "id": "node_end_moderate",
+        "patient_statement": "Thanks for course-correcting when I pointed out you were missing what mattered. That helped me trust the process more.",
+        "is_ending": true,
+        "outcome": "Moderate engagement - Some missteps in recognizing change talk occurred but were corrected, ultimately helping the patient explore their motivation",
+        "learning_summary": "When practitioners miss change talk or focus on sustain talk, patients often redirect them. Being willing to acknowledge these misses and refocus on change talk strengthens the relationship and the process. Change talk recognition is a skill that requires practice - listen for DARN-CAT language and reflect it preferentially over sustain talk."
+      },
+      {
+        "id": "node_end_poor",
+        "patient_statement": "I don't think you're really hearing what matters to me. I'm going to think about this on my own.",
+        "is_ending": true,
+        "outcome": "Poor engagement - Consistent missing or minimizing of change talk left the patient feeling unheard and decreased motivation",
+        "learning_summary": "Missing change talk or responding primarily to sustain talk can undermine motivation and damage the therapeutic relationship. Patients offer change talk as signals of readiness and motivation - when practitioners don't recognize and reflect these signals, patients often disengage or their motivation weakens. Learning to selectively attend to and reflect change talk is fundamental to effective MI."
+      }
+    ]
+  }
+}
