@@ -1,0 +1,224 @@
+{
+  "dialogue_tree": {
+    "title": "Module 8: Confidence Scaling",
+    "learning_objective": "Use confidence rulers to assess readiness for action; Explore what supports current confidence; Identify small steps that build confidence; Avoid over-reassurance or minimizing doubts",
+    "technique_focus": "Confidence Scaling",
+    "stage_of_change": "Contemplation/Preparation",
+    "mi_process": "Focusing",
+    "description": "Learn to assess and explore confidence for weight loss changes using scaling questions",
+    "start_node": "conf_1",
+    "nodes": [
+      {
+        "id": "conf_1",
+        "patient_statement": "I want to walk for 30 minutes, 3 times a week. That's my goal.",
+        "patient_context": "Patient has expressed a specific goal",
+        "practitioner_choices": [
+          {
+            "text": "That's a great goal! You can definitely do this if you put your mind to it.",
+            "technique": "Over-reassurance (ineffective)",
+            "next_node_id": "conf_2a",
+            "feedback": "This cheerleading approach doesn't actually assess or build genuine confidence."
+          },
+          {
+            "text": "On a scale from 0 to 10, how confident do you feel about achieving that goal?",
+            "technique": "Confidence scaling",
+            "next_node_id": "conf_2b",
+            "feedback": "Perfect use of scaling to assess actual confidence level."
+          },
+          {
+            "text": "Walking 30 minutes is quite a lot if you're currently sedentary. Are you sure you can do that?",
+            "technique": "Undermining confidence",
+            "next_node_id": "conf_2c",
+            "feedback": "This introduces doubt instead of exploring the patient's actual confidence."
+          }
+        ]
+      },
+      {
+        "id": "conf_2a",
+        "patient_statement": "I hope so. I've tried to start exercise programs before and they haven't worked out.",
+        "patient_context": "Patient expresses doubt despite reassurance",
+        "practitioner_choices": [
+          {
+            "text": "You just need to believe in yourself more. You've got this!",
+            "technique": "Continued over-reassurance",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This dismisses legitimate concerns and doesn't build real confidence."
+          },
+          {
+            "text": "Past attempts haven't gone as you'd hoped. On a scale of 0 to 10, how confident do you feel about this attempt?",
+            "technique": "Reflection + Confidence scaling",
+            "next_node_id": "conf_2b",
+            "feedback": "Good - acknowledges the history and now assesses actual confidence."
+          }
+        ]
+      },
+      {
+        "id": "conf_2b",
+        "patient_statement": "Honestly? Maybe a 5. I want to do it, but I'm not sure I'll stick with it.",
+        "patient_context": "Patient rates confidence at moderate level",
+        "practitioner_choices": [
+          {
+            "text": "A 5 is pretty low. You need to get that number up before you can start.",
+            "technique": "Treating score as test/failure",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This judges the score negatively and creates pressure rather than exploration."
+          },
+          {
+            "text": "A 5 - so you have some confidence, but also some doubts. What makes it a 5 and not a 0?",
+            "technique": "Exploring existing confidence",
+            "next_node_id": "conf_3a",
+            "feedback": "Excellent - accepts the score and explores what confidence already exists."
+          },
+          {
+            "text": "Don't worry, your confidence will go up once you start seeing results.",
+            "technique": "Dismissing current confidence level",
+            "next_node_id": "conf_2a",
+            "feedback": "This skips over the important work of understanding and building confidence now."
+          }
+        ]
+      },
+      {
+        "id": "conf_2c",
+        "patient_statement": "Well, I'm not sure now. Maybe I should start with something smaller?",
+        "patient_context": "Patient second-guesses after practitioner doubt",
+        "practitioner_choices": [
+          {
+            "text": "Let's think about what you actually feel confident about. On a scale of 0 to 10, how confident are you about taking some steps toward more activity?",
+            "technique": "Refocusing + Confidence scaling",
+            "next_node_id": "conf_2b",
+            "feedback": "Good recovery - moves away from doubt-inducing approach to assessment."
+          },
+          {
+            "text": "Yes, 30 minutes is probably too much. Let's aim for 10 minutes instead.",
+            "technique": "Imposing revised goal",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This takes over decision-making rather than exploring the patient's confidence."
+          }
+        ]
+      },
+      {
+        "id": "conf_3a",
+        "patient_statement": "Well, I've got all the tools - a pair of legs, comfortable shoes. And I've done it before when I was younger. I know I can walk.",
+        "patient_context": "Patient identifies sources of confidence",
+        "practitioner_choices": [
+          {
+            "text": "So you have the physical ability and past success to draw on. What accounts for the other side - what makes it not an 8 or 9?",
+            "technique": "Affirmation + Exploring barriers to higher confidence",
+            "next_node_id": "conf_4a",
+            "feedback": "Perfect - affirms strengths and explores what's holding confidence back."
+          },
+          {
+            "text": "Right, so there's no reason you can't do it. You just need to start.",
+            "technique": "Minimizing doubts",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This dismisses the legitimate concerns that keep confidence at 5."
+          },
+          {
+            "text": "Those are great resources. What's worked for you before when you've stayed active?",
+            "technique": "Affirmation + Exploring past success",
+            "next_node_id": "conf_4b",
+            "feedback": "Good - builds on strengths and explores what has worked before."
+          }
+        ]
+      },
+      {
+        "id": "conf_4a",
+        "patient_statement": "I guess it's the sticking with it part. I tend to start strong and then life gets in the way - work stress, family stuff. Then I stop.",
+        "patient_context": "Patient identifies confidence barrier",
+        "practitioner_choices": [
+          {
+            "text": "What would help move your confidence up even one point - say from a 5 to a 6?",
+            "technique": "Small increment scaling question",
+            "next_node_id": "conf_5a",
+            "feedback": "Excellent - focuses on realistic, small improvements in confidence."
+          },
+          {
+            "text": "You need to make exercise a priority. Put it in your calendar and treat it like any other appointment.",
+            "technique": "Giving advice without permission",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This jumps to solutions without exploring what would actually help the patient."
+          },
+          {
+            "text": "Life gets in the way for everyone. You just have to push through it.",
+            "technique": "Dismissing barriers",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This minimizes real challenges instead of problem-solving collaboratively."
+          }
+        ]
+      },
+      {
+        "id": "conf_4b",
+        "patient_statement": "When I was younger, I had friends who I'd work out with. We'd meet up and it was social, not just exercise. That made it fun.",
+        "patient_context": "Patient recalls past success factor",
+        "practitioner_choices": [
+          {
+            "text": "Having that social connection made a real difference. What might help recreate something like that now?",
+            "technique": "Reflection + Open question",
+            "next_node_id": "conf_5b",
+            "feedback": "Good - honors past success and explores how to apply it now."
+          },
+          {
+            "text": "Great! So you should find a walking buddy or join a group. Problem solved.",
+            "technique": "Jumping to solution",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This rushes past the patient's own problem-solving process."
+          }
+        ]
+      },
+      {
+        "id": "conf_5a",
+        "patient_statement": "Maybe if I started with just 10 minutes instead of 30? That feels more doable. I could commit to that.",
+        "patient_context": "Patient identifies confidence-building step",
+        "practitioner_choices": [
+          {
+            "text": "Starting with 10 minutes is a smart way to build confidence. On that shorter walk goal, where's your confidence now?",
+            "technique": "Affirmation + Re-scaling",
+            "next_node_id": "conf_end_good",
+            "feedback": "Perfect - affirms the adaptive planning and reassesses confidence on the revised goal."
+          },
+          {
+            "text": "But 10 minutes won't really give you the health benefits you need. You should aim for at least 20.",
+            "technique": "Undermining patient's realistic assessment",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This dismisses the patient's confidence-appropriate goal."
+          }
+        ]
+      },
+      {
+        "id": "conf_5b",
+        "patient_statement": "Actually, my neighbor mentioned she walks in the mornings. Maybe I could ask if she'd want company. That might help.",
+        "patient_context": "Patient identifies support strategy",
+        "practitioner_choices": [
+          {
+            "text": "That could provide the support and accountability you're looking for. How confident would you feel about reaching out to her?",
+            "technique": "Reflection + Confidence check on next step",
+            "next_node_id": "conf_end_good",
+            "feedback": "Excellent - links to what matters and checks confidence on the specific action."
+          },
+          {
+            "text": "Perfect! You should definitely do that. Having a walking partner is the key to success.",
+            "technique": "Over-enthusiasm",
+            "next_node_id": "conf_end_poor",
+            "feedback": "This pressures rather than supporting the patient's self-directed planning."
+          }
+        ]
+      },
+      {
+        "id": "conf_end_good",
+        "patient_statement": "With 10 minutes and maybe a walking buddy? I'd say my confidence is more like a 7 or 8 now. That feels realistic.",
+        "patient_context": "Successful confidence exploration and building",
+        "is_ending": true,
+        "outcome": "Good engagement - Through thoughtful confidence scaling, the patient identified realistic steps that increased their confidence meaningfully.",
+        "learning_summary": "Confidence scaling involves asking the patient to rate their confidence on a scale (typically 0-10), then exploring what supports that confidence and what might increase it slightly. The focus is on understanding and building the patient's own assessment, not imposing external judgments about readiness."
+      },
+      {
+        "id": "conf_end_poor",
+        "patient_statement": "I guess I'll try, but I'm not feeling great about it. Maybe I'm just not ready for this.",
+        "patient_context": "Poor outcome from ineffective confidence work",
+        "is_ending": true,
+        "outcome": "Poor engagement - Ineffective handling of confidence assessment led to decreased motivation and self-efficacy.",
+        "learning_summary": "Over-reassurance, dismissing concerns, imposing goals, and treating confidence scores as tests all undermine the scaling process. Effective confidence work accepts the patient's rating, explores what gives them that confidence, and helps them identify realistic next steps."
+      }
+    ]
+  }
+}

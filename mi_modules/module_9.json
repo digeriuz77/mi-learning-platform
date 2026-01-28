@@ -1,0 +1,199 @@
+{
+  "dialogue_tree": {
+    "title": "Module 9: Decisional Balance",
+    "learning_objective": "Explore pros and cons of both changing and staying the same; Give equal attention to both sides of ambivalence; Avoid using decisional balance to persuade; Let the patient draw their own conclusions",
+    "technique_focus": "Decisional Balance",
+    "stage_of_change": "Contemplation",
+    "mi_process": "Focusing",
+    "description": "Learn to explore ambivalence by examining both sides of change decisions about weight loss",
+    "start_node": "dec_1",
+    "nodes": [
+      {
+        "id": "dec_1",
+        "patient_statement": "I know I need to lose weight, but I just don't know if I'm ready to make big changes to my eating habits.",
+        "patient_context": "Patient expresses ambivalence about dietary change",
+        "practitioner_choices": [
+          {
+            "text": "Clearly the benefits outweigh the downsides. Your health depends on it.",
+            "technique": "Using decisional balance to persuade (ineffective)",
+            "next_node_id": "dec_2a",
+            "feedback": "This tries to argue the patient out of ambivalence rather than exploring it."
+          },
+          {
+            "text": "You're feeling torn about this. What are some of the good things about how you eat now?",
+            "technique": "Reflection + Exploring status quo benefits",
+            "next_node_id": "dec_2b",
+            "feedback": "Excellent - acknowledges ambivalence and starts by exploring one side openly."
+          },
+          {
+            "text": "You're just making excuses. You know what you need to do.",
+            "technique": "Dismissing ambivalence as resistance",
+            "next_node_id": "dec_2a",
+            "feedback": "This treats normal ambivalence as character flaw, damaging the relationship."
+          }
+        ]
+      },
+      {
+        "id": "dec_2a",
+        "patient_statement": "I do know it's important, but you don't understand - food is one of the few pleasures I have after a stressful day.",
+        "patient_context": "Patient defends status quo after being pushed",
+        "practitioner_choices": [
+          {
+            "text": "You need to find other ways to deal with stress. Food shouldn't be a reward.",
+            "technique": "Arguing against status quo benefits",
+            "next_node_id": "dec_end_poor",
+            "feedback": "This continues the argumentative dynamic and increases resistance."
+          },
+          {
+            "text": "Food is important comfort and pleasure for you, especially after difficult days. That makes sense. What else do you value about your current eating pattern?",
+            "technique": "Reflection + Continued exploration without judgment",
+            "next_node_id": "dec_3a",
+            "feedback": "Good recovery - validates the patient's perspective and continues exploring non-judgmentally."
+          }
+        ]
+      },
+      {
+        "id": "dec_2b",
+        "patient_statement": "Well, I enjoy eating. I love trying new foods and restaurants. It's something I do with friends and family. Food is social for me.",
+        "patient_context": "Patient shares genuine benefits of status quo",
+        "practitioner_choices": [
+          {
+            "text": "Those things aren't important compared to your health. You need to prioritize.",
+            "technique": "Dismissing patient's values",
+            "next_node_id": "dec_2a",
+            "feedback": "This devalues what matters to the patient, creating discord."
+          },
+          {
+            "text": "Food connects you to people you care about and brings joy to your life. Those are real and important benefits. What concerns you, if any, about your current eating habits?",
+            "technique": "Affirming status quo benefits + Exploring other side",
+            "next_node_id": "dec_3b",
+            "feedback": "Perfect - gives equal weight to both sides without judgment."
+          },
+          {
+            "text": "That's nice, but you can still have those social experiences with healthier food choices.",
+            "technique": "Minimizing with 'but'",
+            "next_node_id": "dec_2a",
+            "feedback": "The 'but' dismisses what the patient just shared as important."
+          }
+        ]
+      },
+      {
+        "id": "dec_3a",
+        "patient_statement": "I guess I also just don't have to think about it. I eat what I want, when I want. There's freedom in that.",
+        "patient_context": "Patient continues exploring status quo benefits",
+        "practitioner_choices": [
+          {
+            "text": "There's something valuable about that spontaneity and freedom. And what, if anything, concerns you about your weight or eating?",
+            "technique": "Reflection + Gentle invitation to other side",
+            "next_node_id": "dec_3b",
+            "feedback": "Good - continues to validate before exploring the other side."
+          },
+          {
+            "text": "But that 'freedom' is causing health problems. Let's focus on what you need to change.",
+            "technique": "Rushing to change side",
+            "next_node_id": "dec_end_poor",
+            "feedback": "This doesn't give adequate exploration to the status quo side."
+          }
+        ]
+      },
+      {
+        "id": "dec_3b",
+        "patient_statement": "Well, I do worry about my health. My doctor said I'm pre-diabetic. And I can't fit into my favorite clothes anymore, which is depressing.",
+        "patient_context": "Patient shares concerns about status quo",
+        "practitioner_choices": [
+          {
+            "text": "Exactly! So clearly you need to change your eating habits. The health risks are serious.",
+            "technique": "Jumping on change talk to persuade",
+            "next_node_id": "dec_2a",
+            "feedback": "This tries to use the patient's concerns to argue rather than continuing balanced exploration."
+          },
+          {
+            "text": "Your health concerns and how you feel about your body are weighing on you. What might be some benefits if you did make changes to your eating?",
+            "technique": "Reflection + Exploring change benefits",
+            "next_node_id": "dec_4a",
+            "feedback": "Good - acknowledges concerns and explores potential change benefits."
+          }
+        ]
+      },
+      {
+        "id": "dec_4a",
+        "patient_statement": "I guess I'd feel better physically. Maybe have more energy. And I wouldn't have to worry as much about diabetes getting worse.",
+        "patient_context": "Patient identifies potential change benefits",
+        "practitioner_choices": [
+          {
+            "text": "So there are real benefits to changing. Now let's make a plan for how you'll change your diet.",
+            "technique": "Rushing to planning",
+            "next_node_id": "dec_end_poor",
+            "feedback": "This moves too quickly to action without fully exploring the ambivalence."
+          },
+          {
+            "text": "Better energy and health, less worry about diabetes - those would be meaningful. What concerns you about making changes to your eating?",
+            "technique": "Reflection + Exploring change downsides",
+            "next_node_id": "dec_5a",
+            "feedback": "Excellent - continues balanced exploration by looking at costs of change."
+          }
+        ]
+      },
+      {
+        "id": "dec_5a",
+        "patient_statement": "I'm worried I'll feel deprived. That I won't be able to enjoy meals with friends. And honestly, I'm not sure I have the willpower to stick with it.",
+        "patient_context": "Patient identifies concerns about change",
+        "practitioner_choices": [
+          {
+            "text": "Those downsides aren't as important as your health. You're overthinking this.",
+            "technique": "Dismissing concerns about change",
+            "next_node_id": "dec_end_poor",
+            "feedback": "This treats the patient's legitimate concerns as unimportant."
+          },
+          {
+            "text": "Feeling deprived, losing that social connection, doubts about following through - those are real concerns. So on one side there's enjoying food freely and social connection, and on the other there's health and feeling better. Where does all this leave you?",
+            "technique": "Summarizing both sides + Inviting patient's conclusion",
+            "next_node_id": "dec_6a",
+            "feedback": "Perfect - gives equal weight to both sides and lets patient draw conclusions."
+          },
+          {
+            "text": "Let's focus on the positives. Don't think about what you're giving up.",
+            "technique": "Avoiding one side of ambivalence",
+            "next_node_id": "dec_2a",
+            "feedback": "This tries to wish away ambivalence rather than working with it."
+          }
+        ]
+      },
+      {
+        "id": "dec_6a",
+        "patient_statement": "I guess... I'm realizing that I care about both. Maybe I don't have to give up the social part? Maybe there's a way to change some things without losing what I value?",
+        "patient_context": "Patient beginning to resolve ambivalence",
+        "practitioner_choices": [
+          {
+            "text": "You're finding that it doesn't have to be all or nothing - you might be able to hold onto what matters while making some changes. What might that look like?",
+            "technique": "Reflection + Open invitation",
+            "next_node_id": "dec_end_good",
+            "feedback": "Excellent - reflects the emerging resolution and invites exploration of possibilities."
+          },
+          {
+            "text": "Right, you can still go out with friends, just order salads instead.",
+            "technique": "Providing solution",
+            "next_node_id": "dec_end_poor",
+            "feedback": "This takes over the problem-solving instead of letting the patient generate ideas."
+          }
+        ]
+      },
+      {
+        "id": "dec_end_good",
+        "patient_statement": "Maybe I could focus on portion sizes when I'm out with friends? Or choose one or two meals a week to be more careful about? That way I don't lose the social part but I'm still making some changes.",
+        "patient_context": "Successful decisional balance exploration",
+        "is_ending": true,
+        "outcome": "Good engagement - Through balanced exploration of both sides, the patient resolved their ambivalence and generated their own approach to change.",
+        "learning_summary": "Decisional balance explores both sides of ambivalence - the benefits of staying the same and the benefits of changing, as well as the costs of each. By giving equal weight to all sides without judging or persuading, patients can resolve their own ambivalence and find their own path forward."
+      },
+      {
+        "id": "dec_end_poor",
+        "patient_statement": "I don't think you understand what I'm dealing with. I'll think about it.",
+        "patient_context": "Poor outcome from unbalanced decisional balance",
+        "is_ending": true,
+        "outcome": "Poor engagement - Trying to argue the patient out of ambivalence increased resistance and damaged the relationship.",
+        "learning_summary": "Using decisional balance to persuade, dismissing the patient's concerns on either side, or rushing to resolution before full exploration all undermine the process. Ambivalence is normal and must be explored fully before the patient can resolve it."
+      }
+    ]
+  }
+}

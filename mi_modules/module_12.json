@@ -1,0 +1,193 @@
+{
+  "dialogue_tree": {
+    "title": "Module 12: Anticipatory Coping & Relapse Prevention",
+    "learning_objective": "Identify situations that might make change harder; Create flexible coping responses; Normalize lapses and focus on learning; Separate behavior from identity",
+    "technique_focus": "Anticipatory Coping & Relapse Prevention",
+    "stage_of_change": "Action/Maintenance",
+    "mi_process": "Planning/Following",
+    "description": "Learn to prepare patients for challenges and normalize setbacks as part of the change process",
+    "start_node": "anti_1",
+    "nodes": [
+      {
+        "id": "anti_1",
+        "patient_statement": "I've been walking regularly for a few weeks now and it's going well. I feel good about it.",
+        "patient_context": "Patient reports success with initial change",
+        "practitioner_choices": [
+          {
+            "text": "That's great! Just make sure you don't stop now. You have to keep it up.",
+            "technique": "Warning without preparation",
+            "next_node_id": "anti_2a",
+            "feedback": "This creates pressure without actually preparing for challenges."
+          },
+          {
+            "text": "That's really wonderful progress. As you continue, what situations might make it harder to keep walking?",
+            "technique": "Affirmation + Anticipatory coping question",
+            "next_node_id": "anti_2b",
+            "feedback": "Perfect - affirms success and proactively prepares for challenges without being pessimistic."
+          },
+          {
+            "text": "Good, but the hard part is maintenance. Most people fail at this stage.",
+            "technique": "Sounding pessimistic",
+            "next_node_id": "anti_2a",
+            "feedback": "This emphasizes failure rather than building preparation skills."
+          }
+        ]
+      },
+      {
+        "id": "anti_2a",
+        "patient_statement": "Oh, now I'm worried I'm going to fail too. Maybe I'm being too optimistic.",
+        "patient_context": "Patient discouraged by warning approach",
+        "practitioner_choices": [
+          {
+            "text": "I didn't mean to worry you. Your success so far shows you're capable. What I meant was, what challenges do you think might come up as you continue?",
+            "technique": "Repair + Reframe to anticipatory coping",
+            "next_node_id": "anti_2b",
+            "feedback": "Good recovery - affirms capability and reframes to constructive problem-solving."
+          },
+          {
+            "text": "You should be worried. Maintenance is when most people slip up. You need to be realistic.",
+            "technique": "Doubling down on pessimism",
+            "next_node_id": "anti_end_poor",
+            "feedback": "This reinforces discouragement rather than building coping skills."
+          }
+        ]
+      },
+      {
+        "id": "anti_2b",
+        "patient_statement": "Well, the weather is getting colder. And the holidays are coming up - I'll be busier with family stuff. Those might make it harder.",
+        "patient_context": "Patient identifies realistic challenges",
+        "practitioner_choices": [
+          {
+            "text": "You just can't let those things be excuses. You need to prioritize your health.",
+            "technique": "Dismissing barriers",
+            "next_node_id": "anti_2a",
+            "feedback": "This labels legitimate challenges as 'excuses' rather than problem-solving."
+          },
+          {
+            "text": "Cold weather and busy holidays - those are real challenges many people face. What has helped you in the past when the weather was bad or you had a busy schedule?",
+            "technique": "Normalizing + Drawing on past coping",
+            "next_node_id": "anti_3a",
+            "feedback": "Excellent - normalizes challenges and explores patient's existing coping resources."
+          },
+          {
+            "text": "Don't let cold weather stop you. Just dress in layers and use willpower.",
+            "technique": "Dismissive advice",
+            "next_node_id": "anti_end_poor",
+            "feedback": "This minimizes the challenge without collaboratively problem-solving."
+          }
+        ]
+      },
+      {
+        "id": "anti_3a",
+        "patient_statement": "In the past when it was cold, I used to walk in the mall sometimes. And when I'm busy... honestly, I haven't figured that one out yet. I just let exercise slide.",
+        "patient_context": "Patient identifies one solution and one gap",
+        "practitioner_choices": [
+          {
+            "text": "Mall walking is a great strategy you've used before. For busy times, if you find yourself with a packed schedule, what could you do to keep some movement in your day, even if it's not a full walk?",
+            "technique": "Affirming past success + If-then coping question",
+            "next_node_id": "anti_4a",
+            "feedback": "Perfect - reinforces existing coping and creates implementation intention for the gap."
+          },
+          {
+            "text": "You can't let a busy schedule be an excuse. You have to make time no matter what.",
+            "technique": "Rigid rule without flexibility",
+            "next_node_id": "anti_2a",
+            "feedback": "This creates pressure and doesn't acknowledge that flexibility might be needed."
+          }
+        ]
+      },
+      {
+        "id": "anti_4a",
+        "patient_statement": "Maybe I could do shorter walks? Like even just 10 minutes, a couple times when I have a break? Something is better than nothing, right?",
+        "patient_context": "Patient generates flexible coping response",
+        "practitioner_choices": [
+          {
+            "text": "You're creating a flexible backup plan - if a full walk isn't possible, then doing shorter walks when you can. That's smart thinking. How would you feel about yourself if you did miss a day or two?",
+            "technique": "Affirming flexible coping + Preparing for potential lapse",
+            "next_node_id": "anti_5a",
+            "feedback": "Excellent - reinforces the adaptive plan and proactively addresses potential self-judgment."
+          },
+          {
+            "text": "10 minutes isn't really enough to make a difference. You should stick to the 30-minute walks every time.",
+            "technique": "Creating rigid expectations",
+            "next_node_id": "anti_end_poor",
+            "feedback": "This dismisses the patient's realistic backup plan and creates all-or-nothing thinking."
+          }
+        ]
+      },
+      {
+        "id": "anti_5a",
+        "patient_statement": "Honestly? I'd probably feel like I failed. That I'm not disciplined enough.",
+        "patient_context": "Patient reveals self-judgment pattern",
+        "practitioner_choices": [
+          {
+            "text": "If you miss a day, you've failed. That's just the reality of making changes.",
+            "technique": "Treating lapse as failure",
+            "next_node_id": "anti_end_poor",
+            "feedback": "This reinforces unhelpful all-or-nothing thinking about setbacks."
+          },
+          {
+            "text": "Setbacks are a common part of change, not failure. Missing a day doesn't erase all the walking you've done. What would you want to tell a friend who missed a day of their walking plan?",
+            "technique": "Normalizing + Perspective-taking",
+            "next_node_id": "anti_6a",
+            "feedback": "Perfect - normalizes setbacks and uses perspective to challenge self-judgment."
+          }
+        ]
+      },
+      {
+        "id": "anti_6a",
+        "patient_statement": "I'd tell them it's okay, that they should just start again the next day. I guess I'm harder on myself than I'd be on someone else.",
+        "patient_context": "Patient recognizes double standard",
+        "practitioner_choices": [
+          {
+            "text": "You'd be compassionate with a friend. What would it be like to extend that same kindness to yourself if you miss a day?",
+            "technique": "Reflection + Inviting self-compassion",
+            "next_node_id": "anti_7a",
+            "feedback": "Good - highlights the insight and invites applying it to self."
+          },
+          {
+            "text": "Well, you should be hard on yourself. That's what creates accountability.",
+            "technique": "Reinforcing self-judgment",
+            "next_node_id": "anti_end_poor",
+            "feedback": "This contradicts the helpful insight the patient just had."
+          }
+        ]
+      },
+      {
+        "id": "anti_7a",
+        "patient_statement": "That would be... different. I think it would help me get back on track faster instead of spiraling into feeling bad about myself.",
+        "patient_context": "Patient sees value in self-compassion",
+        "practitioner_choices": [
+          {
+            "text": "So if you do miss a day or two during the holidays, what might help you get back to walking?",
+            "technique": "Preparing recovery plan",
+            "next_node_id": "anti_end_good",
+            "feedback": "Perfect - creates a specific plan for recovery from setback."
+          },
+          {
+            "text": "Good, but try not to miss any days. Just stay disciplined.",
+            "technique": "Returning to pressure",
+            "next_node_id": "anti_end_poor",
+            "feedback": "This undoes the helpful work on normalizing and planning for setbacks."
+          }
+        ]
+      },
+      {
+        "id": "anti_end_good",
+        "patient_statement": "I think reminding myself that I've built this habit - I can get back to it. Maybe looking at my walking log to see all the days I did walk. And then just going for a short walk to restart, not waiting until I can do the 'full' walk. Just getting back into motion.",
+        "patient_context": "Successful anticipatory coping and relapse prevention",
+        "is_ending": true,
+        "outcome": "Good engagement - Through anticipatory coping and normalizing setbacks, the patient developed flexible strategies and a compassionate approach to challenges.",
+        "learning_summary": "Anticipatory coping involves proactively identifying challenges and planning flexible responses. Relapse prevention work includes: normalizing setbacks as part of change, separating behavior from identity ('I missed a walk' not 'I'm a failure'), and creating specific recovery plans. This builds resilience and maintains motivation through the inevitable challenges of behavior change."
+      },
+      {
+        "id": "anti_end_poor",
+        "patient_statement": "I feel like if I slip up even once, I'll have failed. This all feels like a lot of pressure now.",
+        "patient_context": "Poor outcome from rigid expectations",
+        "is_ending": true,
+        "outcome": "Poor engagement - Creating rigid expectations and treating lapses as failure increased pressure and decreased resilience.",
+        "learning_summary": "Creating rigid all-or-nothing expectations, treating lapses as failures, reinforcing harsh self-judgment, and pressuring perfect adherence all undermine resilience. Effective relapse prevention requires flexibility, self-compassion, and recognition that setbacks are normal opportunities for learning rather than evidence of failure."
+      }
+    ]
+  }
+}

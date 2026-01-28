@@ -1,0 +1,212 @@
+{
+  "dialogue_tree": {
+    "title": "Module 10: Planning & Implementation Intentions",
+    "learning_objective": "Check readiness before moving to planning; Elicit the patient's ideas for plans first; Use if-then implementation intentions; Link plans to existing routines and check confidence",
+    "technique_focus": "Planning & Implementation Intentions",
+    "stage_of_change": "Preparation",
+    "mi_process": "Planning",
+    "description": "Learn to help patients create specific, realistic action plans using implementation intentions",
+    "start_node": "plan_1",
+    "nodes": [
+      {
+        "id": "plan_1",
+        "patient_statement": "I've been thinking about it more, and I think I'm ready to start making some changes with my eating and activity. I want to do something.",
+        "patient_context": "Patient expresses readiness for change",
+        "practitioner_choices": [
+          {
+            "text": "Great! Here's what you need to do: eat 1500 calories a day and exercise for 45 minutes, five times a week.",
+            "technique": "Imposing solution without permission",
+            "next_node_id": "plan_2a",
+            "feedback": "This jumps immediately to a practitioner-generated plan without exploring the patient's ideas."
+          },
+          {
+            "text": "It sounds like you're feeling ready to take some steps. Would you like to think about what a realistic first step might look like for you?",
+            "technique": "Reflection + Permission + Invitation",
+            "next_node_id": "plan_2b",
+            "feedback": "Perfect - acknowledges readiness, asks permission, and invites patient's ideas."
+          },
+          {
+            "text": "You say you're ready, but are you really? You've said that before.",
+            "technique": "Doubting commitment",
+            "next_node_id": "plan_2c",
+            "feedback": "This undermines the patient's expressed readiness rather than supporting it."
+          }
+        ]
+      },
+      {
+        "id": "plan_2a",
+        "patient_statement": "That sounds really intense. I don't think I can do all that right away.",
+        "patient_context": "Patient overwhelmed by imposed plan",
+        "practitioner_choices": [
+          {
+            "text": "If you're serious about losing weight, this is what it takes. You have to commit.",
+            "technique": "Pressuring for commitment",
+            "next_node_id": "plan_end_poor",
+            "feedback": "This creates pressure and treats planning as fixed rather than collaborative."
+          },
+          {
+            "text": "That does sound like a lot. What would feel like a realistic place for you to start?",
+            "technique": "Validating + Returning control",
+            "next_node_id": "plan_2b",
+            "feedback": "Good recovery - validates concern and returns to patient-generated planning."
+          }
+        ]
+      },
+      {
+        "id": "plan_2b",
+        "patient_statement": "Maybe I could start by swapping my afternoon snack - I usually have chips - for something healthier? And maybe try to walk for 10 minutes a few times a week?",
+        "patient_context": "Patient proposes realistic first steps",
+        "practitioner_choices": [
+          {
+            "text": "Those are thoughtful, specific ideas that you came up with. Let's get more specific - would it be okay to think about when and how these would happen?",
+            "technique": "Affirmation + Permission to detail",
+            "next_node_id": "plan_3a",
+            "feedback": "Excellent - affirms patient's ideas and seeks permission to make plans concrete."
+          },
+          {
+            "text": "That's a good start, but you'll need to do more than that to see real results.",
+            "technique": "Minimizing patient's plan",
+            "next_node_id": "plan_2a",
+            "feedback": "This devalues what the patient proposed as insufficient."
+          },
+          {
+            "text": "Let's make it every day, not just a few times a week. You should commit to daily walking.",
+            "technique": "Imposing changes to patient's plan",
+            "next_node_id": "plan_2c",
+            "feedback": "This overrides the patient's realistic assessment of what they can commit to."
+          }
+        ]
+      },
+      {
+        "id": "plan_2c",
+        "patient_statement": "Well, when you put it like that, I'm not sure I'm ready after all.",
+        "patient_context": "Patient pulls back after being doubted or pressured",
+        "practitioner_choices": [
+          {
+            "text": "See, I knew you weren't really ready. Let's just wait until you're more motivated.",
+            "technique": "Blaming patient",
+            "next_node_id": "plan_end_poor",
+            "feedback": "This damages the relationship and abandons the planning process."
+          },
+          {
+            "text": "It sounds like I pushed too hard there. What would feel right for you to try?",
+            "technique": "Taking responsibility + Open invitation",
+            "next_node_id": "plan_2b",
+            "feedback": "Good - practitioner takes responsibility for the discord and returns to collaboration."
+          }
+        ]
+      },
+      {
+        "id": "plan_3a",
+        "patient_statement": "Sure, that would help. I usually snack around 3pm at my desk when I hit that afternoon slump.",
+        "patient_context": "Patient identifies specific context for change",
+        "practitioner_choices": [
+          {
+            "text": "So if it's 3pm and you're at your desk feeling that slump, what could you do instead of reaching for chips?",
+            "technique": "Implementation intention (if-then)",
+            "next_node_id": "plan_4a",
+            "feedback": "Perfect - uses if-then format to create a concrete implementation intention."
+          },
+          {
+            "text": "You should keep healthy snacks at your desk. I recommend carrot sticks or almonds.",
+            "technique": "Providing solution instead of eliciting",
+            "next_node_id": "plan_2a",
+            "feedback": "This gives advice without eliciting the patient's own ideas first."
+          }
+        ]
+      },
+      {
+        "id": "plan_4a",
+        "patient_statement": "I could grab the apple I bring for lunch but never eat? Or maybe take a quick walk around the office instead of snacking?",
+        "patient_context": "Patient generates specific alternative behaviors",
+        "practitioner_choices": [
+          {
+            "text": "Those are both smart alternatives - using something you already have, or movement instead of food. Which feels most doable to you?",
+            "technique": "Affirmation + Eliciting choice",
+            "next_node_id": "plan_5a",
+            "feedback": "Good - affirms both options and lets patient choose what fits best."
+          },
+          {
+            "text": "Walking is better than the apple because you need the exercise more than changing your snack.",
+            "technique": "Deciding for patient",
+            "next_node_id": "plan_end_poor",
+            "feedback": "This takes over decision-making instead of letting the patient choose."
+          }
+        ]
+      },
+      {
+        "id": "plan_5a",
+        "patient_statement": "I think the apple. The walk might be too much to add right now, but eating the apple I already have - that seems easy.",
+        "patient_context": "Patient selects realistic option",
+        "practitioner_choices": [
+          {
+            "text": "So your plan is: if it's 3pm and I'm at my desk feeling the afternoon slump, then I'll eat my apple instead of chips. How confident do you feel about doing that?",
+            "technique": "Clarifying implementation intention + Confidence check",
+            "next_node_id": "plan_6a",
+            "feedback": "Excellent - restates the if-then plan clearly and checks confidence before finalizing."
+          },
+          {
+            "text": "Good. Now let's plan your walking schedule in detail too.",
+            "technique": "Overloading without checking readiness",
+            "next_node_id": "plan_2a",
+            "feedback": "This moves to another change without completing the first or checking if patient wants to continue."
+          }
+        ]
+      },
+      {
+        "id": "plan_6a",
+        "patient_statement": "Pretty confident, maybe an 8. I always have an apple with me, and my desk is private so no one will notice.",
+        "patient_context": "Patient reports high confidence in plan",
+        "practitioner_choices": [
+          {
+            "text": "An 8 is solid. What would make it easier to remember to do this, especially on tough days?",
+            "technique": "Affirming confidence + Anticipatory coping",
+            "next_node_id": "plan_7a",
+            "feedback": "Good - reinforces confidence and prepares for challenges."
+          },
+          {
+            "text": "Perfect! So you'll do this every day without fail starting tomorrow.",
+            "technique": "Creating rigid commitment",
+            "next_node_id": "plan_end_poor",
+            "feedback": "This makes the plan inflexible and pressures absolute adherence."
+          }
+        ]
+      },
+      {
+        "id": "plan_7a",
+        "patient_statement": "Maybe I could put the apple right on my keyboard in the morning? That way I'd see it and remember. And if I have a really bad day and still want chips, that's okay - I can try again the next day.",
+        "patient_context": "Patient plans reminder and flexible approach",
+        "practitioner_choices": [
+          {
+            "text": "You're thinking ahead about both a reminder and how to be flexible with yourself. That's a really thoughtful approach. What about the walking - did you want to make a plan for that too, or start with just the snack swap?",
+            "technique": "Affirmation + Open invitation",
+            "next_node_id": "plan_end_good",
+            "feedback": "Perfect - affirms planning and lets patient decide scope without pressure."
+          },
+          {
+            "text": "No, you can't have chips even on bad days. You have to stick to the plan.",
+            "technique": "Rigid rule-making",
+            "next_node_id": "plan_end_poor",
+            "feedback": "This creates unrealistic expectations and treats plans as fixed."
+          }
+        ]
+      },
+      {
+        "id": "plan_end_good",
+        "patient_statement": "Let me try the snack thing for a couple weeks and see how it goes. Once that's a habit, I'll think about adding the walking. One thing at a time feels more realistic.",
+        "patient_context": "Successful collaborative planning",
+        "is_ending": true,
+        "outcome": "Good engagement - Through patient-led planning with clear implementation intentions and confidence checks, a realistic and achievable plan emerged.",
+        "learning_summary": "Effective planning in MI involves: (1) confirming readiness before planning, (2) eliciting the patient's own ideas first, (3) creating specific if-then implementation intentions, (4) linking to existing routines, and (5) checking confidence. Plans should be patient-generated, realistic, and flexible."
+      },
+      {
+        "id": "plan_end_poor",
+        "patient_statement": "This all feels like too much pressure. I don't think I'm ready for this after all.",
+        "patient_context": "Poor outcome from directive or rigid planning",
+        "is_ending": true,
+        "outcome": "Poor engagement - Imposing plans, pressuring commitment, or creating rigid rules led to the patient withdrawing from the change process.",
+        "learning_summary": "Imposing practitioner-generated plans, pressuring for commitment, creating rigid rules, and overloading with multiple changes all undermine the planning process. Effective MI planning is collaborative, patient-generated, confidence-appropriate, and allows for flexibility."
+      }
+    ]
+  }
+}

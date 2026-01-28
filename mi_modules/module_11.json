@@ -1,0 +1,161 @@
+{
+  "dialogue_tree": {
+    "title": "Module 11: Giving Information, Advice & Feedback",
+    "learning_objective": "Ask permission before sharing information or advice; Build on what the person already knows; Keep information brief and neutral; Invite patient's interpretation",
+    "technique_focus": "Elicit-Provide-Elicit",
+    "stage_of_change": "Contemplation/Preparation",
+    "mi_process": "Engaging/Focusing",
+    "description": "Learn to share information collaboratively using the Elicit-Provide-Elicit approach",
+    "start_node": "info_1",
+    "nodes": [
+      {
+        "id": "info_1",
+        "patient_statement": "I've been trying to lose weight, but I'm not sure I really understand what I need to do differently. What should I be doing?",
+        "patient_context": "Patient directly asks for information",
+        "practitioner_choices": [
+          {
+            "text": "You need to create a calorie deficit. That means eating less and exercising more. The evidence clearly shows that's the only way to lose weight.",
+            "technique": "Lecturing without permission or eliciting",
+            "next_node_id": "info_2a",
+            "feedback": "This jumps straight to telling without first exploring what patient knows or asking permission."
+          },
+          {
+            "text": "I'd be happy to share some information about that. First, what do you already know about weight loss - what have you heard or read?",
+            "technique": "Elicit-Provide-Elicit (elicit phase)",
+            "next_node_id": "info_2b",
+            "feedback": "Perfect - accepts the request and starts by eliciting what they already know."
+          },
+          {
+            "text": "It's really about willpower and discipline. If you're not losing weight, you're not trying hard enough.",
+            "technique": "Judgmental advice-giving",
+            "next_node_id": "info_2a",
+            "feedback": "This provides judgmental feedback that will likely create defensiveness."
+          }
+        ]
+      },
+      {
+        "id": "info_2a",
+        "patient_statement": "I know all that. It's not like I'm stupid. I just can't seem to make it work.",
+        "patient_context": "Patient defensive after unsolicited advice",
+        "practitioner_choices": [
+          {
+            "text": "I didn't say you were stupid. I'm just trying to help. You asked me what to do.",
+            "technique": "Defensive response",
+            "next_node_id": "info_end_poor",
+            "feedback": "This becomes argumentative and damages the relationship further."
+          },
+          {
+            "text": "You're right, I jumped in too quickly. You've already been working on this. What's your experience been so far with trying to lose weight?",
+            "technique": "Taking responsibility + Eliciting",
+            "next_node_id": "info_2b",
+            "feedback": "Good recovery - practitioner takes responsibility and pivots to eliciting."
+          }
+        ]
+      },
+      {
+        "id": "info_2b",
+        "patient_statement": "Well, I know I need to eat less and move more. I've tried counting calories before. It worked for a while but then I got tired of tracking everything.",
+        "patient_context": "Patient shares current knowledge and experience",
+        "practitioner_choices": [
+          {
+            "text": "Right, so you understand the basics and have experience with calorie tracking. Would it be okay if I shared some information about different approaches that might fit better with your lifestyle?",
+            "technique": "Affirming knowledge + Asking permission (provide phase)",
+            "next_node_id": "info_3a",
+            "feedback": "Excellent - acknowledges what they know and explicitly asks permission before providing information."
+          },
+          {
+            "text": "Well, you need to keep tracking. Most people who stop tracking regain the weight. That's just how it works.",
+            "technique": "Prescriptive without permission",
+            "next_node_id": "info_2a",
+            "feedback": "This gives directive advice without permission or exploring alternatives."
+          },
+          {
+            "text": "You're obviously not seeing the bigger picture. Let me explain the science to you.",
+            "technique": "Condescending stance",
+            "next_node_id": "info_end_poor",
+            "feedback": "This belittles the patient and takes an expert-superior position."
+          }
+        ]
+      },
+      {
+        "id": "info_3a",
+        "patient_statement": "Sure, I'm open to hearing about different approaches.",
+        "patient_context": "Patient gives permission for information",
+        "practitioner_choices": [
+          {
+            "text": "One thing some people find helpful is focusing on food quality rather than just quantity - like emphasizing whole foods, vegetables, lean proteins. Others find success with pattern changes like eating at regular times or reducing portions gradually rather than tracking every calorie. Some combine small changes in eating with increased activity. Different approaches work for different people.",
+            "technique": "Providing neutral options briefly (provide phase)",
+            "next_node_id": "info_4a",
+            "feedback": "Good - provides information neutrally, briefly, and presents options rather than directives."
+          },
+          {
+            "text": "Well, the research shows that calorie tracking is the most effective method. People who track consistently lose the most weight and keep it off. You really should give it another try but this time stick with it. Here are all the apps I recommend, and let me explain how to calculate your basal metabolic rate...",
+            "technique": "Overloading with information + Prescriptive",
+            "next_node_id": "info_end_poor",
+            "feedback": "This provides too much information, is overly prescriptive, and doesn't check understanding."
+          }
+        ]
+      },
+      {
+        "id": "info_4a",
+        "patient_statement": "That's interesting. I hadn't thought about the food quality approach instead of just counting.",
+        "patient_context": "Patient responds to information",
+        "practitioner_choices": [
+          {
+            "text": "What do you make of that idea? How does that land with you?",
+            "technique": "Inviting interpretation (elicit phase)",
+            "next_node_id": "info_5a",
+            "feedback": "Perfect - invites the patient's interpretation and returns control to them."
+          },
+          {
+            "text": "Yes, food quality is definitely the best approach. That's what you should focus on.",
+            "technique": "Directing interpretation",
+            "next_node_id": "info_2a",
+            "feedback": "This tells the patient what to think rather than eliciting their perspective."
+          },
+          {
+            "text": "There's a lot more I need to tell you about nutrition science. Let me explain macros and micronutrients...",
+            "technique": "Continuing to overload without checking",
+            "next_node_id": "info_end_poor",
+            "feedback": "This dumps more information without checking how the first information was received."
+          }
+        ]
+      },
+      {
+        "id": "info_5a",
+        "patient_statement": "It sounds more doable than tracking everything. Like, I could focus on adding more vegetables and choosing grilled chicken instead of fried, that kind of thing?",
+        "patient_context": "Patient interprets and applies information",
+        "practitioner_choices": [
+          {
+            "text": "You're already thinking about specific, practical ways you could apply that approach. What appeals to you about that way of thinking about food?",
+            "technique": "Affirmation + Continued eliciting",
+            "next_node_id": "info_end_good",
+            "feedback": "Excellent - affirms patient's application and continues exploring their perspective."
+          },
+          {
+            "text": "Well, you'd also need to watch portions, avoid processed foods, eliminate added sugars, increase fiber...",
+            "technique": "Adding requirements without checking",
+            "next_node_id": "info_end_poor",
+            "feedback": "This loads on more requirements instead of staying with the patient's understanding."
+          }
+        ]
+      },
+      {
+        "id": "info_end_good",
+        "patient_statement": "I think it's less overwhelming. With tracking, I felt like I was obsessing over every calorie. This feels more like I could just make better choices without the constant math. I think I could try that.",
+        "patient_context": "Successful information exchange",
+        "is_ending": true,
+        "outcome": "Good engagement - Using Elicit-Provide-Elicit, information was shared collaboratively and the patient integrated it in their own way.",
+        "learning_summary": "The Elicit-Provide-Elicit approach transforms information-giving from a lecture to a collaborative exchange: (1) Elicit what the person already knows, (2) Ask permission and provide brief, neutral information, (3) Elicit their interpretation and application. This builds partnership and increases the likelihood that information will be used."
+      },
+      {
+        "id": "info_end_poor",
+        "patient_statement": "I feel more confused now than when I started. Maybe I should just forget about it.",
+        "patient_context": "Poor outcome from information overload or lecture",
+        "is_ending": true,
+        "outcome": "Poor engagement - Giving unsolicited advice, overloading with information, or being prescriptive led to confusion and disengagement.",
+        "learning_summary": "Giving unsolicited advice, lecturing without first eliciting, overloading with too much information, being prescriptive rather than presenting options, and failing to check the patient's interpretation all undermine effective information exchange in MI."
+      }
+    ]
+  }
+}

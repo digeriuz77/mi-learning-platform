@@ -1,0 +1,425 @@
+
+
+<json>
+{
+  "modules": [
+    {
+      "module_id": "module_7_collaborative_climate",
+      "title": "Module 7: Collaborative Climate & Focusing",
+      "description": "Learn to establish a collaborative partnership and set a shared agenda at the start of conversations about weight loss",
+      "learning_objectives": [
+        "Create a collaborative rather than authoritative conversational climate",
+        "Invite the patient to set priorities collaboratively",
+        "Use transparency about time and structure",
+        "Balance flexibility with focus"
+      ],
+      "start_node": "collab_1",
+      "nodes": [
+        {
+          "id": "collab_1",
+          "patient_statement": "Well, I sit at a desk all day for work. By evening I'm too tired to do anything except watch TV. I used to be more active when I was younger.",
+          "context": "Initial conversation about weight and activity level",
+          "practitioner_choices": [
+            {
+              "text": "You need to start exercising at least 30 minutes a day and cut your calorie intake by 500 calories.",
+              "technique": "Righting reflex (ineffective)",
+              "next_node_id": "collab_2a",
+              "feedback": "This directive approach ignores the patient's perspective and imposes an agenda, likely increasing resistance."
+            },
+            {
+              "text": "You notice quite a contrast between your current lifestyle and how you used to be. What would be most useful to focus on today?",
+              "technique": "Reflection + Collaborative agenda setting",
+              "next_node_id": "collab_2b",
+              "feedback": "This validates the patient's observation and invites them to set priorities, creating a collaborative climate."
+            },
+            {
+              "text": "Let me explain the health risks of being sedentary and overweight. It's very important you understand this.",
+              "technique": "Education/Lecturing (ineffective)",
+              "next_node_id": "collab_2c",
+              "feedback": "This takes an expert stance that may feel patronizing and doesn't honor patient autonomy."
+            }
+          ]
+        },
+        {
+          "id": "collab_2a",
+          "patient_statement": "That sounds like a lot. I don't think I can do all that right now. I barely have time as it is.",
+          "context": "Patient resistance after directive approach",
+          "practitioner_choices": [
+            {
+              "text": "If you don't make time, your health will continue to decline. It's really up to you.",
+              "technique": "Righting reflex with false autonomy",
+              "next_node_id": "collab_end_poor",
+              "feedback": "This sounds like a threat disguised as respecting choice, damaging the relationship."
+            },
+            {
+              "text": "I hear that feels overwhelming. Let's step back - what matters most to you about your health right now?",
+              "technique": "Rolling with discord + Refocusing collaboratively",
+              "next_node_id": "collab_3b",
+              "feedback": "Good recovery - acknowledging the discord and returning to collaboration."
+            }
+          ]
+        },
+        {
+          "id": "collab_2b",
+          "patient_statement": "I guess I'm most worried about my weight and how tired I feel all the time. But I'm not sure where to start.",
+          "context": "Patient responds to collaborative invitation",
+          "practitioner_choices": [
+            {
+              "text": "Those are connected concerns. We have about 15 minutes today - would it help to explore what might be behind that fatigue?",
+              "technique": "Linking + Transparent structure + Permission",
+              "next_node_id": "collab_3c",
+              "feedback": "Excellent - makes connections, is transparent about time, and seeks permission to focus."
+            },
+            {
+              "text": "The fatigue is probably from being overweight. Let's create an exercise plan.",
+              "technique": "Imposing interpretation and agenda",
+              "next_node_id": "collab_2a",
+              "feedback": "This jumps ahead without exploring the patient's perspective, taking control."
+            },
+            {
+              "text": "Let's tackle both - your weight and your energy levels. We need to cover diet, exercise, and sleep.",
+              "technique": "Overloading the agenda",
+              "next_node_id": "collab_3d",
+              "feedback": "Too many topics at once can overwhelm and dilute focus."
+            }
+          ]
+        },
+        {
+          "id": "collab_2c",
+          "patient_statement": "I know it's not good for me. I've heard all this before.",
+          "context": "Patient shows signs of disengagement after lecture",
+          "practitioner_choices": [
+            {
+              "text": "You've heard the information before. What would be more helpful for you today?",
+              "technique": "Reflection + Open invitation",
+              "next_node_id": "collab_3b",
+              "feedback": "Good pivot - acknowledging without judgment and returning control to the patient."
+            },
+            {
+              "text": "Well, hearing it and acting on it are two different things. That's why we need a concrete plan.",
+              "technique": "Argumentative stance",
+              "next_node_id": "collab_end_poor",
+              "feedback": "This sounds critical and maintains the non-collaborative dynamic."
+            }
+          ]
+        },
+        {
+          "id": "collab_3b",
+          "patient_statement": "I want to have more energy to play with my kids when I get home from work. That's what really matters to me.",
+          "context": "Patient identifies what matters most",
+          "practitioner_choices": [
+            {
+              "text": "Playing with your kids is really important to you. That's a wonderful motivation. Should we stay with this focus for now?",
+              "technique": "Affirmation + Checking focus",
+              "next_node_id": "collab_4",
+              "feedback": "Perfect - affirms values and collaboratively confirms the direction."
+            },
+            {
+              "text": "That's great, but we also need to discuss your weight and diet.",
+              "technique": "Dismissing patient's priority",
+              "next_node_id": "collab_3d",
+              "feedback": "The 'but' dismisses what the patient just shared as important."
+            }
+          ]
+        },
+        {
+          "id": "collab_3c",
+          "patient_statement": "Yes, I think understanding the tiredness would help. Sometimes I wonder if it's just being at a desk all day or something more.",
+          "context": "Patient accepts collaborative focus",
+          "practitioner_choices": [
+            {
+              "text": "What have you noticed about when you feel most tired versus when you have more energy?",
+              "technique": "Open question to explore",
+              "next_node_id": "collab_4",
+              "feedback": "Good - stays within the agreed focus and invites the patient's observations."
+            },
+            {
+              "text": "It's probably your weight and lack of exercise. Most people feel tired when they're sedentary.",
+              "technique": "Providing answers instead of exploring",
+              "next_node_id": "collab_2c",
+              "feedback": "This shifts back to an expert stance rather than exploring collaboratively."
+            }
+          ]
+        },
+        {
+          "id": "collab_3d",
+          "patient_statement": "That's a lot to think about. I'm not sure I can focus on everything at once.",
+          "context": "Patient feeling overwhelmed by multiple topics",
+          "practitioner_choices": [
+            {
+              "text": "You're right - that is a lot. What feels like the most important place to start?",
+              "technique": "Validating + Narrowing focus collaboratively",
+              "next_node_id": "collab_3b",
+              "feedback": "Good recovery - validates concern and invites the patient to prioritize."
+            },
+            {
+              "text": "These are all connected, so we need to address them all together.",
+              "technique": "Pushing the overloaded agenda",
+              "next_node_id": "collab_end_poor",
+              "feedback": "This ignores the patient's stated concern and maintains practitioner control."
+            }
+          ]
+        },
+        {
+          "id": "collab_4",
+          "patient_statement": "I feel most tired after sitting all day, but then I also don't have energy to do anything active. It's like a cycle.",
+          "context": "Patient explores within agreed focus",
+          "practitioner_choices": [
+            {
+              "text": "You're caught in this cycle where sitting makes you tired, but tiredness keeps you from being active. What might help break that pattern, even in a small way?",
+              "technique": "Complex reflection + Open question staying on focus",
+              "next_node_id": "collab_end_good",
+              "feedback": "Excellent - deepens the reflection and continues exploring within the collaborative focus."
+            },
+            {
+              "text": "Actually, we should also talk about your eating habits since those affect energy too.",
+              "technique": "Shifting focus without permission",
+              "next_node_id": "collab_3d",
+              "feedback": "This abandons the agreed focus without checking with the patient first."
+            }
+          ]
+        },
+        {
+          "id": "collab_end_good",
+          "patient_statement": "Maybe I could try taking a short walk during lunch? Even just 10 minutes to move around.",
+          "context": "Successful collaborative conversation",
+          "is_end_node": true,
+          "outcome": "success",
+          "summary": "Through collaborative agenda-setting and staying focused on what mattered to the patient, they identified a realistic first step."
+        },
+        {
+          "id": "collab_end_poor",
+          "patient_statement": "I don't think this is helping. Maybe I'll think about it and come back another time.",
+          "context": "Patient disengages due to non-collaborative approach",
+          "is_end_node": true,
+          "outcome": "poor",
+          "summary": "The non-collaborative, directive approach damaged engagement and the patient withdrew from the conversation."
+        }
+      ]
+    },
+    {
+      "module_id": "module_8_confidence_scaling",
+      "title": "Module 8: Confidence Scaling",
+      "description": "Learn to assess and explore confidence for weight loss changes using scaling questions",
+      "learning_objectives": [
+        "Use confidence rulers to assess readiness for action",
+        "Explore what supports current confidence",
+        "Identify small steps that build confidence",
+        "Avoid over-reassurance or minimizing doubts"
+      ],
+      "start_node": "conf_1",
+      "nodes": [
+        {
+          "id": "conf_1",
+          "patient_statement": "I want to walk for 30 minutes, 3 times a week. That's my goal.",
+          "context": "Patient has expressed a specific goal",
+          "practitioner_choices": [
+            {
+              "text": "That's a great goal! You can definitely do this if you put your mind to it.",
+              "technique": "Over-reassurance (ineffective)",
+              "next_node_id": "conf_2a",
+              "feedback": "This cheerleading approach doesn't actually assess or build genuine confidence."
+            },
+            {
+              "text": "On a scale from 0 to 10, how confident do you feel about achieving that goal?",
+              "technique": "Confidence scaling",
+              "next_node_id": "conf_2b",
+              "feedback": "Perfect use of scaling to assess actual confidence level."
+            },
+            {
+              "text": "Walking 30 minutes is quite a lot if you're currently sedentary. Are you sure you can do that?",
+              "technique": "Undermining confidence",
+              "next_node_id": "conf_2c",
+              "feedback": "This introduces doubt instead of exploring the patient's actual confidence."
+            }
+          ]
+        },
+        {
+          "id": "conf_2a",
+          "patient_statement": "I hope so. I've tried to start exercise programs before and they haven't worked out.",
+          "context": "Patient expresses doubt despite reassurance",
+          "practitioner_choices": [
+            {
+              "text": "You just need to believe in yourself more. You've got this!",
+              "technique": "Continued over-reassurance",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This dismisses legitimate concerns and doesn't build real confidence."
+            },
+            {
+              "text": "Past attempts haven't gone as you'd hoped. On a scale of 0 to 10, how confident do you feel about this attempt?",
+              "technique": "Reflection + Confidence scaling",
+              "next_node_id": "conf_2b",
+              "feedback": "Good - acknowledges the history and now assesses actual confidence."
+            }
+          ]
+        },
+        {
+          "id": "conf_2b",
+          "patient_statement": "Honestly? Maybe a 5. I want to do it, but I'm not sure I'll stick with it.",
+          "context": "Patient rates confidence at moderate level",
+          "practitioner_choices": [
+            {
+              "text": "A 5 is pretty low. You need to get that number up before you can start.",
+              "technique": "Treating score as test/failure",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This judges the score negatively and creates pressure rather than exploration."
+            },
+            {
+              "text": "A 5 - so you have some confidence, but also some doubts. What makes it a 5 and not a 0?",
+              "technique": "Exploring existing confidence",
+              "next_node_id": "conf_3a",
+              "feedback": "Excellent - accepts the score and explores what confidence already exists."
+            },
+            {
+              "text": "Don't worry, your confidence will go up once you start seeing results.",
+              "technique": "Dismissing current confidence level",
+              "next_node_id": "conf_2a",
+              "feedback": "This skips over the important work of understanding and building confidence now."
+            }
+          ]
+        },
+        {
+          "id": "conf_2c",
+          "patient_statement": "Well, I'm not sure now. Maybe I should start with something smaller?",
+          "context": "Patient second-guesses after practitioner doubt",
+          "practitioner_choices": [
+            {
+              "text": "Let's think about what you actually feel confident about. On a scale of 0 to 10, how confident are you about taking some steps toward more activity?",
+              "technique": "Refocusing + Confidence scaling",
+              "next_node_id": "conf_2b",
+              "feedback": "Good recovery - moves away from doubt-inducing approach to assessment."
+            },
+            {
+              "text": "Yes, 30 minutes is probably too much. Let's aim for 10 minutes instead.",
+              "technique": "Imposing revised goal",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This takes over decision-making rather than exploring the patient's confidence."
+            }
+          ]
+        },
+        {
+          "id": "conf_3a",
+          "patient_statement": "Well, I've got all the tools - a pair of legs, comfortable shoes. And I've done it before when I was younger. I know I can walk.",
+          "context": "Patient identifies sources of confidence",
+          "practitioner_choices": [
+            {
+              "text": "So you have the physical ability and past success to draw on. What accounts for the other side - what makes it not an 8 or 9?",
+              "technique": "Affirmation + Exploring barriers to higher confidence",
+              "next_node_id": "conf_4a",
+              "feedback": "Perfect - affirms strengths and explores what's holding confidence back."
+            },
+            {
+              "text": "Right, so there's no reason you can't do it. You just need to start.",
+              "technique": "Minimizing doubts",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This dismisses the legitimate concerns that keep confidence at 5."
+            },
+            {
+              "text": "Those are great resources. What's worked for you before when you've stayed active?",
+              "technique": "Affirmation + Exploring past success",
+              "next_node_id": "conf_4b",
+              "feedback": "Good - builds on strengths and explores what has worked before."
+            }
+          ]
+        },
+        {
+          "id": "conf_4a",
+          "patient_statement": "I guess it's the sticking with it part. I tend to start strong and then life gets in the way - work stress, family stuff. Then I stop.",
+          "context": "Patient identifies confidence barrier",
+          "practitioner_choices": [
+            {
+              "text": "What would help move your confidence up even one point - say from a 5 to a 6?",
+              "technique": "Small increment scaling question",
+              "next_node_id": "conf_5a",
+              "feedback": "Excellent - focuses on realistic, small improvements in confidence."
+            },
+            {
+              "text": "You need to make exercise a priority. Put it in your calendar and treat it like any other appointment.",
+              "technique": "Giving advice without permission",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This jumps to solutions without exploring what would actually help the patient."
+            },
+            {
+              "text": "Life gets in the way for everyone. You just have to push through it.",
+              "technique": "Dismissing barriers",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This minimizes real challenges instead of problem-solving collaboratively."
+            }
+          ]
+        },
+        {
+          "id": "conf_4b",
+          "patient_statement": "When I was younger, I had friends who I'd work out with. We'd meet up and it was social, not just exercise. That made it fun.",
+          "context": "Patient recalls past success factor",
+          "practitioner_choices": [
+            {
+              "text": "Having that social connection made a real difference. What might help recreate something like that now?",
+              "technique": "Reflection + Open question",
+              "next_node_id": "conf_5b",
+              "feedback": "Good - honors past success and explores how to apply it now."
+            },
+            {
+              "text": "Great! So you should find a walking buddy or join a group. Problem solved.",
+              "technique": "Jumping to solution",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This rushes past the patient's own problem-solving process."
+            }
+          ]
+        },
+        {
+          "id": "conf_5a",
+          "patient_statement": "Maybe if I started with just 10 minutes instead of 30? That feels more doable. I could commit to that.",
+          "context": "Patient identifies confidence-building step",
+          "practitioner_choices": [
+            {
+              "text": "Starting with 10 minutes is a smart way to build confidence. On that shorter walk goal, where's your confidence now?",
+              "technique": "Affirmation + Re-scaling",
+              "next_node_id": "conf_end_good",
+              "feedback": "Perfect - affirms the adaptive planning and reassesses confidence on the revised goal."
+            },
+            {
+              "text": "But 10 minutes won't really give you the health benefits you need. You should aim for at least 20.",
+              "technique": "Undermining patient's realistic assessment",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This dismisses the patient's confidence-appropriate goal."
+            }
+          ]
+        },
+        {
+          "id": "conf_5b",
+          "patient_statement": "Actually, my neighbor mentioned she walks in the mornings. Maybe I could ask if she'd want company. That might help.",
+          "context": "Patient identifies support strategy",
+          "practitioner_choices": [
+            {
+              "text": "That could provide the support and accountability you're looking for. How confident would you feel about reaching out to her?",
+              "technique": "Reflection + Confidence check on next step",
+              "next_node_id": "conf_end_good",
+              "feedback": "Excellent - links to what matters and checks confidence on the specific action."
+            },
+            {
+              "text": "Perfect! You should definitely do that. Having a walking partner is the key to success.",
+              "technique": "Over-enthusiasm",
+              "next_node_id": "conf_end_poor",
+              "feedback": "This pressures rather than supporting the patient's self-directed planning."
+            }
+          ]
+        },
+        {
+          "id": "conf_end_good",
+          "patient_statement": "With 10 minutes and maybe a walking buddy? I'd say my confidence is more like a 7 or 8 now. That feels realistic.",
+          "context": "Successful confidence exploration and building",
+          "is_end_node": true,
+          "outcome": "success",
+          "summary": "Through thoughtful confidence scaling, the patient identified realistic steps that increased their confidence meaningfully."
+        },
+        {
+          "id": "conf_end_poor",
+          "patient_statement": "I guess I'll try, but I'm not feeling great about it. Maybe I'm just not ready for this.",
+          "context": "Poor outcome from ineffective confidence work",
+          "is_end_node": true,
+          "outcome": "poor",
+          "summary": "Ineffective handling of confidence assessment led to decreased motivation and self-efficacy."
+        }
+      ]
+    },
+    
