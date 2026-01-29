@@ -79,9 +79,10 @@ Thumbs.db
 *~
 .directory
 
-# Markdown files (except README.md)
+# Markdown files (except important docs)
 *.md
 !README.md
+!SUPABASE_SETUP_GUIDE.md
 
 # Project specific
 test_system.py

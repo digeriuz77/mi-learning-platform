@@ -1,403 +1,211 @@
-# MI Learning Platform - Interactive Learning Platform 🚀
+# MI Learning Platform
 
-A modern Django web application for learning C++ programming through interactive storytelling, AI-powered tutoring, and gamification.
+A modern FastAPI-based web application for learning Motivational Interviewing (MI) techniques through interactive dialogue scenarios, real-time feedback, and gamification.
 
-**Status**: ✅ **FULLY OPERATIONAL** - All systems integrated and tested
+## Overview
 
-## 🎯 Features
+The MI Learning Platform provides healthcare professionals, counselors, and students with an interactive environment to practice and master Motivational Interviewing techniques. Users navigate through realistic client dialogue scenarios, receive immediate feedback on their technique choices, and track their progress through a gamified learning system.
 
-- **📚 MI Skills Practice** - Master Motivational Interviewing through structured dialogue scenarios
-- **🎮 Interactive Dialogue Trees** - Navigate complex client conversations with branching paths
-- **👤 Real-time Feedback** - Get immediate guidance on MI technique effectiveness
-- **🎓 Progressive Learning** - 6-module curriculum from basic to advanced techniques
-- **🤝 AI-Powered Coaching** - MI expert system for personalized guidance
-- **📊 Skill Assessment** - Track proficiency in reflections, questions, affirmations, and change talk
-- **🏆 Gamified Progress** - Points, levels, achievements, and leaderboards
-- **💬 AI Tutor** - Get instant help from Groq AI-powered chatbot (Llama 3.1)
-- **🎮 Interactive Challenges** - Test your knowledge with multiple-choice questions
-- **👤 User Dashboard** - Track progress and access all features in one place
-- **📧 Contact Form** - Send feedback and messages to administrators
-- **📊 Progress Tracking** - Monitor your learning journey with personal statistics
-- **🏆 Leaderboard** - Compete with other learners
-- **🔐 Secure Authentication** - User registration, login, and session management
-- **📱 Responsive Design** - Works seamlessly on desktop, tablet, and mobile devices
+## Tech Stack
 
-## 🛠️ Tech Stack
+- **Backend:** FastAPI 0.104.1 (Python 3.11)
+- **Database:** PostgreSQL via Supabase
+- **Authentication:** Supabase Auth with JWT tokens
+- **Frontend:** HTML5, CSS3, Vanilla JavaScript (SPA)
+- **Containerization:** Docker with docker-compose
+- **CI/CD:** GitHub Actions
 
-- **Backend:** Django 4.2 (Python)
-- **Frontend:** HTML5, CSS3, JavaScript, Bootstrap 5
-- **Database:** SQLite3 (development) / PostgreSQL (production)
-- **AI API:** Groq (Llama 3.1 8B model) - MI Coaching Expert System
-- **Auth:** Django's built-in authentication system
-- **Icons:** Font Awesome 6.5
-- **MI Framework:** Evidence-based Motivational Interviewing (OARS) techniques
+## Features
 
-## 📋 Requirements
+- **Interactive Dialogue Trees** - Navigate branching client conversations with multiple response options
+- **Real-time Feedback** - Immediate guidance on MI technique effectiveness (OARS techniques)
+- **Progressive Learning** - 12-module curriculum covering stages of change
+- **Gamification** - Points, levels, achievements, and leaderboards
+- **Technique Mastery Tracking** - Monitor proficiency in reflections, open questions, affirmations, and summaries
+- **Row-Level Security** - User data isolation enforced at the database level
+
+## Project Structure
+
+```
+mi-learning-platform/
+├── app/
+│   ├── main.py                 # FastAPI application entry point
+│   ├── config.py               # Pydantic settings management
+│   ├── core/
+│   │   └── supabase.py         # Supabase client initialization
+│   ├── models/                 # Pydantic request/response models
+│   │   ├── auth.py
+│   │   ├── modules.py
+│   │   └── progress.py
+│   ├── api/v1/                 # API endpoint routers
+│   │   ├── auth.py             # Authentication endpoints
+│   │   ├── modules.py          # Module management
+│   │   ├── dialogue.py         # Dialogue interaction
+│   │   ├── progress.py         # Progress tracking
+│   │   └── leaderboard.py      # Rankings
+│   ├── services/
+│   │   └── scoring_service.py  # Points and level calculations
+│   └── db/
+│       └── migrations/         # SQL migration files
+│           └── 001_init_schema.sql
+├── mi_modules/                 # Learning module JSON content
+├── static/                     # Frontend assets
+│   ├── css/style.css
+│   └── js/app.js
+├── templates/                  # Jinja2 HTML templates
+├── tests/                      # pytest test suite
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── .env.example
+```
+
+## Quick Start
+
+### Prerequisites
 
 - Python 3.11+
-- Django 4.2
-- requests library
-- sqlite3 (included)
-- Virtual environment
+- A Supabase account (free tier available at [supabase.com](https://supabase.com))
 
-## 🚀 Quick Start
+### 1. Clone and Setup
 
-### 1. Navigate to Project
 ```bash
-cd C:\builds\MILearningPlatform
-```
-
-### 2. Activate Virtual Environment
-```bash
+git clone <repository-url>
+cd mi-learning-platform
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-### 3. Optional: Add Groq API Key
-Edit `.env` file and add:
-```
-GROQ_API_KEY=your_api_key_from_console.groq.com
-```
-GROQ_API_KEY=your_api_key_from_console.groq.com
-```
+### 2. Configure Environment
 
-### 4. Start Development Server
 ```bash
-python manage.py runserver
+cp .env.example .env
+# Edit .env with your Supabase credentials
+```
+
+### 3. Setup Supabase Database
+
+See [SUPABASE_SETUP_GUIDE.md](./SUPABASE_SETUP_GUIDE.md) for detailed instructions on:
+- Creating a Supabase project
+- Running database migrations
+- Configuring authentication
+- Deploying to production
+
+### 4. Run Development Server
+
+```bash
+uvicorn app.main:app --reload --port 8000
 ```
 
 ### 5. Access the Application
-Open your browser and go to: **http://localhost:8000**
 
-### 6. Create Admin Account (Optional)
+- **Web App:** http://localhost:8000
+- **API Docs:** http://localhost:8000/docs
+- **OpenAPI Spec:** http://localhost:8000/openapi.json
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/auth/register` | Register new user |
+| POST | `/api/v1/auth/login` | Authenticate user |
+| GET | `/api/v1/auth/me` | Get current user profile |
+| GET | `/api/v1/modules` | List all learning modules |
+| GET | `/api/v1/modules/{id}` | Get module details |
+| POST | `/api/v1/modules/{id}/start` | Start a module |
+| GET | `/api/v1/dialogue/module/{id}/node/{node_id}` | Get dialogue node |
+| POST | `/api/v1/dialogue/submit` | Submit dialogue choice |
+| GET | `/api/v1/progress` | Get user progress stats |
+| GET | `/api/v1/leaderboard` | Get top users ranking |
+
+## Docker Deployment
+
+### Build and Run
+
 ```bash
-python manage.py createsuperuser
-```
-Then visit: **http://localhost:8000/admin**
-
-## 📱 Main Pages
-
-| Page | URL | Description |
-|------|-----|-------------|
-| Home | `/` | Landing page with MI learning overview |
-| Register | `/signup/` | Create new account |
-| Login | `/login/` | Sign in to your account |
-| Dashboard | `/dashboard/` | User profile and MI skill progress tracking |
-| MI Coach | `/chat/` | Chat with AI for MI technique guidance |
-| Scenarios | `/scenarios/` | Interactive MI dialogue practice scenarios |
-| Contact | `/contact/` | Send feedback and messages |
-| Admin | `/admin/` | Manage users and learning content |
-
-## 🏗️ Project Structure
-
-```
-CPPLearning/
-├── accounts/                    # User management app
-│   ├── models.py               # ContactMessage model
-│   ├── views.py                # Auth & contact views
-│   ├── forms.py                # ContactForm
-│   ├── urls.py                 # Account routes
-│   └── templates/accounts/
-│       ├── landing.html        # Home page
-│       ├── login.html
-│       ├── register.html
-│       ├── dashboard.html
-│       └── contact.html
-│
-├── chat/                        # AI tutoring app
-│   ├── models.py               # ChatMessage model
-│   ├── views.py                # Chat + Groq API
-│   ├── urls.py                 # Chat routes
-│   ├── admin.py                # Admin interface
-│   └── templates/chat/
-│       └── chat.html           # Chat interface
-│
-├── game/                        # Missions app
-│   ├── models.py               # Question, Option models
-│   ├── views.py                # Game logic
-│   ├── urls.py                 # Game routes
-│   └── templates/game/
-│       ├── home.html
-│       ├── quiz.html
-│       ├── result.html
-│       └── leaderboard.html
-│
-├── templates/                   # Shared templates
-│   ├── base.html               # Main layout
-│   └── index.html              # Alternative home
-│
-├── RoboQuiz/                    # Project settings
-│   ├── settings.py             # Django configuration
-│   ├── urls.py                 # Main URL routing
-│   ├── wsgi.py
-│   └── asgi.py
-│
-├── .env                         # Environment variables
-├── requirements.txt             # Python dependencies
-└── manage.py                    # Django management
+docker-compose up --build
 ```
 
-## 🔑 Key Features Explained
+### Production Build
 
-### User Authentication
-- Register with email and password
-- Secure login with session management
-- Password confirmation validation
-- Protected views (dashboard, chat, contact)
-
-### AI Chat (Groq Integration)
-- Real-time chat interface
-- Powered by Llama 3.1 8B model
-- Store chat history in database
-- Read more/less for long responses
-
-### Contact Form
-- Submit messages with validation
-- Stored in database for admin review
-- Success notifications
-- Bootstrap-styled form
-
-### Dashboard
-- Welcome message
-- Progress statistics
-- Quick action buttons
-- Achievement tracking
-- Account settings
-
-## ⚙️ Configuration
-
-### Environment Variables (.env)
-```
-DEBUG=True
-SECRET_KEY=your-secret-key
-GROQ_API_KEY=your-groq-api-key
-```
-
-### Getting Groq API Key
-1. Visit https://console.groq.com
-2. Sign up or login
-3. Create API key
-4. Add to .env file
-
-## 🧪 Testing
-
-Run system integration test:
 ```bash
-python test_system.py
+docker build -t mi-learning-platform .
+docker run -p 8000:8000 --env-file .env mi-learning-platform
 ```
 
-View system status:
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SUPABASE_URL` | Yes | Your Supabase project URL |
+| `SUPABASE_KEY` | Yes | Supabase anon/public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (backend only) |
+| `SUPABASE_JWT_SECRET` | Yes | JWT secret for token verification |
+| `DEBUG` | No | Enable debug mode (default: false) |
+| `CORS_ORIGINS` | No | Allowed CORS origins (comma-separated) |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | No | JWT token expiration (default: 10080) |
+
+## Gamification System
+
+### Scoring
+
+- **Correct Technique:** 100 points
+- **First Attempt Bonus:** +50 points
+- **Change Talk Evoked:** +50 points
+- **Module Completion:** +200 points
+
+### Levels
+
+| Level | Points Required |
+|-------|-----------------|
+| 1 | 0 |
+| 2 | 500 |
+| 3 | 1,500 |
+| 4 | 3,000 |
+| 5 | 5,000 |
+| 6 | 8,000 |
+| 7 | 12,000 |
+| 8 | 18,000 |
+| 9 | 25,000 |
+| 10 | 30,000 |
+
+## Testing
+
 ```bash
-python show_status.py
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=app --cov-report=html
+
+# Run specific test file
+pytest tests/test_api_auth.py -v
 ```
 
-## 📚 Documentation
+## Database Schema
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Quick start guide
-- **[COMPLETE_SETUP_GUIDE.md](COMPLETE_SETUP_GUIDE.md)** - Detailed setup
-- **[SYSTEM_STATUS.md](SYSTEM_STATUS.md)** - System overview
-- **[MERGE_SUMMARY.md](MERGE_SUMMARY.md)** - Integration details
+The platform uses four main tables with row-level security:
 
-## 🐛 Troubleshooting
+- **user_profiles** - User data with gamification stats
+- **learning_modules** - Module content and metadata
+- **user_progress** - Individual module progress tracking
+- **dialogue_attempts** - Detailed interaction logging
 
-### Chat not working?
-- Add Groq API key to `.env`
-- Check internet connection
-- Restart development server
+See `app/db/migrations/001_init_schema.sql` for the complete schema.
 
-### Page not loading?
-- Verify URL spelling
-- Check if you're logged in (for protected pages)
-- Clear browser cache
+## Contributing
 
-### Database errors?
-- Run: `python manage.py migrate`
-- Ensure db.sqlite3 exists
-- Check file permissions
-
-## 🚀 Deployment
-
-For production deployment:
-1. Set `DEBUG=False` in settings
-2. Generate strong `SECRET_KEY`
-3. Configure `ALLOWED_HOSTS`
-4. Use PostgreSQL instead of SQLite
-5. Enable HTTPS
-6. Configure email backend
-
-## 📞 Support
-
-For issues:
-1. Check documentation files
-2. Review console output
-3. Run integration tests
-4. Check `.env` configuration
-
-## 🎓 Learning Resources
-
-- [Django Docs](https://docs.djangoproject.com/)
-- [Groq API Docs](https://console.groq.com/docs)
-- [C++ Reference](https://en.cppreference.com/)
-- [Bootstrap Docs](https://getbootstrap.com/)
-
-## 🤝 Contributing
-
-To contribute:
-1. Create a feature branch
+1. Create a feature branch from `main`
 2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
+3. Run tests: `pytest`
+4. Run linting: `flake8 app/`
+5. Submit a pull request
 
-## 👨‍💻 Authors
+## License
 
-- **You** - Full stack Django developer
-- **AI** - MI learning design specialist
+MIT License
 
-## 🎉 Current Status
+## Support
 
-✅ **Version 1.0 - MI Learning Platform**
-
-- ✅ All apps transformed for Motivational Interviewing
-- ✅ 6-module dialogue system implemented
-- ✅ MI technique feedback integrated
-- ✅ Gamification system enhanced for MI skills
-- ✅ System tested and verified
-- ✅ Documentation complete
-- ✅ Ready for deployment
-
-Start mastering MI techniques today! 💪✨
-
----
-
-**Last Updated**: January 18, 2026  
-**Status**: ✅ Production Ready (with API key configuration)
-```bash
-python manage.py shell < populate_sample_data.py
-```
-
-## 📖 Documentation
-
-- **[Project Implementation Guide](./PROJECT_IMPLEMENTATION_GUIDE.md)** - Comprehensive guide with all details
-- **[MVT Implementation Summary](./MVT_IMPLEMENTATION_SUMMARY.md)** - Overview of the MVT architecture
-- **[Quick Reference Card](./QUICK_REFERENCE.md)** - Quick lookup for common tasks
-- **[Completion Checklist](./COMPLETION_CHECKLIST.md)** - What has been implemented
-
-## 🗂️ Project Structure
-
-```
-RoboQuiz/
-├── accounts/                    # User authentication
-│   ├── views.py                # Registration, login, dashboard
-│   ├── urls.py                 # Account routes
-│   ├── models.py               # User models
-│   └── templates/accounts/     # HTML templates
-│
-├── game/                        # Quiz and missions
-│   ├── views.py                # Game logic
-│   ├── urls.py                 # Game routes
-│   ├── models.py               # Question, Option models
-│   └── templates/game/         # Quiz templates
-│
-├── chat/                        # AI tutor
-│   ├── views.py                # Chat logic
-│   ├── urls.py                 # Chat routes
-│   ├── models.py               # ChatMessage model
-│   └── templates/chat/         # Chat interface
-│
-├── RoboQuiz/                   # Main project settings
-│   ├── settings.py             # Django configuration
-│   ├── urls.py                 # Main URL router
-│   └── wsgi.py                 # WSGI application
-│
-├── templates/
-│   └── base.html               # Master template
-│
-├── manage.py                   # Django management script
-└── populate_sample_data.py     # Sample data loader
-```
-
-## 🎓 User Guide
-
-### Creating an Account
-1. Visit http://127.0.0.1:8000/
-2. Click "Sign Up"
-3. Fill in your details
-4. Click "Create Account"
-5. Log in with your credentials
-
-### Taking a Mission
-1. Log in to your account
-2. Go to "Missions"
-3. Click "Start" on any mission
-4. Read the story and code
-5. Select your answer
-6. Get instant feedback
-
-### Using the AI Tutor
-1. Log in to your account
-2. Go to "AI Tutor"
-3. Ask any C++ question
-4. Get instant answers from the AI
-
-## 🚢 Deployment
-
-### Before Production
-1. Set `DEBUG = False` in settings.py
-2. Generate a secure `SECRET_KEY`
-3. Configure `ALLOWED_HOSTS`
-4. Set up a production database
-5. Collect static files: `python manage.py collectstatic`
-
-## 📞 Support
-
-For help with:
-- **Django:** https://docs.djangoproject.com/
-- **Python:** https://www.python.org/
-- **Groq API:** https://console.groq.com/
-
-## ✨ Project Status
-
-- ✅ **MVT Architecture:** Complete
-- ✅ **User Authentication:** Functional
-- ✅ **Quiz System:** Working
-- ✅ **AI Tutor:** Ready (API key needed)
-- ✅ **Responsive Design:** Mobile-friendly
-- ✅ **Server:** Running successfully
-
----
-
-**Built with ❤️ for Learning**
-
-**Status:** ✅ Complete and Ready to Use
-**Server:** http://127.0.0.1:8000/
-
-
-
-
-## 🌟 Features
-
-- **Gamified Learning:** Progress through missions to repair Robo-X.
-- **Dynamic Content:** A hybrid system with 6 core default missions and an unlimited number of custom missions added via the Django Admin.
-- **Responsive UI:** Modern, clean interface built with CSS Grid and Flexbox, fully responsive for desktop and mobile.
-- **Admin Dashboard:** A powerful back-end interface for educators/developers to add new questions and hints without touching the code.
-- **Real-time Feedback:** Instant validation of answers with a hint system for incorrect attempts.
-
----
-
-## 🛠️ Tech Stack
-
-- **Backend:** Python, Django
-- **Frontend:** HTML5, CSS3, JavaScript (ES6)
-- **Database:** SQLite (Default)
-- **Architecture:** Model-View-Template (MVT)
-
----
-
-## 🚀 Installation & Setup
-
-Follow these steps to get the project running locally:
-
-### 1. Clone the repository
-```bash
-git clone [https://github.com/your-username/RoboQuiz_py.git](https://github.com/your-username/RoboQuiz_py.git)
-cd RoboQuiz_py
+For issues and feature requests, please use the GitHub Issues tracker.
