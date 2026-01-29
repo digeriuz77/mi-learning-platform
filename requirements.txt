@@ -8,9 +8,10 @@ pydantic==2.5.0
 pydantic-settings==2.1.0
 email-validator==2.1.0  # Required for pydantic EmailStr type
 
-# Supabase
+# Supabase - Python client library
 supabase==2.3.4
 httpx>=0.25.0  # HTTP client for supabase
+gotrue>=1.0.0  # Auth client for Supabase
 
 # Database
 psycopg2-binary==2.9.9

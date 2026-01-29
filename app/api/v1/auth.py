@@ -2,48 +2,53 @@
 Authentication API endpoints
 
 Handles user registration, login, logout, and profile management.
+Following the supabase-hello-world pattern for proper auth integration.
 """
 import logging
+from datetime import datetime
+from typing import Optional, Dict, Any
+
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from supabase import Client
-from datetime import datetime, timedelta
-from typing import Optional
+from supabase import Client, AuthApiError
 
-from app.core.supabase import get_supabase
+from app.core.supabase import get_supabase, get_supabase_admin, test_connection
 from app.models.auth import UserRegister, UserLogin, TokenResponse, UserResponse, UserProfile
 from app.config import settings
 
 router = APIRouter()
 security = HTTPBearer()
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
 
+# =====================================================
+# Health & Test Endpoints
+# =====================================================
+
 @router.get("/test-supabase")
-async def test_supabase(supabase: Client = Depends(get_supabase)):
-    """Test Supabase connection"""
+async def test_supabase_connection():
+    """Test Supabase connection - hello world style"""
+    return await test_connection()
+
+
+@router.get("/health")
+async def auth_health():
+    """Health check for auth endpoints"""
     try:
-        # Test basic connection
-        response = supabase.table('app_user').select('count').execute()
+        client = get_supabase()
         return {
-            "status": "success",
-            "supabase_url": settings.SUPABASE_URL[:30] + "...",
-            "user_profiles_count": response.data,
-            "keys_present": {
-                "supabase_key": bool(settings.SUPABASE_KEY),
-                "service_key": bool(settings.SUPABASE_SERVICE_ROLE_KEY),
-                "jwt_secret": bool(settings.SUPABASE_JWT_SECRET)
-            }
+            "status": "healthy",
+            "service": "auth",
+            "supabase_configured": bool(settings.SUPABASE_URL and settings.SUPABASE_KEY)
         }
     except Exception as e:
-        logger.error(f"Supabase test error: {e}")
-        return {
-            "status": "error",
-            "error": str(e),
-            "supabase_url": settings.SUPABASE_URL[:30] + "..." if settings.SUPABASE_URL else "None"
-        }
+        logger.error(f"Auth health check failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service unhealthy"
+        )
+
 
 # =====================================================
 # Helper Functions
@@ -52,7 +57,7 @@ async def test_supabase(supabase: Client = Depends(get_supabase)):
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     supabase: Client = Depends(get_supabase)
-) -> dict:
+) -> Dict[str, Any]:
     """
     Get the current authenticated user from JWT token.
 
@@ -68,60 +73,106 @@ def get_current_user(
     """
     try:
         token = credentials.credentials
+        # Use get_user to validate and retrieve user
         response = supabase.auth.get_user(token)
-        if not response.user:
+
+        if not response or not response.user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials"
             )
+
         return response.user
+
+    except AuthApiError as e:
+        logger.error(f"Auth API error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Authentication error: {e}")
+        logger.error(f"Unexpected authentication error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed"
         )
 
 
-async def get_user_profile(
+async def get_or_create_user_profile(
     user_id: str,
-    supabase: Client = Depends(get_supabase)
-) -> Optional[dict]:
+    email: str,
+    supabase_admin: Client
+) -> Dict[str, Any]:
     """
-    Get user profile by user ID.
+    Get or create user profile in app_user table.
 
     Args:
-        user_id: User UUID
-        supabase: Supabase client
+        user_id: User UUID from Supabase Auth
+        email: User email
+        supabase_admin: Admin client for bypassing RLS
 
     Returns:
-        dict: User profile or None
+        dict: User profile data
     """
-    response = supabase.table('app_user').select('*').eq('id', user_id).execute()
-    if response.data:
-        return response.data[0]
-    return None
+    try:
+        # Try to get existing profile
+        response = supabase_admin.table('app_user').select('*').eq('id', user_id).execute()
+
+        if response.data:
+            logger.info(f"Found existing profile for user {user_id}")
+            return response.data[0]
+
+        # Create new profile if not exists
+        # Extract username from email
+        username = email.split('@')[0]
+        # Make unique by adding random suffix if needed
+        existing = supabase_admin.table('app_user').select('id').eq('username', username).execute()
+        if existing.data:
+            username = f"{username}_{user_id[:8]}"
+
+        new_profile = {
+            "id": user_id,
+            "username": username,
+            "first_name": None,
+            "last_name": None
+        }
+
+        insert_response = supabase_admin.table('app_user').insert(new_profile).execute()
+        logger.info(f"Created new profile for user {user_id}")
+
+        return insert_response.data[0]
+
+    except Exception as e:
+        logger.error(f"Error getting/creating user profile: {e}")
+        # Return minimal profile so auth doesn't fail
+        return {"id": user_id, "username": email.split('@')[0]}
 
 
 # =====================================================
-# Endpoints
+# Auth Endpoints
 # =====================================================
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    user_data: UserRegister,
-    supabase: Client = Depends(get_supabase)
-):
+async def register(user_data: UserRegister):
     """
     Register a new user.
 
     Creates a user in Supabase Auth and creates a user profile.
+
+    Flow:
+    1. Sign up user via Supabase Auth
+    2. Get or create profile in app_user table
+    3. Return access token and user info
     """
     try:
         logger.info(f"Registration attempt for email: {user_data.email}")
-        
+
+        # Get Supabase client
+        supabase = get_supabase()
+        supabase_admin = get_supabase_admin()
+
         # Register with Supabase Auth
         auth_response = supabase.auth.sign_up({
             "email": user_data.email,
@@ -132,62 +183,75 @@ async def register(
                 }
             }
         })
-        
-        logger.info(f"Supabase auth response: {auth_response}")
 
+        # Check if user was created
         if not auth_response.user:
             logger.error("No user returned from Supabase auth")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to create user"
+                detail="Failed to create user. Email may already be registered."
             )
 
         user = auth_response.user
-        logger.info(f"User created: {user.id}")
+        logger.info(f"User created in auth: {user.id}")
 
         # Get session token
         session = auth_response.session
         access_token = session.access_token if session else None
 
         if not access_token:
-            logger.info("No session token, attempting sign in")
-            # If no session, try to sign in
+            logger.info("No session token returned, attempting sign in")
+            # If no session (email confirmation might be required), try to sign in
             signin_response = supabase.auth.sign_in_with_password({
                 "email": user_data.email,
                 "password": user_data.password
             })
             access_token = signin_response.session.access_token
-            logger.info(f"Sign in successful, token: {access_token[:20]}..." if access_token else "No token from sign in")
+
+        # Create user profile
+        profile = await get_or_create_user_profile(str(user.id), user_data.email, supabase_admin)
 
         return TokenResponse(
             access_token=access_token,
             user=UserResponse(
                 id=str(user.id),
                 email=user.email,
-                display_name=user_data.display_name or user.email.split('@')[0],
+                display_name=profile.get('username', user.email.split('@')[0]),
                 created_at=user.created_at or datetime.now()
             )
         )
 
+    except AuthApiError as e:
+        logger.error(f"Supabase Auth API error during registration: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e) or "Registration failed. Email may already be registered."
+        )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Registration error: {e}")
+        logger.error(f"Unexpected registration error: {e}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Registration failed. Please try again."
         )
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(
-    user_data: UserLogin,
-    supabase: Client = Depends(get_supabase)
-):
+async def login(user_data: UserLogin):
     """
     Login with email and password.
+
+    Uses Supabase Auth for authentication.
     """
     try:
+        logger.info(f"Login attempt for email: {user_data.email}")
+
+        # Get Supabase client
+        supabase = get_supabase()
+        supabase_admin = get_supabase_admin()
+
+        # Sign in with Supabase Auth
         auth_response = supabase.auth.sign_in_with_password({
             "email": user_data.email,
             "password": user_data.password
@@ -202,45 +266,48 @@ async def login(
         user = auth_response.user
         access_token = auth_response.session.access_token
 
-        # Update last_active_at
-        profile = await get_user_profile(str(user.id), supabase)
-        if profile:
-            supabase.table('user_profiles').update({
-                'last_active_at': datetime.now().isoformat()
-            }).eq('user_id', str(user.id)).execute()
+        logger.info(f"User logged in: {user.id}")
 
-        display_name = profile.get('display_name') if profile else user.email.split('@')[0]
+        # Get or ensure user profile exists
+        profile = await get_or_create_user_profile(str(user.id), user_data.email, supabase_admin)
 
         return TokenResponse(
             access_token=access_token,
             user=UserResponse(
                 id=str(user.id),
                 email=user.email,
-                display_name=display_name,
+                display_name=profile.get('username', user.email.split('@')[0]),
                 created_at=user.created_at or datetime.now()
             )
         )
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Login error: {e}")
+    except AuthApiError as e:
+        logger.error(f"Auth API error during login: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password"
         )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected login error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Login failed. Please try again."
+        )
 
 
 @router.post("/logout")
-async def logout(
-    current_user: dict = Depends(get_current_user),
-    supabase: Client = Depends(get_supabase)
-):
+async def logout(current_user: dict = Depends(get_current_user)):
     """
     Logout the current user.
+
+    Note: Client should discard the token. This endpoint logs out on the server side.
     """
     try:
+        supabase = get_supabase()
         supabase.auth.sign_out()
+        logger.info(f"User logged out: {current_user.get('id')}")
         return {"message": "Successfully logged out"}
     except Exception as e:
         logger.error(f"Logout error: {e}")
@@ -252,44 +319,92 @@ async def logout(
 
 @router.get("/me", response_model=UserProfile)
 async def get_current_user_profile(
-    current_user: dict = Depends(get_current_user),
-    supabase: Client = Depends(get_supabase)
+    current_user: dict = Depends(get_current_user)
 ):
     """
-    Get the current user's profile with stats.
+    Get the current user's profile.
     """
-    profile = await get_user_profile(str(current_user.id), supabase)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found"
+    try:
+        supabase_admin = get_supabase_admin()
+        user_id = str(current_user.get('id'))
+
+        response = supabase_admin.table('app_user').select('*').eq('id', user_id).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+
+        profile = response.data[0]
+        return UserProfile(
+            id=str(profile['id']),
+            username=profile.get('username', ''),
+            email=current_user.get('email', ''),
+            first_name=profile.get('first_name'),
+            last_name=profile.get('last_name'),
+            created_at=profile.get('created_at', datetime.now())
         )
-    return profile
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching user profile: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch profile"
+        )
 
 
 @router.put("/me", response_model=UserProfile)
 async def update_profile(
     display_name: Optional[str] = None,
-    current_user: dict = Depends(get_current_user),
-    supabase: Client = Depends(get_supabase)
+    first_name: Optional[str] = None,
+    last_name: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
 ):
     """
     Update the current user's profile.
     """
-    update_data = {}
-    if display_name is not None:
-        update_data['display_name'] = display_name
+    try:
+        supabase_admin = get_supabase_admin()
+        user_id = str(current_user.get('id'))
 
-    if not update_data:
-        profile = await get_user_profile(str(current_user.id), supabase)
-        return profile
+        update_data = {}
+        if display_name is not None:
+            update_data['username'] = display_name
+        if first_name is not None:
+            update_data['first_name'] = first_name
+        if last_name is not None:
+            update_data['last_name'] = last_name
 
-    response = supabase.table('user_profiles').update(update_data).eq('user_id', str(current_user.id)).execute()
+        if not update_data:
+            # No updates, return current profile
+            return await get_current_user_profile(current_user)
 
-    if not response.data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found"
+        response = supabase_admin.table('app_user').update(update_data).eq('id', user_id).execute()
+
+        if not response.data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Profile not found"
+            )
+
+        profile = response.data[0]
+        return UserProfile(
+            id=str(profile['id']),
+            username=profile.get('username', ''),
+            email=current_user.get('email', ''),
+            first_name=profile.get('first_name'),
+            last_name=profile.get('last_name'),
+            created_at=profile.get('created_at', datetime.now())
         )
 
-    return response.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating user profile: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update profile"
+        )
