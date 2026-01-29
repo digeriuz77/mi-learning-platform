@@ -12,9 +12,10 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import Client
 
-from app.core.supabase import get_supabase
+from app.core.supabase import get_supabase, get_supabase_admin
 from app.models.auth import UserRegister, UserLogin, TokenResponse, UserResponse
 from app.config import settings
+from app.services.scoring_service import ScoringService
 
 router = APIRouter()
 security = HTTPBearer(auto_error=False)
@@ -71,6 +72,40 @@ def require_auth(
         )
 
     return user
+
+
+async def ensure_user_profile(user_id: str, email: str, display_name: str) -> dict:
+    """
+    Ensure user_profiles entry exists for the user.
+    Creates one if it doesn't exist.
+    """
+    supabase_admin = get_supabase_admin()
+
+    # Check if profile exists
+    response = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
+
+    if response.data:
+        logger.info(f"Profile exists for user {user_id}")
+        return response.data[0]
+
+    # Create new profile
+    logger.info(f"Creating profile for user {user_id}")
+    profile_response = supabase_admin.table('user_profiles').insert({
+        'user_id': user_id,
+        'display_name': display_name,
+        'total_points': 0,
+        'level': 1,
+        'modules_completed': 0,
+        'change_talk_evoked': 0,
+        'last_active_at': 'now()'
+    }).execute()
+
+    if profile_response.data:
+        logger.info(f"Profile created for user {user_id}")
+        return profile_response.data[0]
+
+    logger.error(f"Failed to create profile for user {user_id}")
+    return None
 
 
 # =====================================================
@@ -184,6 +219,16 @@ async def register(user_data: UserRegister, supabase: Client = Depends(get_supab
             access_token = signin_response.session.access_token
             logger.info(f"Sign in successful, token: {access_token[:20]}..." if access_token else "No token from sign in")
 
+        # Create user_profiles entry for app functionality
+        display_name = user_data.display_name or user.email.split('@')[0]
+        try:
+            profile = await ensure_user_profile(str(user.id), user.email, display_name)
+            if not profile:
+                logger.warning(f"User {user.id} created but profile creation failed")
+        except Exception as profile_error:
+            logger.error(f"Profile creation error: {profile_error}")
+            # Continue anyway - auth user was created successfully
+
         return TokenResponse(
             access_token=access_token,
             user=UserResponse(
@@ -228,6 +273,16 @@ async def login(user_data: UserLogin, supabase: Client = Depends(get_supabase)):
         access_token = auth_response.session.access_token
 
         logger.info(f"User logged in: {user.id}")
+
+        # Ensure user_profiles exists (for users created before profile creation)
+        display_name = user.user_metadata.get('display_name') or user.email.split('@')[0]
+        try:
+            profile = await ensure_user_profile(str(user.id), user.email, display_name)
+            if not profile:
+                logger.warning(f"User {user.id} logged in but profile missing/failed to create")
+        except Exception as profile_error:
+            logger.error(f"Profile check error during login: {profile_error}")
+            # Continue anyway - let user log in
 
         return TokenResponse(
             access_token=access_token,
