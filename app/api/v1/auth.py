@@ -13,7 +13,6 @@ from supabase import Client
 
 from app.core.supabase import get_supabase, get_supabase_admin
 from app.models.auth import UserRegister, UserLogin, TokenResponse, UserResponse
-from app.services.scoring_service import ScoringService
 
 router = APIRouter()
 security = HTTPBearer(auto_error=False)
@@ -69,9 +68,9 @@ def require_auth(
 
 async def ensure_user_profile(user_id: str, email: str, display_name: str) -> Optional[dict]:
     """Create user profile if it doesn't exist."""
-    supabase_admin = get_supabase_admin()
-
     try:
+        supabase_admin = get_supabase_admin()
+
         # Check if exists
         response = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
         if response.data:
@@ -89,8 +88,16 @@ async def ensure_user_profile(user_id: str, email: str, display_name: str) -> Op
 
         return result.data[0] if result.data else None
     except Exception as e:
-        logger.error(f"Profile creation failed: {e}")
-        return None
+        logger.warning(f"Profile creation failed (table may not exist yet): {e}")
+        # Return a fake profile so auth still works
+        return {
+            'user_id': user_id,
+            'display_name': display_name,
+            'total_points': 0,
+            'level': 1,
+            'modules_completed': 0,
+            'change_talk_evoked': 0
+        }
 
 
 # =====================================================
@@ -129,8 +136,11 @@ async def register(user_data: UserRegister, supabase: Client = Depends(get_supab
         user = auth_response.user
         display_name = user_data.display_name or user.email.split('@')[0]
 
-        # Create profile
-        await ensure_user_profile(str(user.id), user.email, display_name)
+        # Create profile (non-blocking - won't fail if table doesn't exist)
+        try:
+            await ensure_user_profile(str(user.id), user.email, display_name)
+        except Exception as profile_err:
+            logger.warning(f"Profile creation skipped: {profile_err}")
 
         # Get access token
         if auth_response.session and auth_response.session.access_token:
@@ -158,8 +168,8 @@ async def register(user_data: UserRegister, supabase: Client = Depends(get_supab
     except Exception as e:
         logger.error(f"Registration error: {e}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Registration failed: {str(e)}"
         )
 
 
