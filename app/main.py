@@ -79,9 +79,24 @@ app.include_router(progress.router, prefix="/api/v1/progress", tags=["Progress"]
 app.include_router(leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"])
 
 
-# Root endpoint
-@app.get("/")
-async def root():
+# Root endpoint - serve frontend if available, otherwise API info
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    """Root endpoint - serve frontend or API info"""
+    if templates:
+        return templates.TemplateResponse("index.html", {"request": request})
+    else:
+        return {
+            "name": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "message": "MI Learning Platform API",
+            "docs": "/docs",
+            "api_v1": settings.API_V1_PREFIX
+        }
+
+
+@app.get("/api")
+async def api_root():
     """API root endpoint"""
     return {
         "name": settings.APP_NAME,
