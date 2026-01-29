@@ -64,7 +64,7 @@ templates_dir = Path(__file__).parent.parent / "templates"
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Catch all exceptions and return details"""
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    logger.error(f"Unhandled exception on {request.url}: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={

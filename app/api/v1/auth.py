@@ -1,7 +1,6 @@
 """
-Authentication API endpoints - Simplified for Supabase
-
-Working Supabase auth using standard Python supabase client.
+Complete Authentication System for MI Learning Platform
+Uses Supabase Auth for secure user management
 """
 import logging
 from datetime import datetime
@@ -21,20 +20,21 @@ logger = logging.getLogger(__name__)
 
 
 # =====================================================
-# Helper Functions
+# Auth Dependencies
 # =====================================================
 
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     supabase: Client = Depends(get_supabase)
 ) -> Optional[dict]:
-    """Get authenticated user from JWT token."""
+    """Get authenticated user from JWT token. Returns None if not authenticated."""
     if not credentials or not credentials.credentials:
         return None
 
     try:
         response = supabase.auth.get_user(credentials.credentials)
         if response and response.user:
+            logger.debug(f"User authenticated: {response.user.email}")
             return response.user
     except Exception as e:
         logger.warning(f"Auth check failed: {e}")
@@ -43,54 +43,31 @@ def get_current_user(
 
 
 def require_auth(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     supabase: Client = Depends(get_supabase)
 ) -> dict:
     """Require authentication - raises 401 if not authenticated."""
-    if not credentials or not credentials.credentials:
+    user = get_current_user(credentials, supabase)
+
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
+            detail="Authentication required. Please provide a valid token."
         )
 
-    try:
-        response = supabase.auth.get_user(credentials.credentials)
-        if response and response.user:
-            return response.user
-    except Exception as e:
-        logger.warning(f"Auth failed: {e}")
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or expired token"
-    )
+    return user
 
 
-async def ensure_user_profile(user_id: str, email: str, display_name: str) -> Optional[dict]:
-    """Create user profile if it doesn't exist."""
+# =====================================================
+# Database Operations
+# =====================================================
+
+def create_user_profile(user_id: str, email: str, display_name: str) -> dict:
+    """Create user profile in database. Returns fake profile if table doesn't exist."""
     try:
         supabase_admin = get_supabase_admin()
 
-        # Check if exists
-        response = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
-        if response.data:
-            return response.data[0]
-
-        # Create new profile
-        result = supabase_admin.table('user_profiles').insert({
-            'user_id': user_id,
-            'display_name': display_name,
-            'total_points': 0,
-            'level': 1,
-            'modules_completed': 0,
-            'change_talk_evoked': 0
-        }).execute()
-
-        return result.data[0] if result.data else None
-    except Exception as e:
-        logger.warning(f"Profile creation failed (table may not exist yet): {e}")
-        # Return a fake profile so auth still works
-        return {
+        profile_data = {
             'user_id': user_id,
             'display_name': display_name,
             'total_points': 0,
@@ -99,9 +76,43 @@ async def ensure_user_profile(user_id: str, email: str, display_name: str) -> Op
             'change_talk_evoked': 0
         }
 
+        result = supabase_admin.table('user_profiles').insert(profile_data).execute()
+
+        if result.data:
+            logger.info(f"Profile created for user {user_id}")
+            return result.data[0]
+
+    except Exception as e:
+        logger.warning(f"Profile table may not exist: {e}")
+
+    # Return fake profile so app still works
+    return {
+        'user_id': user_id,
+        'display_name': display_name,
+        'total_points': 0,
+        'level': 1,
+        'modules_completed': 0,
+        'change_talk_evoked': 0
+    }
+
+
+def get_or_create_profile(user_id: str, email: str, display_name: str) -> dict:
+    """Get existing profile or create new one."""
+    try:
+        supabase_admin = get_supabase_admin()
+        result = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
+
+        if result.data:
+            return result.data[0]
+
+    except Exception:
+        pass
+
+    return create_user_profile(user_id, email, display_name)
+
 
 # =====================================================
-# Endpoints
+# Health & Debug Endpoints
 # =====================================================
 
 @router.get("/health")
@@ -110,13 +121,41 @@ async def health_check():
     return {"status": "healthy", "service": "auth"}
 
 
+@router.get("/test")
+async def test_auth(supabase: Client = Depends(get_supabase)):
+    """Test Supabase connection"""
+    try:
+        # Test auth API
+        result = supabase.table('learning_modules').select('id').limit(1).execute()
+
+        return {
+            "status": "success",
+            "message": "Supabase connection working",
+            "has_modules": len(result.data) > 0
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e)
+        }
+
+
+# =====================================================
+# Registration Endpoint
+# =====================================================
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister, supabase: Client = Depends(get_supabase)):
-    """Register new user with Supabase Auth"""
+    """
+    Register a new user
+
+    Creates user in Supabase Auth and user_profiles table.
+    Returns JWT access token for immediate authentication.
+    """
     try:
         logger.info(f"Registration attempt: {user_data.email}")
 
-        # Create user in Supabase Auth
+        # Step 1: Create user in Supabase Auth
         auth_response = supabase.auth.sign_up({
             "email": user_data.email,
             "password": user_data.password,
@@ -130,28 +169,32 @@ async def register(user_data: UserRegister, supabase: Client = Depends(get_supab
         if not auth_response.user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to create user. Email may already exist."
+                detail="Failed to create user. Email may already be registered."
             )
 
         user = auth_response.user
         display_name = user_data.display_name or user.email.split('@')[0]
 
-        # Create profile (non-blocking - won't fail if table doesn't exist)
+        logger.info(f"User created in auth: {user.id}")
+
+        # Step 2: Create profile (non-blocking)
         try:
-            await ensure_user_profile(str(user.id), user.email, display_name)
+            create_user_profile(str(user.id), user.email, display_name)
         except Exception as profile_err:
             logger.warning(f"Profile creation skipped: {profile_err}")
 
-        # Get access token
+        # Step 3: Get access token
         if auth_response.session and auth_response.session.access_token:
             access_token = auth_response.session.access_token
         else:
-            # Sign in to get token
+            # Sign in to get token (some Supabase configs don't return session on signup)
             signin = supabase.auth.sign_in_with_password({
                 "email": user_data.email,
                 "password": user_data.password
             })
             access_token = signin.session.access_token
+
+        logger.info(f"Registration successful: {user.email}")
 
         return TokenResponse(
             access_token=access_token,
@@ -173,12 +216,21 @@ async def register(user_data: UserRegister, supabase: Client = Depends(get_supab
         )
 
 
+# =====================================================
+# Login Endpoint
+# =====================================================
+
 @router.post("/login", response_model=TokenResponse)
 async def login(user_data: UserLogin, supabase: Client = Depends(get_supabase)):
-    """Login with email and password"""
+    """
+    Login with email and password
+
+    Authenticates user and returns JWT access token.
+    """
     try:
         logger.info(f"Login attempt: {user_data.email}")
 
+        # Authenticate with Supabase
         auth_response = supabase.auth.sign_in_with_password({
             "email": user_data.email,
             "password": user_data.password
@@ -194,7 +246,12 @@ async def login(user_data: UserLogin, supabase: Client = Depends(get_supabase)):
         display_name = user.user_metadata.get('display_name') or user.email.split('@')[0]
 
         # Ensure profile exists
-        await ensure_user_profile(str(user.id), user.email, display_name)
+        try:
+            get_or_create_profile(str(user.id), user.email, display_name)
+        except Exception as profile_err:
+            logger.warning(f"Profile check skipped: {profile_err}")
+
+        logger.info(f"Login successful: {user.email}")
 
         return TokenResponse(
             access_token=auth_response.session.access_token,
@@ -216,6 +273,10 @@ async def login(user_data: UserLogin, supabase: Client = Depends(get_supabase)):
         )
 
 
+# =====================================================
+# Logout Endpoint
+# =====================================================
+
 @router.post("/logout")
 async def logout(supabase: Client = Depends(get_supabase)):
     """Logout current user"""
@@ -230,9 +291,13 @@ async def logout(supabase: Client = Depends(get_supabase)):
         )
 
 
+# =====================================================
+# Get Current User
+# =====================================================
+
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: dict = Depends(require_auth)):
-    """Get current user info"""
+    """Get current authenticated user info"""
     return UserResponse(
         id=str(current_user.id),
         email=current_user.email,
