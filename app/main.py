@@ -12,8 +12,10 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import Request
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 
@@ -56,6 +58,34 @@ app.add_middleware(
 templates = None
 static_dir = Path(__file__).parent.parent / "static"
 templates_dir = Path(__file__).parent.parent / "templates"
+
+
+# Global exception handlers
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch all exceptions and return details"""
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal Server Error",
+            "detail": str(exc),
+            "type": type(exc).__name__
+        }
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Catch validation errors"""
+    logger.error(f"Validation error: {exc}")
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "Validation Error",
+            "detail": exc.errors()
+        }
+    )
 
 if static_dir.exists():
     try:
