@@ -68,13 +68,17 @@ class ScoringService:
             total_points: User's total points
 
         Returns:
-            int: User's level (1-10+)
+            int: User's level (1-10)
         """
         level = 1
-        for threshold in ScoringService.LEVEL_THRESHOLDS:
+        for i, threshold in enumerate(ScoringService.LEVEL_THRESHOLDS):
+            if i == 0:
+                continue  # Skip first threshold (0 points = level 1)
             if total_points >= threshold:
-                level += 1
-        return level
+                level = i + 1
+            else:
+                break
+        return min(level, 10)  # Cap at level 10
 
     @staticmethod
     def calculate_completion_score(
