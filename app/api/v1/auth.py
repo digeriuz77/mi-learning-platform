@@ -20,6 +20,31 @@ security = HTTPBearer()
 # Set up logging
 logger = logging.getLogger(__name__)
 
+
+@router.get("/test-supabase")
+async def test_supabase(supabase: Client = Depends(get_supabase)):
+    """Test Supabase connection"""
+    try:
+        # Test basic connection
+        response = supabase.table('user_profiles').select('count').execute()
+        return {
+            "status": "success",
+            "supabase_url": settings.SUPABASE_URL[:30] + "...",
+            "user_profiles_count": response.data,
+            "keys_present": {
+                "supabase_key": bool(settings.SUPABASE_KEY),
+                "service_key": bool(settings.SUPABASE_SERVICE_ROLE_KEY),
+                "jwt_secret": bool(settings.SUPABASE_JWT_SECRET)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Supabase test error: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "supabase_url": settings.SUPABASE_URL[:30] + "..." if settings.SUPABASE_URL else "None"
+        }
+
 # =====================================================
 # Helper Functions
 # =====================================================
