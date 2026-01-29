@@ -8,6 +8,11 @@ from typing import Optional, Dict, Any, List
 from supabase import create_client, Client
 from app.config import settings
 
+# Clear proxy environment variables that might conflict with supabase client
+for proxy_var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
+    if proxy_var in os.environ:
+        del os.environ[proxy_var]
+
 logger = logging.getLogger(__name__)
 
 _supabase_client: Optional[Client] = None
