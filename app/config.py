@@ -1,9 +1,10 @@
 """
 Application Configuration using Pydantic Settings
 """
-from pydantic import field_validator
+from pydantic import field_validator, ValidationError
 from pydantic_settings import BaseSettings
-from typing import List, Union
+from typing import List
+import sys
 
 
 class Settings(BaseSettings):
@@ -24,6 +25,9 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str
     SUPABASE_JWT_SECRET: str
 
+    # Server Settings
+    PORT: int = 8000
+
     # Application Settings (Optional - have defaults)
     APP_NAME: str = "MI Learning Platform"
     APP_VERSION: str = "1.0.0"
@@ -37,6 +41,16 @@ class Settings(BaseSettings):
     # JWT Settings
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+
+    @field_validator("SUPABASE_URL", mode="before")
+    @classmethod
+    def validate_supabase_url(cls, v):
+        """Validate Supabase URL format"""
+        if not v:
+            raise ValueError("SUPABASE_URL is required")
+        if not v.startswith("http"):
+            raise ValueError("SUPABASE_URL must start with http:// or https://")
+        return v.rstrip("/")  # Remove trailing slash
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
@@ -55,4 +69,25 @@ class Settings(BaseSettings):
         case_sensitive = True
 
 
-settings = Settings()
+# Try to load settings and provide helpful error messages
+try:
+    settings = Settings()
+except ValidationError as e:
+    print("=" * 60)
+    print("CONFIGURATION ERROR")
+    print("=" * 60)
+    print("Failed to load required environment variables.")
+    print()
+    print("Required variables:")
+    print("  - SUPABASE_URL: Your Supabase project URL")
+    print("  - SUPABASE_KEY: Your Supabase anon/public key")
+    print("  - SUPABASE_SERVICE_ROLE_KEY: Your Supabase service role key")
+    print("  - SUPABASE_JWT_SECRET: Your Supabase JWT secret")
+    print()
+    print("Error details:")
+    for error in e.errors():
+        field = error.get("loc", ["unknown"])[0]
+        msg = error.get("msg", "unknown error")
+        print(f"  - {field}: {msg}")
+    print("=" * 60)
+    sys.exit(1)

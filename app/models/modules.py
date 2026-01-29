@@ -10,18 +10,25 @@ class PractitionerChoice(BaseModel):
     """A choice available to the practitioner"""
     text: str
     technique: str
-    next_node_id: str
-    feedback: str
-    is_correct_technique: bool = False
-    evokes_change_talk: bool = False
+    next_node_id: Optional[str] = None
+    feedback: str = ""
+
+    class Config:
+        extra = "allow"  # Allow extra fields from JSON
 
 
 class DialogueNode(BaseModel):
     """A single node in the dialogue tree"""
     id: str
-    patient_statement: str
-    patient_context: str
-    practitioner_choices: List[PractitionerChoice]
+    patient_statement: Optional[str] = None
+    patient_context: Optional[str] = None
+    practitioner_choices: Optional[List[PractitionerChoice]] = None
+    is_ending: Optional[bool] = False
+    outcome: Optional[str] = None
+    learning_summary: Optional[str] = None
+
+    class Config:
+        extra = "allow"  # Allow extra fields from JSON
 
 
 class ModuleResponse(BaseModel):
@@ -54,7 +61,7 @@ class ModuleListResponse(BaseModel):
 
 class NodeResponse(BaseModel):
     """Dialogue node response"""
-    node: DialogueNode
+    node: Dict[str, Any]  # Raw node data from database
     module_id: str
     progress_id: str
     current_node_number: int
@@ -80,5 +87,5 @@ class ChoiceFeedback(BaseModel):
     next_node_id: Optional[str] = None
     is_module_complete: bool = False
     completion_score: Optional[int] = None
-    total_points: int
-    level: int
+    total_points: Optional[int] = None
+    level: Optional[int] = None

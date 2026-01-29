@@ -4,6 +4,10 @@ MI Learning Platform - FastAPI Main Application
 A gamified learning platform for Motivational Interviewing techniques.
 Built with FastAPI and Supabase.
 """
+import os
+import logging
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -12,6 +16,21 @@ from fastapi.responses import HTMLResponse
 from fastapi import Request
 
 from app.config import settings
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG if settings.DEBUG else logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# Log startup configuration
+logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+logger.info(f"Debug mode: {settings.DEBUG}")
+logger.info(f"CORS origins: {settings.CORS_ORIGINS}")
+logger.info(f"Supabase URL configured: {bool(settings.SUPABASE_URL)}")
+
+# Import routers after config is validated
 from app.api.v1 import auth, modules, dialogue, progress, leaderboard
 
 # Create FastAPI app
@@ -33,13 +52,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-    templates = Jinja2Templates(directory="templates")
-except Exception:
-    # If directories don't exist yet, continue without them
-    templates = None
+# Mount static files - use absolute path for Docker
+templates = None
+static_dir = Path(__file__).parent.parent / "static"
+templates_dir = Path(__file__).parent.parent / "templates"
+
+if static_dir.exists():
+    try:
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+        logger.info(f"Static files mounted from {static_dir}")
+    except Exception as e:
+        logger.warning(f"Could not mount static files: {e}")
+
+if templates_dir.exists():
+    try:
+        templates = Jinja2Templates(directory=str(templates_dir))
+        logger.info(f"Templates loaded from {templates_dir}")
+    except Exception as e:
+        logger.warning(f"Could not load templates: {e}")
 
 # Include API routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
@@ -64,8 +94,29 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+    """Health check endpoint for container orchestration"""
+    return {
+        "status": "healthy",
+        "app": settings.APP_NAME,
+        "version": settings.APP_VERSION
+    }
+
+
+@app.get("/debug/config")
+async def debug_config():
+    """Debug endpoint to check configuration (non-sensitive)"""
+    return {
+        "app_name": settings.APP_NAME,
+        "app_version": settings.APP_VERSION,
+        "debug": settings.DEBUG,
+        "cors_origins": settings.CORS_ORIGINS,
+        "supabase_url_set": bool(settings.SUPABASE_URL),
+        "supabase_key_set": bool(settings.SUPABASE_KEY),
+        "supabase_service_key_set": bool(settings.SUPABASE_SERVICE_ROLE_KEY),
+        "jwt_secret_set": bool(settings.SUPABASE_JWT_SECRET),
+        "static_dir_exists": static_dir.exists(),
+        "templates_dir_exists": templates_dir.exists()
+    }
 
 
 # Serve frontend (if templates exist)
@@ -80,16 +131,16 @@ if templates:
 @app.on_event("startup")
 async def startup_event():
     """Run on application startup"""
-    print(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} starting up...")
-    print(f"📚 API Documentation: http://localhost:8000/docs")
-    print(f"🎯 API v1 Prefix: {settings.API_V1_PREFIX}")
+    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} started successfully")
+    logger.info(f"📚 API Documentation available at /docs")
+    logger.info(f"🔧 Debug config available at /debug/config")
 
 
 # Shutdown event
 @app.on_event("shutdown")
 async def shutdown_event():
     """Run on application shutdown"""
-    print(f"👋 {settings.APP_NAME} shutting down...")
+    logger.info(f"👋 {settings.APP_NAME} shutting down...")
 
 
 if __name__ == "__main__":
