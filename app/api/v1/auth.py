@@ -30,30 +30,27 @@ logger = logging.getLogger(__name__)
 def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     supabase: Client = Depends(get_supabase)
-) -> Optional[dict]:
+) -> dict:
     """
-    Get the current authenticated user from JWT token.
-
-    Returns None if not authenticated (for optional auth).
+    Get the current user - returns demo user for testing.
+    Auth disabled - app works without login.
     """
     try:
-        if not credentials:
-            return None
+        if credentials and credentials.credentials:
+            token = credentials.credentials
+            response = supabase.auth.get_user(token)
+            if response and response.user:
+                return response.user
+    except Exception:
+        pass
 
-        token = credentials.credentials
-        if not token:
-            return None
-
-        response = supabase.auth.get_user(token)
-
-        if response and response.user:
-            logger.info(f"Authenticated user: {response.user.email}")
-            return response.user
-
-        return None
-    except Exception as e:
-        logger.warning(f"Auth check failed: {e}")
-        return None
+    # Return demo user - no auth required
+    return {
+        'id': 'demo-user-123',
+        'email': 'demo@example.com',
+        'user_metadata': {'display_name': 'Demo User'},
+        'created_at': '2024-01-01T00:00:00Z'
+    }
 
 
 def require_auth(
