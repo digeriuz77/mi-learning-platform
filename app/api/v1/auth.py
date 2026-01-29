@@ -95,6 +95,8 @@ async def register(
     Creates a user in Supabase Auth and creates a user profile.
     """
     try:
+        logger.info(f"Registration attempt for email: {user_data.email}")
+        
         # Register with Supabase Auth
         auth_response = supabase.auth.sign_up({
             "email": user_data.email,
@@ -105,26 +107,32 @@ async def register(
                 }
             }
         })
+        
+        logger.info(f"Supabase auth response: {auth_response}")
 
         if not auth_response.user:
+            logger.error("No user returned from Supabase auth")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to create user"
             )
 
         user = auth_response.user
+        logger.info(f"User created: {user.id}")
 
         # Get session token
         session = auth_response.session
         access_token = session.access_token if session else None
 
         if not access_token:
+            logger.info("No session token, attempting sign in")
             # If no session, try to sign in
             signin_response = supabase.auth.sign_in_with_password({
                 "email": user_data.email,
                 "password": user_data.password
             })
             access_token = signin_response.session.access_token
+            logger.info(f"Sign in successful, token: {access_token[:20]}..." if access_token else "No token from sign in")
 
         return TokenResponse(
             access_token=access_token,
