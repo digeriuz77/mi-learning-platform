@@ -7,8 +7,8 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from supabase import Client
 from typing import Optional
 
-from app.core.supabase import get_supabase
-from app.api.v1.auth import get_current_user, get_user_profile
+from app.core.supabase import get_supabase, get_supabase_admin
+from app.api.v1.auth import get_current_user
 from app.api.v1.modules import get_user_module_progress
 from app.services.scoring_service import ScoringService
 from app.models.modules import NodeResponse, ChoiceSubmit, ChoiceFeedback
@@ -20,6 +20,14 @@ router = APIRouter()
 # =====================================================
 # Helper Functions
 # =====================================================
+
+async def get_user_profile(user_id: str, supabase_admin: Client):
+    """Get user profile from user_profiles table"""
+    response = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
+    if response.data:
+        return response.data[0]
+    return None
+
 
 async def get_module_by_id(module_id: str, supabase: Client) -> dict:
     """Get module by ID"""
@@ -130,6 +138,8 @@ async def submit_choice(
 
     Processes the user's choice, awards points, and returns the next node.
     """
+    supabase_admin = get_supabase_admin()
+
     # Get module and progress
     module = await get_module_by_id(choice_data.module_id, supabase)
     progress = await get_user_module_progress(str(current_user.id), choice_data.module_id, supabase)
@@ -243,7 +253,7 @@ async def submit_choice(
     supabase.table('user_progress').update(update_data).eq('id', progress['id']).execute()
 
     # Update user profile
-    profile = await get_user_profile(str(current_user.id), supabase)
+    profile = await get_user_profile(str(current_user.id), supabase_admin)
     if profile:
         new_total_points = profile.get('total_points', 0) + points_earned
         new_level = ScoringService.calculate_level(new_total_points)
@@ -251,7 +261,7 @@ async def submit_choice(
         modules_completed = profile.get('modules_completed', 0)
         change_talk_evoked = profile.get('change_talk_evoked', 0) + (1 if evoked_ct else 0)
 
-        supabase.table('user_profiles').update({
+        supabase_admin.table('user_profiles').update({
             'total_points': new_total_points,
             'level': new_level,
             'modules_completed': modules_completed + (1 if is_module_complete else 0),

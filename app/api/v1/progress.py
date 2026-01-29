@@ -7,11 +7,19 @@ from fastapi import APIRouter, HTTPException, Depends
 from supabase import Client
 from typing import List
 
-from app.core.supabase import get_supabase
-from app.api.v1.auth import get_current_user, get_user_profile
+from app.core.supabase import get_supabase, get_supabase_admin
+from app.api.v1.auth import get_current_user
 from app.models.progress import UserProgress, ProgressListResponse
 
 router = APIRouter()
+
+
+async def get_user_profile(user_id: str, supabase_admin: Client):
+    """Get user profile from user_profiles table"""
+    response = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
+    if response.data:
+        return response.data[0]
+    return None
 
 
 # =====================================================
@@ -25,9 +33,11 @@ async def get_user_stats(
 ):
     """
     Get user's overall statistics and all module progress.
-"""
+    """
+    supabase_admin = get_supabase_admin()
+
     # Get user profile
-    profile = await get_user_profile(str(current_user.id), supabase)
+    profile = await get_user_profile(str(current_user.id), supabase_admin)
     if not profile:
         raise HTTPException(
             status_code=404,
@@ -48,65 +58,64 @@ async def get_user_stats(
         if module_data:
             module_title = module_data.get('title', 'Unknown Module')
             p.pop('learning_modules', None)
-        else:
-            # Fallback: fetch module separately
-            module_resp = supabase.table('learning_modules').select('title').eq('id', p['module_id']).execute()
-            module_title = module_resp.data[0].get('title', 'Unknown Module') if module_resp.data else 'Unknown Module'
 
-        progress_list.append(UserProgress(
-            id=str(p['id']),
-            module_id=str(p['module_id']),
-            module_title=module_title,
-            status=p['status'],
-            current_node_id=p['current_node_id'],
-            nodes_completed=p.get('nodes_completed', []),
-            points_earned=p.get('points_earned', 0),
-            completion_score=p.get('completion_score', 0),
-            techniques_demonstrated=p.get('techniques_demonstrated', {}),
-            started_at=p['started_at'],
-            completed_at=p.get('completed_at')
-        ))
+            progress_list.append(UserProgress(
+                id=str(p['id']),
+                module_id=str(p['module_id']),
+                module_title=module_title,
+                status=p.get('status', 'not_started'),
+                completion_score=p.get('completion_score', 0),
+                points_earned=p.get('points_earned', 0),
+                current_node_id=p.get('current_node_id'),
+                nodes_completed=p.get('nodes_completed', []),
+                techniques_demonstrated=p.get('techniques_demonstrated', {}),
+                started_at=p.get('started_at'),
+                completed_at=p.get('completed_at')
+            ))
 
     return ProgressListResponse(
-        progress=progress_list,
         total_points=profile.get('total_points', 0),
         level=profile.get('level', 1),
-        modules_completed=profile.get('modules_completed', 0)
+        modules_completed=profile.get('modules_completed', 0),
+        progress=progress_list
     )
 
 
-@router.get("/modules", response_model=List[UserProgress])
-async def get_all_progress(
+@router.get("/{module_id}", response_model=UserProgress)
+async def get_module_progress(
+    module_id: str,
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
-    Get all module progress for the current user.
-"""
-    progress_response = supabase.table('user_progress') \
-        .select('*, learning_modules(id, title)') \
+    Get progress for a specific module.
+    """
+    response = supabase.table('user_progress') \
+        .select('*, learning_modules(id, title, dialogue_content)') \
         .eq('user_id', str(current_user.id)) \
-        .order('started_at', desc=True) \
+        .eq('module_id', module_id) \
         .execute()
 
-    progress_list = []
-    for p in progress_response.data:
-        module_data = p.get('learning_modules')
-        module_title = module_data.get('title', 'Unknown Module') if module_data else 'Unknown Module'
-        p.pop('learning_modules', None)
+    if not response.data:
+        raise HTTPException(
+            status_code=404,
+            detail="Progress not found for this module"
+        )
 
-        progress_list.append(UserProgress(
-            id=str(p['id']),
-            module_id=str(p['module_id']),
-            module_title=module_title,
-            status=p['status'],
-            current_node_id=p['current_node_id'],
-            nodes_completed=p.get('nodes_completed', []),
-            points_earned=p.get('points_earned', 0),
-            completion_score=p.get('completion_score', 0),
-            techniques_demonstrated=p.get('techniques_demonstrated', {}),
-            started_at=p['started_at'],
-            completed_at=p.get('completed_at')
-        ))
+    p = response.data[0]
+    module_data = p.get('learning_modules')
+    module_title = module_data.get('title', 'Unknown Module') if module_data else 'Unknown Module'
 
-    return progress_list
+    return UserProgress(
+        id=str(p['id']),
+        module_id=str(p['module_id']),
+        module_title=module_title,
+        status=p.get('status', 'not_started'),
+        completion_score=p.get('completion_score', 0),
+        points_earned=p.get('points_earned', 0),
+        current_node_id=p.get('current_node_id'),
+        nodes_completed=p.get('nodes_completed', []),
+        techniques_demonstrated=p.get('techniques_demonstrated', {}),
+        started_at=p.get('started_at'),
+        completed_at=p.get('completed_at')
+    )

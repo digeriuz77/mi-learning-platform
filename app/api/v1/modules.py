@@ -8,7 +8,7 @@ from supabase import Client
 from typing import List
 
 from app.core.supabase import get_supabase
-from app.api.v1.auth import get_current_user, get_user_profile
+from app.api.v1.auth import get_current_user
 from app.models.modules import ModuleResponse, ModuleListResponse
 
 router = APIRouter()
