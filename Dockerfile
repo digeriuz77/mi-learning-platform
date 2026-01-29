@@ -37,9 +37,9 @@ USER appuser
 # Expose port (Railway sets PORT dynamically)
 EXPOSE $PORT
 
-# Health check
+# Health check with fallback for missing env vars
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health || exit 1
+    CMD python -c "import os; import urllib.request; port=os.environ.get('PORT', 8000); urllib.request.urlopen(f'http://localhost:{port}/health', timeout=5)" || exit 1
 
 # Run the application - use shell form to expand $PORT
-CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

@@ -45,3 +45,18 @@ class LeaderboardResponse(BaseModel):
     """Leaderboard response"""
     entries: List[LeaderboardEntry]
     current_user: Optional[LeaderboardEntry] = None
+
+
+class UserProfile(BaseModel):
+    """User profile information"""
+    id: str
+    email: str
+    display_name: Optional[str] = None
+    total_points: int = 0
+    level: int = 1
+    modules_completed: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

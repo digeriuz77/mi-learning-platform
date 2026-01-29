@@ -5,6 +5,10 @@ from pydantic import field_validator, ValidationError
 from pydantic_settings import BaseSettings
 from typing import List
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables from .env.local first
+load_dotenv('.env.local')
 
 
 class Settings(BaseSettings):
@@ -65,8 +69,10 @@ class Settings(BaseSettings):
         return v
 
     class Config:
-        env_file = ".env"
+        env_file = [".env", ".env.local"]
+        env_file_encoding = "utf-8"
         case_sensitive = True
+        extra = "ignore"  # Ignore extra fields from old env files
 
 
 # Try to load settings and provide helpful error messages
@@ -84,10 +90,21 @@ except ValidationError as e:
     print("  - SUPABASE_SERVICE_ROLE_KEY: Your Supabase service role key")
     print("  - SUPABASE_JWT_SECRET: Your Supabase JWT secret")
     print()
+    print("For Railway deployment, set these in your environment variables.")
+    print("See .env.example for the complete list of required variables.")
+    print()
     print("Error details:")
     for error in e.errors():
         field = error.get("loc", ["unknown"])[0]
         msg = error.get("msg", "unknown error")
         print(f"  - {field}: {msg}")
+    print("=" * 60)
+    sys.exit(1)
+except Exception as e:
+    print("=" * 60)
+    print("UNEXPECTED CONFIGURATION ERROR")
+    print("=" * 60)
+    print(f"Error loading configuration: {e}")
+    print("Please check your environment variables and try again.")
     print("=" * 60)
     sys.exit(1)
