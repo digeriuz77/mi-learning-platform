@@ -22,10 +22,13 @@ app = FastAPI(
 )
 
 # Configure CORS
+# Note: When using "*" for origins, credentials must be False
+# This is fine for JWT-based auth (tokens in headers, not cookies)
+allow_all_origins = "*" in settings.CORS_ORIGINS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"] if allow_all_origins else settings.CORS_ORIGINS,
+    allow_credentials=not allow_all_origins,  # Can't use credentials with "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
