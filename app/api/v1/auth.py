@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from supabase import Client, AuthApiError
+from supabase import Client
 
 from app.core.supabase import get_supabase, get_supabase_admin, test_connection
 from app.models.auth import UserRegister, UserLogin, TokenResponse, UserResponse, UserProfile
@@ -84,16 +84,10 @@ def get_current_user(
 
         return response.user
 
-    except AuthApiError as e:
-        logger.error(f"Auth API error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
-        )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected authentication error: {e}")
+        logger.error(f"Authentication error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication failed"
@@ -221,19 +215,13 @@ async def register(user_data: UserRegister):
             )
         )
 
-    except AuthApiError as e:
-        logger.error(f"Supabase Auth API error during registration: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e) or "Registration failed. Email may already be registered."
-        )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected registration error: {e}")
+        logger.error(f"Registration error: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration failed. Please try again."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e) or "Registration failed. Please try again."
         )
 
 
@@ -281,19 +269,13 @@ async def login(user_data: UserLogin):
             )
         )
 
-    except AuthApiError as e:
-        logger.error(f"Auth API error during login: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected login error: {e}")
+        logger.error(f"Login error: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Login failed. Please try again."
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
         )
 
 
