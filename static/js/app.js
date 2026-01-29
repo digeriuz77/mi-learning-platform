@@ -64,9 +64,12 @@ const authAPI = {
             method: 'POST',
             body: JSON.stringify({ email, password, display_name: displayName })
         });
-        state.token = data.access_token;
-        state.user = data.user;
-        localStorage.setItem('access_token', data.access_token);
+        // Only store token if one was returned (email confirmation may be required)
+        if (data.access_token && data.access_token !== "") {
+            state.token = data.access_token;
+            state.user = data.user;
+            localStorage.setItem('access_token', data.access_token);
+        }
         return data;
     },
 
@@ -82,7 +85,11 @@ const authAPI = {
     },
 
     async logout() {
-        await apiRequest('/auth/logout', { method: 'POST' });
+        try {
+            await apiRequest('/auth/logout', { method: 'POST' });
+        } catch (e) {
+            // Ignore logout errors
+        }
         state.token = null;
         state.user = null;
         localStorage.removeItem('access_token');
@@ -90,6 +97,25 @@ const authAPI = {
 
     async getProfile() {
         return apiRequest('/auth/me');
+    },
+
+    async verifyToken() {
+        try {
+            return await apiRequest('/auth/verify');
+        } catch (e) {
+            return { valid: false };
+        }
+    },
+
+    async refreshToken() {
+        const data = await apiRequest('/auth/refresh', {
+            method: 'POST'
+        });
+        if (data.access_token) {
+            state.token = data.access_token;
+            localStorage.setItem('access_token', data.access_token);
+        }
+        return data;
     }
 };
 
@@ -434,10 +460,17 @@ function renderRegister() {
         btn.innerHTML = '<span class="spinner-small"></span> Creating account...';
 
         try {
-            await authAPI.register(email, password, displayName);
+            const result = await authAPI.register(email, password, displayName);
             renderNav();
-            showToast('Account created successfully!', 'success');
-            router.navigate('/');
+            
+            // Check if token was returned or email confirmation is needed
+            if (result.access_token && result.access_token !== "") {
+                showToast('Account created successfully!', 'success');
+                router.navigate('/');
+            } else {
+                showToast('Account created! Please check your email to confirm.', 'success');
+                router.navigate('/login');
+            }
         } catch (error) {
             showToast(error.message, 'error');
         } finally {
@@ -1070,6 +1103,38 @@ const router = {
 // Initialize App
 // =====================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+async function initApp() {
+    // Check for existing token and validate it
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        state.token = token;
+        try {
+            // Verify token is still valid
+            const verification = await authAPI.verifyToken();
+            if (verification.valid) {
+                state.user = verification.user;
+            } else {
+                // Token invalid, clear it
+                state.token = null;
+                state.user = null;
+                localStorage.removeItem('access_token');
+            }
+        } catch (e) {
+            // If verify fails, try to get profile directly
+            try {
+                const profile = await authAPI.getProfile();
+                state.user = profile;
+            } catch (e2) {
+                // Token is invalid, clear it
+                state.token = null;
+                state.user = null;
+                localStorage.removeItem('access_token');
+            }
+        }
+    }
+    
+    // Initialize router
     router.init();
-});
+}
+
+document.addEventListener('DOMContentLoaded', initApp);

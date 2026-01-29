@@ -8,7 +8,7 @@ from supabase import Client
 from typing import Optional
 
 from app.core.supabase import get_supabase, get_supabase_admin
-from app.api.v1.auth import get_current_user
+from app.core.auth import get_current_user, AuthContext
 from app.models.progress import LeaderboardResponse, LeaderboardEntry
 
 router = APIRouter()
@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("", response_model=LeaderboardResponse)
 async def get_leaderboard(
     limit: int = 50,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -47,7 +47,7 @@ async def get_leaderboard(
         )
 
         # Check if this is the current user
-        if profile['user_id'] == str(current_user.id):
+        if profile['user_id'] == current_user.user_id:
             current_user_entry = entry
 
         entries.append(entry)
@@ -56,7 +56,7 @@ async def get_leaderboard(
     if not current_user_entry:
         user_profile_response = supabase_admin.table('user_profiles') \
             .select('*') \
-            .eq('user_id', str(current_user.id)) \
+            .eq('user_id', current_user.user_id) \
             .execute()
 
         if user_profile_response.data:

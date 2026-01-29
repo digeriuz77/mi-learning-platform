@@ -8,7 +8,7 @@ from supabase import Client
 from typing import List
 
 from app.core.supabase import get_supabase, get_supabase_admin
-from app.api.v1.auth import get_current_user
+from app.core.auth import get_current_user, AuthContext
 from app.models.progress import UserProgress, ProgressListResponse
 
 router = APIRouter()
@@ -28,7 +28,7 @@ async def get_user_profile(user_id: str, supabase_admin: Client):
 
 @router.get("", response_model=ProgressListResponse)
 async def get_user_stats(
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -37,7 +37,7 @@ async def get_user_stats(
     supabase_admin = get_supabase_admin()
 
     # Get user profile
-    profile = await get_user_profile(str(current_user.id), supabase_admin)
+    profile = await get_user_profile(current_user.user_id, supabase_admin)
     if not profile:
         raise HTTPException(
             status_code=404,
@@ -47,7 +47,7 @@ async def get_user_stats(
     # Get all progress
     progress_response = supabase.table('user_progress') \
         .select('*, learning_modules(id, title, dialogue_content)') \
-        .eq('user_id', str(current_user.id)) \
+        .eq('user_id', current_user.user_id) \
         .order('started_at', desc=True) \
         .execute()
 
@@ -84,7 +84,7 @@ async def get_user_stats(
 @router.get("/{module_id}", response_model=UserProgress)
 async def get_module_progress(
     module_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -92,7 +92,7 @@ async def get_module_progress(
     """
     response = supabase.table('user_progress') \
         .select('*, learning_modules(id, title, dialogue_content)') \
-        .eq('user_id', str(current_user.id)) \
+        .eq('user_id', current_user.user_id) \
         .eq('module_id', module_id) \
         .execute()
 

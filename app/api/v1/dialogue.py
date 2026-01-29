@@ -8,7 +8,7 @@ from supabase import Client
 from typing import Optional
 
 from app.core.supabase import get_supabase, get_supabase_admin
-from app.api.v1.auth import get_current_user
+from app.core.auth import get_current_user, AuthContext
 from app.api.v1.modules import get_user_module_progress
 from app.services.scoring_service import ScoringService
 from app.models.modules import NodeResponse, ChoiceSubmit, ChoiceFeedback
@@ -81,7 +81,7 @@ def evokes_change_talk(node: dict, choice: dict) -> bool:
 async def get_dialogue_node(
     module_id: str,
     node_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -93,7 +93,7 @@ async def get_dialogue_node(
     module = await get_module_by_id(module_id, supabase)
 
     # Check user progress
-    progress = await get_user_module_progress(str(current_user.id), module_id, supabase)
+    progress = await get_user_module_progress(current_user.user_id, module_id, supabase)
     if not progress:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -130,7 +130,7 @@ async def get_dialogue_node(
 @router.post("/submit", response_model=ChoiceFeedback)
 async def submit_choice(
     choice_data: ChoiceSubmit,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -142,7 +142,7 @@ async def submit_choice(
 
     # Get module and progress
     module = await get_module_by_id(choice_data.module_id, supabase)
-    progress = await get_user_module_progress(str(current_user.id), choice_data.module_id, supabase)
+    progress = await get_user_module_progress(current_user.user_id, choice_data.module_id, supabase)
 
     if not progress:
         raise HTTPException(
@@ -193,7 +193,7 @@ async def submit_choice(
 
     # Record attempt
     supabase.table('dialogue_attempts').insert({
-        'user_id': str(current_user.id),
+        'user_id': current_user.user_id,
         'module_id': choice_data.module_id,
         'progress_id': progress['id'],
         'node_id': choice_data.node_id,
@@ -253,7 +253,7 @@ async def submit_choice(
     supabase.table('user_progress').update(update_data).eq('id', progress['id']).execute()
 
     # Update user profile
-    profile = await get_user_profile(str(current_user.id), supabase_admin)
+    profile = await get_user_profile(current_user.user_id, supabase_admin)
     if profile:
         new_total_points = profile.get('total_points', 0) + points_earned
         new_level = ScoringService.calculate_level(new_total_points)
@@ -267,7 +267,7 @@ async def submit_choice(
             'modules_completed': modules_completed + (1 if is_module_complete else 0),
             'change_talk_evoked': change_talk_evoked,
             'last_active_at': 'now()'
-        }).eq('user_id', str(current_user.id)).execute()
+        }).eq('user_id', current_user.user_id).execute()
 
         return ChoiceFeedback(
             is_correct=is_correct,

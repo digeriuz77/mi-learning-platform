@@ -8,7 +8,7 @@ from supabase import Client
 from typing import List
 
 from app.core.supabase import get_supabase
-from app.api.v1.auth import get_current_user
+from app.core.auth import get_current_user, AuthContext
 from app.models.modules import ModuleResponse, ModuleListResponse
 
 router = APIRouter()
@@ -45,7 +45,7 @@ async def get_all_user_progress(
 
 @router.get("", response_model=ModuleListResponse)
 async def list_modules(
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -55,7 +55,7 @@ async def list_modules(
     modules_response = supabase.table('learning_modules').select('*').eq('is_published', True).order('display_order').execute()
 
     # Get all user progress
-    user_progress = await get_all_user_progress(str(current_user.id), supabase)
+    user_progress = await get_all_user_progress(current_user.user_id, supabase)
     progress_map = {p['module_id']: p for p in user_progress}
 
     modules = []
@@ -80,7 +80,7 @@ async def list_modules(
 @router.get("/{module_id}", response_model=ModuleResponse)
 async def get_module(
     module_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -101,7 +101,7 @@ async def get_module(
     }
 
     # Add user progress if exists
-    progress = await get_user_module_progress(str(current_user.id), module_id, supabase)
+    progress = await get_user_module_progress(current_user.user_id, module_id, supabase)
     if progress:
         module_data['user_status'] = progress['status']
         module_data['user_score'] = progress.get('completion_score', 0)
@@ -113,7 +113,7 @@ async def get_module(
 @router.post("/{module_id}/start", status_code=status.HTTP_201_CREATED)
 async def start_module(
     module_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -128,7 +128,7 @@ async def start_module(
         )
 
     # Check if already started
-    existing_progress = await get_user_module_progress(str(current_user.id), module_id, supabase)
+    existing_progress = await get_user_module_progress(current_user.user_id, module_id, supabase)
     if existing_progress:
         if existing_progress['status'] == 'completed':
             raise HTTPException(
@@ -148,7 +148,7 @@ async def start_module(
 
     # Create progress record
     progress_response = supabase.table('user_progress').insert({
-        'user_id': str(current_user.id),
+        'user_id': current_user.user_id,
         'module_id': module_id,
         'status': 'in_progress',
         'current_node_id': start_node
@@ -166,7 +166,7 @@ async def start_module(
 @router.post("/{module_id}/restart")
 async def restart_module(
     module_id: str,
-    current_user: dict = Depends(get_current_user),
+    current_user: AuthContext = Depends(get_current_user),
     supabase: Client = Depends(get_supabase)
 ):
     """
@@ -186,7 +186,7 @@ async def restart_module(
     start_node = dialogue_content.get('start_node', 'node_1')
 
     # Check for existing progress
-    existing_progress = await get_user_module_progress(str(current_user.id), module_id, supabase)
+    existing_progress = await get_user_module_progress(current_user.user_id, module_id, supabase)
 
     if existing_progress:
         # Reset existing progress
@@ -208,7 +208,7 @@ async def restart_module(
     else:
         # Create new progress
         progress_response = supabase.table('user_progress').insert({
-            'user_id': str(current_user.id),
+            'user_id': current_user.user_id,
             'module_id': module_id,
             'status': 'in_progress',
             'current_node_id': start_node
