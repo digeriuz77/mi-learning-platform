@@ -26,7 +26,7 @@ async def test_supabase(supabase: Client = Depends(get_supabase)):
     """Test Supabase connection"""
     try:
         # Test basic connection
-        response = supabase.table('user_profiles').select('count').execute()
+        response = supabase.table('app_user').select('count').execute()
         return {
             "status": "success",
             "supabase_url": settings.SUPABASE_URL[:30] + "...",
@@ -99,7 +99,7 @@ async def get_user_profile(
     Returns:
         dict: User profile or None
     """
-    response = supabase.table('user_profiles').select('*').eq('user_id', user_id).execute()
+    response = supabase.table('app_user').select('*').eq('id', user_id).execute()
     if response.data:
         return response.data[0]
     return None

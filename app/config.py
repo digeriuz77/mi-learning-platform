@@ -5,10 +5,12 @@ from pydantic import field_validator, ValidationError
 from pydantic_settings import BaseSettings
 from typing import List
 import sys
+import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env.local first
-load_dotenv('.env.local')
+# Load environment variables from .env.local only if Railway env vars aren't set
+if not os.getenv('SUPABASE_URL'):
+    load_dotenv('.env.local')
 
 
 class Settings(BaseSettings):
