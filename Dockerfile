@@ -17,9 +17,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+# Upgrade pip first
+RUN pip install --upgrade pip
+
 # Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Verify critical packages are installed
+RUN python -c "import fastapi; import pydantic; import email_validator; import supabase; print('All packages verified')"
 
 # Copy project
 COPY . .
