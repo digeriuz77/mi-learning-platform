@@ -2,29 +2,46 @@
 MI Learning Platform - FastAPI Main Application
 """
 import logging
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi import Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-from app.config import settings
-
-# Configure logging
+# Configure logging first
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
+# Import settings with error handling
+try:
+    from app.config import settings
+except Exception as e:
+    logger.error(f"Failed to load settings: {e}")
+    # Create minimal settings for startup
+    class MinimalSettings:
+        APP_NAME = "MI Learning Platform"
+        APP_VERSION = "1.0.0"
+    settings = MinimalSettings()
+
 # Import routers
-from app.api.v1 import auth, modules, dialogue, progress, leaderboard
+try:
+    from app.api.v1 import auth, modules, dialogue, progress, leaderboard
+    ROUTERS_LOADED = True
+except Exception as e:
+    logger.error(f"Failed to load routers: {e}")
+    ROUTERS_LOADED = False
 
 # Create FastAPI app
 app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
+    title=getattr(settings, 'APP_NAME', 'MI Learning Platform'),
+    version=getattr(settings, 'APP_VERSION', '1.0.0'),
     description="MI Learning Platform API"
 )
 
@@ -50,20 +67,31 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Include API routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(modules.router, prefix="/api/v1/modules", tags=["Modules"])
-app.include_router(dialogue.router, prefix="/api/v1/dialogue", tags=["Dialogue"])
-app.include_router(progress.router, prefix="/api/v1/progress", tags=["Progress"])
-app.include_router(leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"])
+if ROUTERS_LOADED:
+    app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+    app.include_router(modules.router, prefix="/api/v1/modules", tags=["Modules"])
+    app.include_router(dialogue.router, prefix="/api/v1/dialogue", tags=["Dialogue"])
+    app.include_router(progress.router, prefix="/api/v1/progress", tags=["Progress"])
+    app.include_router(leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"])
+
+# Mount static files
+static_dir = Path(__file__).parent.parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+# Setup templates (lazy load to avoid import errors)
+templates = None
+templates_dir = Path(__file__).parent.parent / "templates"
 
 
 @app.get("/")
 async def root():
     """Root endpoint"""
     return {
-        "name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "status": "running"
+        "name": getattr(settings, 'APP_NAME', 'MI Learning Platform'),
+        "version": getattr(settings, 'APP_VERSION', '1.0.0'),
+        "status": "running",
+        "docs": "/docs"
     }
 
 
@@ -76,7 +104,10 @@ async def health_check():
 @app.on_event("startup")
 async def startup():
     """Startup event"""
-    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} started")
+    app_name = getattr(settings, 'APP_NAME', 'MI Learning Platform')
+    app_version = getattr(settings, 'APP_VERSION', '1.0.0')
+    logger.info(f"🚀 {app_name} v{app_version} started")
+    logger.info(f"Routers loaded: {ROUTERS_LOADED}")
 
 
 if __name__ == "__main__":
