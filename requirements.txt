@@ -9,9 +9,9 @@ pydantic-settings>=2.1.0
 email-validator>=2.1.0  # Required for pydantic EmailStr type
 
 # Supabase - Python client library
-supabase>=2.3.4,<2.4.0
-httpx>=0.24.0  # HTTP client for supabase
-gotrue>=1.0.0  # Auth client for Supabase
+# Supabase - Python client library
+supabase>=2.10.0  # Upgrade to newer version that supports httpx>=0.24.0
+# httpx and gotrue will be installed as dependencies of supabase
 
 # Database
 # psycopg2-binary is optional - using Supabase REST API instead
