@@ -786,22 +786,22 @@ function showFeedback(feedback, moduleId, dialogueContent) {
                 <div class="feedback-icon">${isCorrect ? '✓' : '✗'}</div>
                 <h2 class="feedback-title">${isCorrect ? 'Correct!' : 'Not Quite'}</h2>
             </div>
-            
+
             <div class="feedback-body">
                 <p class="feedback-text">${feedback.feedback_text}</p>
-                
+
                 <div class="points-earned">
                     <span class="points-value">+${feedback.points_earned}</span>
                     <span class="points-label">points</span>
                 </div>
-                
+
                 ${feedback.evoked_change_talk ? `
                     <div class="change-talk-badge">
                         <span class="badge-icon">🎯</span>
                         <span>Change talk evoked!</span>
                     </div>
                 ` : ''}
-                
+
                 ${isComplete ? `
                     <div class="completion-summary">
                         <h3>🎉 Module Complete!</h3>
@@ -822,7 +822,7 @@ function showFeedback(feedback, moduleId, dialogueContent) {
                     </div>
                 ` : ''}
             </div>
-            
+
             <div class="feedback-footer">
                 <button class="btn btn-primary btn-lg" style="width: 100%;">
                     ${isComplete ? 'View Progress' : 'Continue'}
@@ -833,12 +833,17 @@ function showFeedback(feedback, moduleId, dialogueContent) {
 
     document.body.appendChild(overlay);
 
+    // Prevent body scroll when modal is open
+    document.body.classList.add('modal-open');
+
     // Animate in
     setTimeout(() => overlay.classList.add('show'), 10);
 
     overlay.querySelector('button').addEventListener('click', () => {
         overlay.classList.remove('show');
         setTimeout(() => {
+            // Remove modal-open class and clean up
+            document.body.classList.remove('modal-open');
             document.body.removeChild(overlay);
 
             if (isComplete) {
@@ -1055,6 +1060,9 @@ const router = {
         if (matchedRoute) {
             // Update URL without reloading
             window.history.pushState({}, '', path === '/' ? '/' : '#' + path);
+
+            // Reset scroll to top - fixes issue where page scrolls to bottom
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
             // Call route handler
             const handler = this.routes[matchedRoute];
