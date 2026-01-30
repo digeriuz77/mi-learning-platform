@@ -149,11 +149,31 @@ async def register(request: RegisterRequest):
     Raises:
         HTTPException: If registration fails (e.g., email already exists)
     """
-    supabase = get_supabase()
-    supabase_admin = get_supabase_admin()
+    logger.info(f"Registration attempt for email: {request.email}")
+    
+    try:
+        supabase = get_supabase()
+        logger.info("Supabase client obtained successfully")
+    except Exception as e:
+        logger.error(f"Failed to get Supabase client: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database connection error: {str(e)}"
+        )
+    
+    try:
+        supabase_admin = get_supabase_admin()
+        logger.info("Supabase admin client obtained successfully")
+    except Exception as e:
+        logger.error(f"Failed to get Supabase admin client: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database admin connection error: {str(e)}"
+        )
     
     try:
         # Sign up with Supabase Auth
+        logger.info("Attempting to sign up user with Supabase Auth")
         auth_response = supabase.auth.sign_up({
             "email": request.email,
             "password": request.password,
@@ -249,10 +269,21 @@ async def login(request: LoginRequest):
     Raises:
         HTTPException: If login fails (invalid credentials)
     """
-    supabase = get_supabase()
+    logger.info(f"Login attempt for email: {request.email}")
+    
+    try:
+        supabase = get_supabase()
+        logger.info("Supabase client obtained successfully for login")
+    except Exception as e:
+        logger.error(f"Failed to get Supabase client for login: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database connection error: {str(e)}"
+        )
     
     try:
         # Sign in with Supabase Auth
+        logger.info("Attempting to sign in with Supabase Auth")
         auth_response = supabase.auth.sign_in_with_password({
             "email": request.email,
             "password": request.password
