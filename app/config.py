@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
+    
+    # Deployment URL (for auth redirects)
+    SITE_URL: str = "http://localhost:3000"
 
     # CORS Settings - default allows all origins for easy deployment
     # Set to specific origins in production if needed

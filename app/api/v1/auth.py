@@ -180,7 +180,8 @@ async def register(request: RegisterRequest):
             "options": {
                 "data": {
                     "display_name": request.display_name or request.email.split('@')[0]
-                }
+                },
+                "email_redirect_to": settings.SITE_URL
             }
         })
         
