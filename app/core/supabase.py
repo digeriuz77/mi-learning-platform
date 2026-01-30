@@ -28,6 +28,11 @@ def get_supabase() -> Client:
     Returns:
         Client: Initialized Supabase client
     """
+    # Clear proxy environment variables that might conflict with supabase client
+    # This is done here to ensure it happens on each request in case they're set later
+    for proxy_var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy', 'NO_PROXY', 'no_proxy']:
+        os.environ.pop(proxy_var, None)
+    
     global _supabase_client
     if _supabase_client is None:
         logger.info("Initializing Supabase client with anon key")
@@ -50,6 +55,10 @@ def get_supabase_admin() -> Client:
     Returns:
         Client: Initialized Supabase admin client
     """
+    # Clear proxy environment variables that might conflict with supabase client
+    for proxy_var in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy', 'NO_PROXY', 'no_proxy']:
+        os.environ.pop(proxy_var, None)
+    
     global _supabase_admin_client
     if _supabase_admin_client is None:
         logger.info("Initializing Supabase admin client with service role key")
