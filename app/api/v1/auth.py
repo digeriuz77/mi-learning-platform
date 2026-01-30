@@ -113,9 +113,9 @@ def create_user_profile(user_id: str, display_name: Optional[str], supabase_admi
             return response.data[0]
         return None
     except Exception as e:
-        logger.error(f"Error creating user profile: {e}")
-        # Don't raise - profile creation failure shouldn't break registration
-        return None
+        logger.error(f"Error creating user profile: {e}", exc_info=True)
+        # Raise exception so we know if profile creation fails
+        raise e
 
 
 # =====================================================
