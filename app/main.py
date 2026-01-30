@@ -79,20 +79,26 @@ static_dir = Path(__file__).parent.parent / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-# Setup templates (lazy load to avoid import errors)
+# Setup templates
 templates = None
 templates_dir = Path(__file__).parent.parent / "templates"
+if templates_dir.exists():
+    templates = Jinja2Templates(directory=str(templates_dir))
 
 
 @app.get("/")
-async def root():
-    """Root endpoint"""
+async def root(request: Request):
+    """Root endpoint - serve the frontend HTML"""
+    if templates:
+        return templates.TemplateResponse("index.html", {"request": request})
+    # Fallback to JSON if templates not found
     return {
         "name": getattr(settings, 'APP_NAME', 'MI Learning Platform'),
         "version": getattr(settings, 'APP_VERSION', '1.0.0'),
         "status": "running",
         "docs": "/docs"
     }
+
 
 
 @app.get("/health")
