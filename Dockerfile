@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy project files
 COPY . .
 
-# Expose port
-EXPOSE 8000
+# Expose port (Railway will override with its own PORT)
+EXPOSE ${PORT}
 
-# Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application using shell form so PORT variable is expanded at runtime
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
