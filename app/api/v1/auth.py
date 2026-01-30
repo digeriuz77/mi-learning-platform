@@ -85,12 +85,13 @@ class LogoutResponse(BaseModel):
 # Helper Functions
 # =====================================================
 
-def create_user_profile(user_id: str, display_name: Optional[str], supabase_admin: Client):
+def create_user_profile(user_id: str, email: str, display_name: Optional[str], supabase_admin: Client):
     """
     Create a user profile in the database.
     
     Args:
         user_id: The user's UUID from Supabase Auth
+        email: User's email
         display_name: User's display name
         supabase_admin: Supabase admin client
         
@@ -98,6 +99,20 @@ def create_user_profile(user_id: str, display_name: Optional[str], supabase_admi
         Created profile data
     """
     try:
+        # First try to insert into 'users' table if it exists (to satisfy FK constraints)
+        try:
+            supabase_admin.table('users').insert({
+                'id': user_id,
+                'email': email,
+                # Some schemas put display_name in users table
+                'display_name': display_name,
+                'created_at': 'now()'
+            }).execute()
+            logger.info(f"Created user record in 'users' table for {user_id}")
+        except Exception as e:
+            # Ignore if table doesn't exist or user already exists, but log it
+            logger.info(f"Skipping 'users' table insertion (might not exist or already present): {e}")
+
         response = supabase_admin.table('user_profiles').insert({
             'user_id': user_id,
             'display_name': display_name,
@@ -197,7 +212,7 @@ async def register(request: RegisterRequest):
         # Note: This is also handled by the database trigger, but we do it explicitly
         # to ensure it exists immediately for the subsequent API calls
         display_name = request.display_name or request.email.split('@')[0]
-        create_user_profile(str(user.id), display_name, supabase_admin)
+        create_user_profile(str(user.id), request.email, display_name, supabase_admin)
         
         # Get the session (may be None if email confirmation is required)
         session = auth_response.session
