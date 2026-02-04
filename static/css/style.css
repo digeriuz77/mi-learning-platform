@@ -2640,8 +2640,15 @@ body.modal-open {
     font-size: 1rem;
 }
 
-.toggle-transcript {
+.transcript-buttons {
+    display: flex;
+    gap: 0.75rem;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.toggle-transcript {
+    margin-bottom: 0;
 }
 
 .transcript-content {

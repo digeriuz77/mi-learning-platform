@@ -1337,9 +1337,15 @@ function showSessionCompleteModal() {
                 <p>Great work! You completed ${chatState.currentTurn} turns with ${chatState.personaName}.</p>
                 <p>Click below to get detailed feedback on your MI techniques.</p>
             </div>
-            <div class="feedback-footer">
+            <div class="feedback-footer" style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <button class="btn btn-primary btn-lg" id="getAnalysisBtn" style="width: 100%;">
                     Get My Feedback
+                </button>
+                <button class="btn btn-outline" id="downloadTranscriptBtn" style="width: 100%;">
+                    Download Transcript
+                </button>
+                <button class="btn btn-outline" id="exitSessionBtn" style="width: 100%;">
+                    Exit Without Feedback
                 </button>
             </div>
         </div>
@@ -1372,6 +1378,63 @@ function showSessionCompleteModal() {
             btn.textContent = 'Get My Feedback';
         }
     });
+
+    document.getElementById('downloadTranscriptBtn').addEventListener('click', () => {
+        downloadTranscript();
+    });
+
+    document.getElementById('exitSessionBtn').addEventListener('click', () => {
+        overlay.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        setTimeout(() => {
+            document.body.removeChild(overlay);
+            resetChatState();
+            router.navigate('/chat-practice');
+        }, 300);
+    });
+}
+
+/**
+ * Download transcript as a formatted .txt file
+ */
+function downloadTranscript() {
+    const date = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    let content = `MI Practice Chat Transcript\n`;
+    content += `${'='.repeat(50)}\n\n`;
+    content += `Client: ${chatState.personaName}\n`;
+    content += `Date: ${date}\n`;
+    content += `Total Turns: ${chatState.currentTurn}\n\n`;
+    content += `${'='.repeat(50)}\n`;
+    content += `CONVERSATION\n`;
+    content += `${'='.repeat(50)}\n\n`;
+
+    chatState.messages.forEach((msg, index) => {
+        const speaker = msg.role === 'user' ? 'Practitioner' : chatState.personaName;
+        content += `${speaker}:\n`;
+        content += `${msg.content}\n\n`;
+    });
+
+    content += `${'='.repeat(50)}\n`;
+    content += `End of Transcript\n`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `MI_Practice_${chatState.personaName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('Transcript downloaded', 'success');
 }
 
 /**
@@ -1534,7 +1597,10 @@ function renderChatResults() {
 
             <div class="transcript-section">
                 <h3>Full Transcript</h3>
-                <button class="btn btn-outline toggle-transcript" id="toggleTranscript">Show Transcript</button>
+                <div class="transcript-buttons">
+                    <button class="btn btn-outline toggle-transcript" id="toggleTranscript">Show Transcript</button>
+                    <button class="btn btn-outline" id="downloadTranscriptResultsBtn">Download as .txt</button>
+                </div>
                 <div class="transcript-content" id="transcriptContent" style="display: none;">
                     ${transcript.map((msg, i) => `
                         <div class="transcript-message ${msg.role}">
@@ -1565,10 +1631,105 @@ function renderChatResults() {
         }
     });
 
+    document.getElementById('downloadTranscriptResultsBtn').addEventListener('click', () => {
+        downloadTranscriptWithAnalysis(analysis, transcript);
+    });
+
     document.getElementById('practiceAgainBtn').addEventListener('click', () => {
         resetChatState();
         router.navigate('/chat-practice');
     });
+}
+
+/**
+ * Download transcript with analysis as a formatted .txt file
+ */
+function downloadTranscriptWithAnalysis(analysis, transcript) {
+    const date = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    let content = `MI Practice Chat - Session Report\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `Client: ${chatState.personaName}\n`;
+    content += `Date: ${date}\n`;
+    content += `Total Turns: ${chatState.analysis.total_turns}\n\n`;
+
+    content += `${'='.repeat(60)}\n`;
+    content += `SCORES\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `Overall Score: ${analysis.overall_score.toFixed(1)}/5\n`;
+    content += `Trust & Safety: ${analysis.foundational_trust_safety.toFixed(1)}/5\n`;
+    content += `Empathy & Partnership: ${analysis.empathic_partnership_autonomy.toFixed(1)}/5\n`;
+    content += `Empowerment & Clarity: ${analysis.empowerment_clarity.toFixed(1)}/5\n`;
+    content += `MI Spirit: ${analysis.mi_spirit_score.toFixed(1)}/5\n\n`;
+
+    content += `MI Spirit Components:\n`;
+    content += `  Partnership: ${analysis.partnership_demonstrated ? 'Yes' : 'No'}\n`;
+    content += `  Acceptance: ${analysis.acceptance_demonstrated ? 'Yes' : 'No'}\n`;
+    content += `  Compassion: ${analysis.compassion_demonstrated ? 'Yes' : 'No'}\n`;
+    content += `  Evocation: ${analysis.evocation_demonstrated ? 'Yes' : 'No'}\n\n`;
+
+    content += `Client Movement: ${formatMovement(analysis.client_movement)}\n`;
+    content += `Change Talk Evoked: ${analysis.change_talk_evoked ? 'Yes' : 'No'}\n\n`;
+
+    content += `${'='.repeat(60)}\n`;
+    content += `STRENGTHS\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    (analysis.strengths || []).forEach(s => {
+        content += `- ${s}\n`;
+    });
+    content += `\n`;
+
+    content += `${'='.repeat(60)}\n`;
+    content += `AREAS FOR IMPROVEMENT\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    (analysis.areas_for_improvement || []).forEach(a => {
+        content += `- ${a}\n`;
+    });
+    content += `\n`;
+
+    content += `${'='.repeat(60)}\n`;
+    content += `SUMMARY\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `${analysis.summary || ''}\n\n`;
+
+    content += `${'='.repeat(60)}\n`;
+    content += `SUGGESTIONS FOR NEXT TIME\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    (analysis.suggestions_for_next_time || []).forEach(s => {
+        content += `- ${s}\n`;
+    });
+    content += `\n`;
+
+    content += `${'='.repeat(60)}\n`;
+    content += `CONVERSATION TRANSCRIPT\n`;
+    content += `${'='.repeat(60)}\n\n`;
+
+    transcript.forEach((msg, index) => {
+        const speaker = msg.role === 'user' ? 'Practitioner' : chatState.personaName;
+        content += `${speaker}:\n`;
+        content += `${msg.content}\n\n`;
+    });
+
+    content += `${'='.repeat(60)}\n`;
+    content += `End of Report\n`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `MI_Practice_Report_${chatState.personaName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('Report downloaded', 'success');
 }
 
 /**
