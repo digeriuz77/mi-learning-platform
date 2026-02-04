@@ -1,6 +1,7 @@
 """
 MI Learning Platform - FastAPI Main Application
 """
+
 import logging
 import os
 from pathlib import Path
@@ -14,8 +15,7 @@ from fastapi.templating import Jinja2Templates
 
 # Configure logging first
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -24,15 +24,18 @@ try:
     from app.config import settings
 except Exception as e:
     logger.error(f"Failed to load settings: {e}")
+
     # Create minimal settings for startup
     class MinimalSettings:
         APP_NAME = "MI Learning Platform"
         APP_VERSION = "1.0.0"
+
     settings = MinimalSettings()
 
 # Import routers
 try:
     from app.api.v1 import auth, modules, dialogue, progress, leaderboard, chat_practice
+
     ROUTERS_LOADED = True
 except Exception as e:
     logger.error(f"Failed to load routers: {e}")
@@ -40,9 +43,9 @@ except Exception as e:
 
 # Create FastAPI app
 app = FastAPI(
-    title=getattr(settings, 'APP_NAME', 'MI Learning Platform'),
-    version=getattr(settings, 'APP_VERSION', '1.0.0'),
-    description="MI Learning Platform API"
+    title=getattr(settings, "APP_NAME", "MI Learning Platform"),
+    version=getattr(settings, "APP_VERSION", "1.0.0"),
+    description="MI Learning Platform API",
 )
 
 # Configure CORS
@@ -61,8 +64,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     """Catch all exceptions"""
     logger.error(f"Error on {request.url.path}: {exc}", exc_info=True)
     return JSONResponse(
-        status_code=500,
-        content={"error": str(exc), "type": type(exc).__name__}
+        status_code=500, content={"error": str(exc), "type": type(exc).__name__}
     )
 
 
@@ -72,7 +74,9 @@ if ROUTERS_LOADED:
     app.include_router(modules.router, prefix="/api/v1/modules", tags=["Modules"])
     app.include_router(dialogue.router, prefix="/api/v1/dialogue", tags=["Dialogue"])
     app.include_router(progress.router, prefix="/api/v1/progress", tags=["Progress"])
-    app.include_router(leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"])
+    app.include_router(
+        leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"]
+    )
     app.include_router(chat_practice.router, prefix="/api/v1", tags=["Chat Practice"])
 
 # Mount static files
@@ -94,29 +98,65 @@ async def root(request: Request):
         return templates.TemplateResponse("index.html", {"request": request})
     # Fallback to JSON if templates not found
     return {
-        "name": getattr(settings, 'APP_NAME', 'MI Learning Platform'),
-        "version": getattr(settings, 'APP_VERSION', '1.0.0'),
+        "name": getattr(settings, "APP_NAME", "MI Learning Platform"),
+        "version": getattr(settings, "APP_VERSION", "1.0.0"),
         "status": "running",
-        "docs": "/docs"
+        "docs": "/docs",
     }
-
 
 
 @app.get("/health")
 async def health_check():
-    """Health check for Railway"""
+    """Basic health check for Railway"""
     return {"status": "healthy"}
+
+
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check including Supabase connectivity"""
+    from app.core.supabase import get_supabase, get_supabase_admin
+    from app.config import settings
+
+    health = {
+        "status": "healthy",
+        "app": {
+            "name": getattr(settings, "APP_NAME", "MI Learning Platform"),
+            "version": getattr(settings, "APP_VERSION", "1.0.0"),
+        },
+        "config": {
+            "supabase_url_set": bool(getattr(settings, "SUPABASE_URL", None)),
+            "supabase_key_set": bool(getattr(settings, "SUPABASE_KEY", None)),
+            "service_role_set": bool(
+                getattr(settings, "SUPABASE_SERVICE_ROLE_KEY", None)
+            ),
+        },
+    }
+
+    try:
+        client = get_supabase()
+        # Try a simple query
+        response = client.table("learning_modules").select("id").limit(1).execute()
+        health["supabase"] = {
+            "status": "connected",
+            "modules_count": len(response.data) if response.data else 0,
+        }
+    except Exception as e:
+        health["supabase"] = {"status": "error", "error": str(e)}
+        health["status"] = "degraded"
+
+    return health
 
 
 @app.on_event("startup")
 async def startup():
     """Startup event"""
-    app_name = getattr(settings, 'APP_NAME', 'MI Learning Platform')
-    app_version = getattr(settings, 'APP_VERSION', '1.0.0')
+    app_name = getattr(settings, "APP_NAME", "MI Learning Platform")
+    app_version = getattr(settings, "APP_VERSION", "1.0.0")
     logger.info(f"🚀 {app_name} v{app_version} started")
     logger.info(f"Routers loaded: {ROUTERS_LOADED}")
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

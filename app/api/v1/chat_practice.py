@@ -5,6 +5,7 @@ Allows users to practice Motivational Interviewing with simulated client persona
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional
+import logging
 
 from app.models.chat import (
     PersonaListResponse,
@@ -25,6 +26,7 @@ from app.services import conversation_analysis_service
 from app.core.auth import get_current_user, AuthContext
 
 router = APIRouter(prefix="/chat-practice", tags=["Chat Practice"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/personas", response_model=PersonaListResponse)
@@ -243,9 +245,15 @@ async def analyze_transcript(
         if not transcript:
             raise HTTPException(status_code=400, detail="Transcript is required")
 
+        logger.info(
+            f"[CHAT] Analyzing transcript for {persona_name}, {len(transcript)} messages"
+        )
+
         analysis_result = await conversation_analysis_service.analyze_conversation(
             transcript=transcript, persona_name=persona_name
         )
+
+        logger.info(f"[CHAT] Analysis complete for {persona_name}")
 
         techniques_used = [
             MITechniqueUsed(**t) for t in analysis_result.get("techniques_used", [])
