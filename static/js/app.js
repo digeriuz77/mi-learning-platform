@@ -248,7 +248,8 @@ function renderNav() {
             <a href="#" data-link="/chat-practice">Practice Chat</a>
             <a href="#" data-link="/progress">Progress</a>
             <a href="#" data-link="/leaderboard">Leaderboard</a>
-            <span>${state.user.display_name || state.user.email}</span>
+            <a href="#" data-link="/about">About</a>
+            <span class="user-name">${state.user.display_name || state.user.email}</span>
             <a href="#" data-link="/logout">Logout</a>
         `;
     } else {
@@ -462,6 +463,69 @@ function renderLogin() {
             btn.textContent = 'Sign In';
         }
     });
+}
+
+/**
+ * About page
+ */
+function renderAbout() {
+    const app = document.getElementById('app');
+
+    app.innerHTML = `
+        <div class="about-page">
+            <div class="about-hero">
+                <h1>About MI Learning Platform</h1>
+                <p class="about-subtitle">Free local support to help you make positive changes in your life</p>
+            </div>
+
+            <div class="about-section">
+                <div class="about-content">
+                    <h2>Our Mission</h2>
+                    <p>The MI Learning Platform is part of the Choose You wellness service, dedicated to providing free, supportive guidance for people looking to make positive lifestyle changes. Whether you're thinking about quitting smoking, managing your weight, or building healthier habits, we're here to help.</p>
+
+                    <h3>Motivational Interviewing (MI)</h3>
+                    <p>We use Motivational Interviewing, a proven approach that helps people explore and resolve ambivalence about change. Rather than telling people what to do, our trained practitioners use MI to help you discover your own motivations and build confidence to make changes that matter to you.</p>
+                </div>
+
+                <div class="about-partners">
+                    <h3>Our Partners</h3>
+                    <div class="partner-logos">
+                        <div class="partner-logo council-logo">
+                            <img src="/static/images/council.png" alt="Council Partner" />
+                            <span>Local Council Public Health</span>
+                        </div>
+                        <div class="partner-logo">
+                            <a href="https://chooseyou.co.uk/about/" target="_blank" rel="noopener">
+                                <img src="/static/images/choose-you.png" alt="Choose You" />
+                                <span>Choose You Wellness Service</span>
+                            </a>
+                        </div>
+                        <div class="partner-logo">
+                            <a href="https://www.virtualhealthlabs.org/" target="_blank" rel="noopener">
+                                <span>Virtual Health Labs</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-resources">
+                    <h3>Related Resources</h3>
+                    <div class="resource-cards">
+                        <a href="https://mi-animals.up.railway.app/" target="_blank" rel="noopener" class="resource-card">
+                            <span class="resource-icon">🐾</span>
+                            <span class="resource-title">MI Animals</span>
+                            <span class="resource-desc">A fun, relaxed way to practice MI conversations with friendly animal characters</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="about-contact">
+                    <h3>Get in Touch</h3>
+                    <p>For more information about our services, please visit <a href="https://chooseyou.co.uk" target="_blank" rel="noopener">chooseyou.co.uk</a></p>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 /**
@@ -1914,6 +1978,7 @@ const router = {
         '/': renderHome,
         '/login': renderLogin,
         '/register': renderRegister,
+        '/about': renderAbout,
         '/modules': renderModules,
         '/modules/:id': renderModuleDetail,
         '/modules/:id/dialogue': renderDialogue,
