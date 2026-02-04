@@ -1050,6 +1050,17 @@ async function renderLogout() {
 // Chat Practice Pages
 // =====================================================
 
+// Chat Practice State
+const chatState = {
+    sessionId: null,
+    personaName: null,
+    personaAvatar: null,
+    messages: [],
+    currentTurn: 0,
+    maxTurns: 20,
+    isTyping: false
+};
+
 // Quick demo conversation for Marcus (MI adherent demonstration)
 const QUICK_DEMO_MESSAGES = [
     { role: 'assistant', content: "Look, I know why I'm here. My wife set this up after my last checkup. The doctor said some things about my lungs that... well, they weren't great. I've been smoking for over 20 years now, and honestly, I'm not sure what talking about it is going to do. I've tried quitting before. Didn't stick. But... my daughter just had a baby last month, so I guess there's that." },
