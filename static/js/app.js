@@ -1704,8 +1704,7 @@ function renderChatResults() {
                 <h3>Full Transcript</h3>
                 <div class="transcript-buttons">
                     <button class="btn btn-outline toggle-transcript" id="toggleTranscript">Show Transcript</button>
-                    <button class="btn btn-outline" id="downloadTranscriptResultsBtn">Download as .txt</button>
-                    <button class="btn btn-primary" id="downloadPdfBtn">Download PDF Report</button>
+                    <button class="btn btn-outline" id="downloadTranscriptResultsBtn">Download Report</button>
                 </div>
                 <div class="transcript-content" id="transcriptContent" style="display: none;">
                     ${transcript.map((msg, i) => `
@@ -1739,10 +1738,6 @@ function renderChatResults() {
 
     document.getElementById('downloadTranscriptResultsBtn').addEventListener('click', () => {
         downloadTranscriptWithAnalysis(analysis, transcript);
-    });
-
-    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-        downloadAnalysisPdf(analysis, transcript);
     });
 
     document.getElementById('practiceAgainBtn').addEventListener('click', () => {
@@ -1840,198 +1835,6 @@ function downloadTranscriptWithAnalysis(analysis, transcript) {
     URL.revokeObjectURL(url);
 
     showToast('Report downloaded', 'success');
-}
-
-/**
- * Download analysis as a formatted PDF file
- */
-function downloadAnalysisPdf(analysis, transcript) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    const date = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-
-    let yPos = 20;
-    const margin = 20;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const contentWidth = pageWidth - (margin * 2);
-    const lineHeight = 7;
-
-    doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MI Practice Chat - Session Report', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 15;
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Client: ${chatState.personaName}`, margin, yPos);
-    yPos += lineHeight;
-    doc.text(`Date: ${date}`, margin, yPos);
-    yPos += lineHeight;
-    doc.text(`Total Turns: ${chatState.analysis.total_turns}`, margin, yPos);
-    yPos += 15;
-
-    doc.setDrawColor(79, 70, 229);
-    doc.setLineWidth(0.5);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += 10;
-
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Scores', margin, yPos);
-    yPos += 10;
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-
-    const scores = [
-        ['Overall Score', `${analysis.overall_score.toFixed(1)} / 5`],
-        ['Trust & Safety', `${analysis.foundational_trust_safety.toFixed(1)} / 5`],
-        ['Empathy & Partnership', `${analysis.empathic_partnership_autonomy.toFixed(1)} / 5`],
-        ['Empowerment & Clarity', `${analysis.empowerment_clarity.toFixed(1)} / 5`],
-        ['MI Spirit Score', `${analysis.mi_spirit_score.toFixed(1)} / 5`]
-    ];
-
-    scores.forEach(([label, value]) => {
-        doc.text(label, margin, yPos);
-        doc.text(value, pageWidth - margin - 30, yPos, { align: 'right' });
-        yPos += lineHeight;
-    });
-    yPos += 5;
-
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('MI Spirit Components', margin, yPos);
-    yPos += 8;
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    const spiritComponents = [
-        ['Partnership', analysis.partnership_demonstrated],
-        ['Acceptance', analysis.acceptance_demonstrated],
-        ['Compassion', analysis.compassion_demonstrated],
-        ['Evocation', analysis.evocation_demonstrated]
-    ];
-
-    spiritComponents.forEach(([label, demonstrated]) => {
-        const status = demonstrated ? 'Demonstrated' : 'Not Yet Demonstrated';
-        doc.text(`${label}: ${status}`, margin, yPos);
-        yPos += 6;
-    });
-    yPos += 5;
-
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Client Response', margin, yPos);
-    yPos += 8;
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Movement: ${formatMovement(analysis.client_movement)}`, margin, yPos);
-    yPos += 6;
-    doc.text(`Change Talk Evoked: ${analysis.change_talk_evoked ? 'Yes' : 'No'}`, margin, yPos);
-    yPos += 10;
-
-    if (analysis.strengths && analysis.strengths.length > 0) {
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Strengths', margin, yPos);
-        yPos += 8;
-
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        analysis.strengths.forEach(s => {
-            const lines = doc.splitTextToSize(`• ${s}`, contentWidth);
-            lines.forEach(line => {
-                if (yPos > 270) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                doc.text(line, margin, yPos);
-                yPos += 6;
-            });
-        });
-        yPos += 5;
-    }
-
-    if (analysis.areas_for_improvement && analysis.areas_for_improvement.length > 0) {
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Areas for Improvement', margin, yPos);
-        yPos += 8;
-
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        analysis.areas_for_improvement.forEach(a => {
-            const lines = doc.splitTextToSize(`• ${a}`, contentWidth);
-            lines.forEach(line => {
-                if (yPos > 270) {
-                    doc.addPage();
-                    yPos = 20;
-                }
-                doc.text(line, margin, yPos);
-                yPos += 6;
-            });
-        });
-        yPos += 5;
-    }
-
-    if (analysis.summary) {
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Summary', margin, yPos);
-        yPos += 8;
-
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        const summaryLines = doc.splitTextToSize(analysis.summary, contentWidth);
-        summaryLines.forEach(line => {
-            if (yPos > 270) {
-                doc.addPage();
-                yPos = 20;
-            }
-            doc.text(line, margin, yPos);
-            yPos += 6;
-        });
-        yPos += 5;
-    }
-
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Full Transcript', margin, yPos);
-    yPos += 8;
-
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-
-    transcript.forEach((msg) => {
-        const speaker = msg.role === 'user' ? 'Practitioner' : chatState.personaName;
-        const text = `${speaker}: ${msg.content}`;
-        const lines = doc.splitTextToSize(text, contentWidth);
-
-        lines.forEach(line => {
-            if (yPos > 270) {
-                doc.addPage();
-                yPos = 20;
-            }
-            doc.text(line, margin, yPos);
-            yPos += 5;
-        });
-        yPos += 3;
-    });
-
-    doc.setFontSize(8);
-    doc.setTextColor(128);
-    doc.text('Generated by MI Learning Platform', pageWidth / 2, 285, { align: 'center' });
-
-    const filename = `MI_Practice_Report_${chatState.personaName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-    doc.save(filename);
-
-    showToast('PDF report downloaded', 'success');
 }
 
 /**
