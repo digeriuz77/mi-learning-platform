@@ -1,6 +1,7 @@
 """
 Application Configuration using Pydantic Settings
 """
+
 from pydantic import field_validator, ValidationError
 from pydantic_settings import BaseSettings
 from typing import List
@@ -9,8 +10,8 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env.local only if Railway env vars aren't set
-if not os.getenv('SUPABASE_URL'):
-    load_dotenv('.env.local')
+if not os.getenv("SUPABASE_URL"):
+    load_dotenv(".env.local")
 
 
 class Settings(BaseSettings):
@@ -43,9 +44,10 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
-    
+
     # Deployment URL (for auth redirects)
-    SITE_URL: str = "http://localhost:3000"
+    # IMPORTANT: Set this to your production URL for email redirects to work
+    SITE_URL: str = ""
 
     # CORS Settings - default allows all origins for easy deployment
     # Set to specific origins in production if needed
