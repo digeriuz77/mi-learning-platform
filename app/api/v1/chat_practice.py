@@ -2,6 +2,7 @@
 API routes for MI Chat Practice sessions.
 Allows users to practice Motivational Interviewing with simulated client personas.
 """
+
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Optional
 
@@ -16,7 +17,7 @@ from app.models.chat import (
     ChatEndResponse,
     ConversationAnalysis,
     MITechniqueUsed,
-    ChatSessionStatus
+    ChatSessionStatus,
 )
 from app.services.personas import get_persona_list, get_persona
 from app.services import chat_service
@@ -34,9 +35,7 @@ async def list_personas():
     Returns personas that users can practice MI techniques with.
     """
     personas = get_persona_list()
-    return PersonaListResponse(
-        personas=[PersonaSummary(**p) for p in personas]
-    )
+    return PersonaListResponse(personas=[PersonaSummary(**p) for p in personas])
 
 
 @router.get("/personas/{persona_id}")
@@ -59,14 +58,13 @@ async def get_persona_details(persona_id: str):
         "description": persona["description"],
         "avatar": persona["avatar"],
         "stage_of_change": persona["stage_of_change"],
-        "initial_mood": persona["initial_mood"]
+        "initial_mood": persona["initial_mood"],
     }
 
 
 @router.post("/start", response_model=ChatStartResponse)
 async def start_chat_session(
-    request: ChatStartRequest,
-    auth: Optional[AuthContext] = Depends(get_current_user)
+    request: ChatStartRequest, auth: Optional[AuthContext] = Depends(get_current_user)
 ):
     """
     Start a new chat practice session with a selected persona.
@@ -80,13 +78,14 @@ async def start_chat_session(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to start session: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to start session: {str(e)}"
+        )
 
 
 @router.post("/message", response_model=ChatMessageResponse)
 async def send_message(
-    request: ChatMessageRequest,
-    auth: Optional[AuthContext] = Depends(get_current_user)
+    request: ChatMessageRequest, auth: Optional[AuthContext] = Depends(get_current_user)
 ):
     """
     Send a message in an active chat practice session.
@@ -104,13 +103,14 @@ async def send_message(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process message: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to process message: {str(e)}"
+        )
 
 
 @router.post("/end", response_model=ChatEndResponse)
 async def end_chat_session(
-    request: ChatEndRequest,
-    auth: Optional[AuthContext] = Depends(get_current_user)
+    request: ChatEndRequest, auth: Optional[AuthContext] = Depends(get_current_user)
 ):
     """
     End a chat practice session and get comprehensive analysis.
@@ -132,8 +132,7 @@ async def end_chat_session(
 
         # Analyze the conversation
         analysis_result = await conversation_analysis_service.analyze_conversation(
-            transcript=session_data["transcript"],
-            persona_name=persona_name
+            transcript=session_data["transcript"], persona_name=persona_name
         )
 
         # Build the response
@@ -143,13 +142,23 @@ async def end_chat_session(
 
         analysis = ConversationAnalysis(
             overall_score=analysis_result.get("overall_score", 3.0),
-            foundational_trust_safety=analysis_result.get("foundational_trust_safety", 3.0),
-            empathic_partnership_autonomy=analysis_result.get("empathic_partnership_autonomy", 3.0),
+            foundational_trust_safety=analysis_result.get(
+                "foundational_trust_safety", 3.0
+            ),
+            empathic_partnership_autonomy=analysis_result.get(
+                "empathic_partnership_autonomy", 3.0
+            ),
             empowerment_clarity=analysis_result.get("empowerment_clarity", 3.0),
             mi_spirit_score=analysis_result.get("mi_spirit_score", 3.0),
-            partnership_demonstrated=analysis_result.get("partnership_demonstrated", False),
-            acceptance_demonstrated=analysis_result.get("acceptance_demonstrated", False),
-            compassion_demonstrated=analysis_result.get("compassion_demonstrated", False),
+            partnership_demonstrated=analysis_result.get(
+                "partnership_demonstrated", False
+            ),
+            acceptance_demonstrated=analysis_result.get(
+                "acceptance_demonstrated", False
+            ),
+            compassion_demonstrated=analysis_result.get(
+                "compassion_demonstrated", False
+            ),
             evocation_demonstrated=analysis_result.get("evocation_demonstrated", False),
             techniques_used=techniques_used,
             techniques_count=analysis_result.get("techniques_count", {}),
@@ -159,7 +168,9 @@ async def end_chat_session(
             change_talk_evoked=analysis_result.get("change_talk_evoked", False),
             summary=analysis_result.get("summary", ""),
             key_moments=analysis_result.get("key_moments", []),
-            suggestions_for_next_time=analysis_result.get("suggestions_for_next_time", [])
+            suggestions_for_next_time=analysis_result.get(
+                "suggestions_for_next_time", []
+            ),
         )
 
         # Format transcript for response
@@ -172,7 +183,7 @@ async def end_chat_session(
             session_id=request.session_id,
             total_turns=session_data["total_turns"],
             analysis=analysis,
-            transcript=transcript
+            transcript=transcript,
         )
 
     except ValueError as e:
@@ -183,8 +194,7 @@ async def end_chat_session(
 
 @router.get("/session/{session_id}", response_model=ChatSessionStatus)
 async def get_session_status(
-    session_id: str,
-    auth: Optional[AuthContext] = Depends(get_current_user)
+    session_id: str, auth: Optional[AuthContext] = Depends(get_current_user)
 ):
     """
     Get the current status of a chat practice session.
@@ -200,14 +210,13 @@ async def get_session_status(
         current_turn=session["turn"],
         max_turns=chat_service.MAX_TURNS,
         is_active=session["is_active"],
-        started_at=session["started_at"]
+        started_at=session["started_at"],
     )
 
 
 @router.get("/session/{session_id}/transcript")
 async def get_session_transcript(
-    session_id: str,
-    auth: Optional[AuthContext] = Depends(get_current_user)
+    session_id: str, auth: Optional[AuthContext] = Depends(get_current_user)
 ):
     """
     Get the conversation transcript for a session.
@@ -217,3 +226,72 @@ async def get_session_transcript(
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
 
     return {"transcript": transcript}
+
+
+@router.post("/analyze")
+async def analyze_transcript(
+    request: dict, auth: Optional[AuthContext] = Depends(get_current_user)
+):
+    """
+    Analyze a conversation transcript and return feedback.
+    Used for demo sessions where no server-side session exists.
+    """
+    try:
+        transcript = request.get("transcript", [])
+        persona_name = request.get("persona_name", "Client")
+
+        if not transcript:
+            raise HTTPException(status_code=400, detail="Transcript is required")
+
+        analysis_result = await conversation_analysis_service.analyze_conversation(
+            transcript=transcript, persona_name=persona_name
+        )
+
+        techniques_used = [
+            MITechniqueUsed(**t) for t in analysis_result.get("techniques_used", [])
+        ]
+
+        analysis = ConversationAnalysis(
+            overall_score=analysis_result.get("overall_score", 3.0),
+            foundational_trust_safety=analysis_result.get(
+                "foundational_trust_safety", 3.0
+            ),
+            empathic_partnership_autonomy=analysis_result.get(
+                "empathic_partnership_autonomy", 3.0
+            ),
+            empowerment_clarity=analysis_result.get("empowerment_clarity", 3.0),
+            mi_spirit_score=analysis_result.get("mi_spirit_score", 3.0),
+            partnership_demonstrated=analysis_result.get(
+                "partnership_demonstrated", False
+            ),
+            acceptance_demonstrated=analysis_result.get(
+                "acceptance_demonstrated", False
+            ),
+            compassion_demonstrated=analysis_result.get(
+                "compassion_demonstrated", False
+            ),
+            evocation_demonstrated=analysis_result.get("evocation_demonstrated", False),
+            techniques_used=techniques_used,
+            techniques_count=analysis_result.get("techniques_count", {}),
+            strengths=analysis_result.get("strengths", []),
+            areas_for_improvement=analysis_result.get("areas_for_improvement", []),
+            client_movement=analysis_result.get("client_movement", "stable"),
+            change_talk_evoked=analysis_result.get("change_talk_evoked", False),
+            summary=analysis_result.get("summary", ""),
+            key_moments=analysis_result.get("key_moments", []),
+            suggestions_for_next_time=analysis_result.get(
+                "suggestions_for_next_time", []
+            ),
+        )
+
+        return {
+            "session_id": "demo",
+            "total_turns": len([m for m in transcript if m.get("role") == "user"]),
+            "analysis": analysis.model_dump(),
+            "transcript": transcript,
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to analyze transcript: {str(e)}"
+        )

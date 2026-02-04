@@ -217,6 +217,16 @@ const chatPracticeAPI = {
         });
     },
 
+    async analyzeTranscript(transcript, personaName) {
+        return apiRequest('/chat-practice/analyze', {
+            method: 'POST',
+            body: JSON.stringify({
+                transcript: transcript,
+                persona_name: personaName
+            })
+        });
+    },
+
     async getSessionStatus(sessionId) {
         return apiRequest(`/chat-practice/session/${sessionId}`);
     }
@@ -1361,6 +1371,7 @@ function startQuickDemo() {
     demoMode = true;
     chatState.messages = [];
     chatState.currentTurn = 0;
+    chatState.isDemoSession = true;
 
     const messagesContainer = document.getElementById('chatMessages');
     messagesContainer.innerHTML = '';
@@ -1370,6 +1381,7 @@ function startQuickDemo() {
     function playNextMessage() {
         if (demoIndex >= QUICK_DEMO_MESSAGES.length) {
             demoMode = false;
+            chatState.currentTurn = QUICK_DEMO_MESSAGES.filter(m => m.role === 'user').length;
             showToast('Demo complete! Try practicing your own approach.', 'success');
             renderChatSession();
             return;
@@ -1379,11 +1391,10 @@ function startQuickDemo() {
         chatState.messages.push(msg);
         messagesContainer.innerHTML += renderChatMessage(msg);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        chatState.currentTurn = Math.ceil((demoIndex + 1) / 2);
 
         const turnCounter = document.querySelector('.turn-current');
         if (turnCounter) {
-            turnCounter.textContent = chatState.currentTurn;
+            turnCounter.textContent = Math.ceil((demoIndex + 1) / 2);
         }
 
         demoIndex++;
@@ -1392,6 +1403,7 @@ function startQuickDemo() {
             demoInterval = setTimeout(playNextMessage, 2500);
         } else {
             demoMode = false;
+            chatState.currentTurn = QUICK_DEMO_MESSAGES.filter(m => m.role === 'user').length;
             showToast('Demo complete! Try practicing your own approach.', 'success');
             renderChatSession();
         }
@@ -1445,7 +1457,7 @@ function showSessionCompleteModal() {
             </div>
             <div class="feedback-footer" style="display: flex; flex-direction: column; gap: 0.75rem;">
                 <button class="btn btn-primary btn-lg" id="getAnalysisBtn" style="width: 100%;">
-                    Get My Feedback
+                    Get Analysis
                 </button>
                 <button class="btn btn-outline" id="downloadTranscriptBtn" style="width: 100%;">
                     Download Transcript
@@ -1461,7 +1473,6 @@ function showSessionCompleteModal() {
     document.body.classList.add('modal-open');
     setTimeout(() => overlay.classList.add('show'), 10);
 
-    // Get buttons from overlay directly
     const getAnalysisBtn = overlay.querySelector('#getAnalysisBtn');
     const downloadTranscriptBtn = overlay.querySelector('#downloadTranscriptBtn');
     const exitSessionBtn = overlay.querySelector('#exitSessionBtn');
@@ -1472,7 +1483,13 @@ function showSessionCompleteModal() {
             getAnalysisBtn.innerHTML = '<span class="spinner-small"></span> Analyzing...';
 
             try {
-                const analysis = await chatPracticeAPI.endSession(chatState.sessionId);
+                // Use the live transcript from chatState.messages
+                const transcript = chatState.messages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                }));
+
+                const analysis = await chatPracticeAPI.analyzeTranscript(transcript, chatState.personaName);
                 chatState.analysis = analysis;
 
                 overlay.classList.remove('show');
@@ -1484,7 +1501,7 @@ function showSessionCompleteModal() {
             } catch (error) {
                 showToast(error.message, 'error');
                 getAnalysisBtn.disabled = false;
-                getAnalysisBtn.textContent = 'Get My Feedback';
+                getAnalysisBtn.textContent = 'Get Analysis';
             }
         });
     }
