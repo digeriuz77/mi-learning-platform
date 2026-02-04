@@ -1431,6 +1431,7 @@ function escapeHtml(text) {
 function showSessionCompleteModal() {
     const overlay = document.createElement('div');
     overlay.className = 'feedback-overlay';
+    overlay.id = 'sessionCompleteOverlay';
 
     overlay.innerHTML = `
         <div class="feedback-modal session-complete-modal">
@@ -1460,43 +1461,51 @@ function showSessionCompleteModal() {
     document.body.classList.add('modal-open');
     setTimeout(() => overlay.classList.add('show'), 10);
 
-    document.getElementById('getAnalysisBtn').addEventListener('click', async () => {
-        const btn = document.getElementById('getAnalysisBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-small"></span> Analyzing...';
+    // Get buttons from overlay directly
+    const getAnalysisBtn = overlay.querySelector('#getAnalysisBtn');
+    const downloadTranscriptBtn = overlay.querySelector('#downloadTranscriptBtn');
+    const exitSessionBtn = overlay.querySelector('#exitSessionBtn');
 
-        try {
-            const analysis = await chatPracticeAPI.endSession(chatState.sessionId);
+    if (getAnalysisBtn) {
+        getAnalysisBtn.addEventListener('click', async () => {
+            getAnalysisBtn.disabled = true;
+            getAnalysisBtn.innerHTML = '<span class="spinner-small"></span> Analyzing...';
 
-            // Store analysis in state for the results page
-            chatState.analysis = analysis;
+            try {
+                const analysis = await chatPracticeAPI.endSession(chatState.sessionId);
+                chatState.analysis = analysis;
 
+                overlay.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                setTimeout(() => {
+                    document.body.removeChild(overlay);
+                    router.navigate('/chat-practice/results');
+                }, 300);
+            } catch (error) {
+                showToast(error.message, 'error');
+                getAnalysisBtn.disabled = false;
+                getAnalysisBtn.textContent = 'Get My Feedback';
+            }
+        });
+    }
+
+    if (downloadTranscriptBtn) {
+        downloadTranscriptBtn.addEventListener('click', () => {
+            downloadTranscript();
+        });
+    }
+
+    if (exitSessionBtn) {
+        exitSessionBtn.addEventListener('click', () => {
             overlay.classList.remove('show');
             document.body.classList.remove('modal-open');
             setTimeout(() => {
                 document.body.removeChild(overlay);
-                router.navigate('/chat-practice/results');
+                resetChatState();
+                router.navigate('/chat-practice');
             }, 300);
-        } catch (error) {
-            showToast(error.message, 'error');
-            btn.disabled = false;
-            btn.textContent = 'Get My Feedback';
-        }
-    });
-
-    document.getElementById('downloadTranscriptBtn').addEventListener('click', () => {
-        downloadTranscript();
-    });
-
-    document.getElementById('exitSessionBtn').addEventListener('click', () => {
-        overlay.classList.remove('show');
-        document.body.classList.remove('modal-open');
-        setTimeout(() => {
-            document.body.removeChild(overlay);
-            resetChatState();
-            router.navigate('/chat-practice');
-        }, 300);
-    });
+        });
+    }
 }
 
 /**
