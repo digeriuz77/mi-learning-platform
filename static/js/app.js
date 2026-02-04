@@ -2078,6 +2078,25 @@ const router = {
 // =====================================================
 
 async function initApp() {
+    // Check URL hash for auth tokens (from Supabase email confirmation redirect)
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+        const params = new URLSearchParams(hash.slice(1));
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+
+        if (accessToken) {
+            state.token = accessToken;
+            localStorage.setItem('access_token', accessToken);
+        }
+        if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+        }
+
+        // Clear the hash to clean up URL
+        window.history.replaceState(null, '', window.location.pathname);
+    }
+
     // Check for existing token and validate it
     const token = localStorage.getItem('access_token');
     if (token) {
