@@ -96,7 +96,7 @@ class ConversationAnalysis(BaseModel):
 
     # Detailed Feedback
     summary: str
-    key_moments: List[Dict[str, str]]  # [{"turn": 5, "moment": "description", "impact": "positive/negative"}]
+    key_moments: List[Dict[str, Any]]  # [{"turn": 5, "moment": "description", "impact": "positive/negative"}]
     suggestions_for_next_time: List[str]
 
 
