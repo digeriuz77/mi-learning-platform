@@ -1050,16 +1050,36 @@ async function renderLogout() {
 // Chat Practice Pages
 // =====================================================
 
-// Chat Practice State
-const chatState = {
-    sessionId: null,
-    personaName: null,
-    personaAvatar: null,
-    messages: [],
-    currentTurn: 0,
-    maxTurns: 20,
-    isTyping: false
-};
+// Quick demo conversation for Marcus (MI adherent demonstration)
+const QUICK_DEMO_MESSAGES = [
+    { role: 'assistant', content: "Look, I know why I'm here. My wife set this up after my last checkup. The doctor said some things about my lungs that... well, they weren't great. I've been smoking for over 20 years now, and honestly, I'm not sure what talking about it is going to do. I've tried quitting before. Didn't stick. But... my daughter just had a baby last month, so I guess there's that." },
+    { role: 'user', content: "It sounds like you have a lot going on right now, and this isn't the easiest topic to talk about. What stands out to you about what your doctor said?" },
+    { role: 'assistant', content: "Well... the lungs thing worried me. I've been coughing more lately, and I get winded just walking up the stairs to the bedroom. But I don't know. I've tried quitting before and it didn't work." },
+    { role: 'user', content: "You've had some experiences trying to quit before that didn't work out. What was that like for you?" },
+    { role: 'assistant', content: "It was frustrating. The patches gave me weird dreams and I was irritable all the time. My coworkers would go out for smoke breaks and I'd just... sit there, counting down the days. Then when I did smoke again, I felt like a failure." },
+    { role: 'user', content: "It sounds like those experiences were really tough on you - both the withdrawal and feeling like you let yourself down. How do you feel about those attempts now?" },
+    { role: 'assistant', content: "Honestly? Part of me wishes I hadn't tried. At least when I was smoking, I wasn't constantly thinking about how I couldn't have what I wanted. But also... I know I can't keep doing this forever. The coughing is getting worse." },
+    { role: 'user', content: "So on one hand, smoking has been a reliable way to cope with stress and be part of the social scene at work. And on the other hand, you're noticing your body changing - the coughing, getting winded. I'm curious, what matters to you about your health?" },
+    { role: 'assistant', content: "I want to see my grandchild grow up. My daughter had a baby, and I want to be there for her. I want to be able to run around with that kid, not be sitting on the sidelines wheezing. That's what matters to me." },
+    { role: 'user', content: "Being present for your grandchild - that's clearly important to you. What would it mean to you to be able to be more active with them?" },
+    { role: 'assistant', content: "It would mean everything. I missed so much when my own kids were growing up because I was always working or... yeah. I don't want to do that again. I want to be different." },
+    { role: 'user', content: "You've thought about what kind of grandfather you want to be, and being present is a big part of that. What else would change if you weren't smoking?" },
+    { role: 'assistant', content: "My wife would be happy. She's been on me about quitting for years. And I'd save money - smokes are expensive now. I'd breathe better, I think. Maybe I wouldn't cough so much at night." },
+    { role: 'user', content: "Those are some real benefits - your wife's support, saving money, breathing better. You've mentioned a few reasons why change might be worth trying. What do you think gets in the way most?" },
+    { role: 'assistant', content: "Stress, mainly. Work is chaos right now - new supervisor, lots of changes. Smoke breaks are my escape. And honestly, I'm scared I'll fail again. What if I try and can't do it?" },
+    { role: 'user', content: "The stress at work feels overwhelming right now, and the fear of failing again is real. Those are valid concerns. What has helped you cope with stress in the past, even if it wasn't perfect?" },
+    { role: 'assistant', content: "When I was younger, I used to run. Before smoking took over. And I like being outdoors. Maybe... maybe I could do that again? But I don't know if I have the discipline." },
+    { role: 'user', content: "You used to run and enjoyed being outside. That's something that worked for you before. What would it look like to start small with that?" },
+    { role: 'assistant', content: "Maybe just... walk first? Start with walking around the block? My neighborhood has this nice path by the park. My wife would probably love to do that with me." },
+    { role: 'user', content: "Walking with your wife around the park - that sounds like a nice way to start. So you have your wife as support, a place you could go, and something that connects to who you were before smoking took over. How are you feeling about all this?" },
+    { role: 'assistant', content: "Honestly? Scared, but... maybe a little hopeful? I've never really talked about this stuff like this before. Usually people just tell me to quit. You just... asked questions. That helped me think." },
+    { role: 'user', content: "I'm glad this felt different for you. It sounds like you've got some clear reasons to consider change - your grandchild, your health, your wife. And you have an idea for a small first step. What feels most important to you right now?" },
+    { role: 'assistant', content: "I think... I think I want to try. Not today, but soon. I want to see that grandchild grow up. I want to be different than my dad was. Thank you for... just talking to me like a person. That meant a lot." }
+];
+
+// Demo playback state
+let demoMode = false;
+let demoInterval = null;
 
 /**
  * Chat Practice - Persona Selection Page
@@ -1178,15 +1198,25 @@ function renderChatSession() {
             </div>
 
             <div class="chat-input-area">
+                <div class="chat-input-actions">
+                    ${chatState.personaName === 'Marcus' ? `
+                        <button class="btn btn-outline btn-sm" id="quickDemoBtn">
+                            <span>⚡</span> Quick Demo
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-secondary btn-sm" id="getAnalysisBtn" ${chatState.currentTurn >= chatState.maxTurns ? 'disabled' : ''}>
+                        Get Analysis
+                    </button>
+                </div>
                 <div class="chat-input-container">
                     <textarea
                         id="chatInput"
                         class="chat-input"
                         placeholder="Type your response..."
                         rows="2"
-                        ${chatState.currentTurn >= chatState.maxTurns ? 'disabled' : ''}
+                        ${chatState.currentTurn >= chatState.maxTurns || demoMode ? 'disabled' : ''}
                     ></textarea>
-                    <button class="btn btn-primary send-btn" id="sendBtn" ${chatState.currentTurn >= chatState.maxTurns ? 'disabled' : ''}>
+                    <button class="btn btn-primary send-btn" id="sendBtn" ${chatState.currentTurn >= chatState.maxTurns || demoMode ? 'disabled' : ''}>
                         Send
                     </button>
                 </div>
@@ -1206,6 +1236,8 @@ function renderChatSession() {
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const exitBtn = document.getElementById('exitChatBtn');
+    const quickDemoBtn = document.getElementById('quickDemoBtn');
+    const getAnalysisBtn = document.getElementById('getAnalysisBtn');
 
     // Send message handler
     async function sendMessage() {
@@ -1293,6 +1325,68 @@ function renderChatSession() {
             }
         }
     });
+
+    // Quick Demo button handler (Marcus only)
+    if (quickDemoBtn) {
+        quickDemoBtn.addEventListener('click', () => {
+            if (confirm('This will start an automated demonstration of an MI-adherent conversation with Marcus. Your current conversation will be replaced. Continue?')) {
+                startQuickDemo();
+            }
+        });
+    }
+
+    // Get Analysis button handler - show the session complete modal
+    if (getAnalysisBtn) {
+        getAnalysisBtn.addEventListener('click', () => {
+            showSessionCompleteModal();
+        });
+    }
+}
+
+/**
+ * Start the quick demo with Marcus
+ */
+function startQuickDemo() {
+    demoMode = true;
+    chatState.messages = [];
+    chatState.currentTurn = 0;
+
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.innerHTML = '';
+
+    let demoIndex = 0;
+
+    function playNextMessage() {
+        if (demoIndex >= QUICK_DEMO_MESSAGES.length) {
+            demoMode = false;
+            showToast('Demo complete! Try practicing your own approach.', 'success');
+            renderChatSession();
+            return;
+        }
+
+        const msg = QUICK_DEMO_MESSAGES[demoIndex];
+        chatState.messages.push(msg);
+        messagesContainer.innerHTML += renderChatMessage(msg);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        chatState.currentTurn = Math.ceil((demoIndex + 1) / 2);
+
+        const turnCounter = document.querySelector('.turn-current');
+        if (turnCounter) {
+            turnCounter.textContent = chatState.currentTurn;
+        }
+
+        demoIndex++;
+
+        if (demoIndex < QUICK_DEMO_MESSAGES.length) {
+            demoInterval = setTimeout(playNextMessage, 2500);
+        } else {
+            demoMode = false;
+            showToast('Demo complete! Try practicing your own approach.', 'success');
+            renderChatSession();
+        }
+    }
+
+    playNextMessage();
 }
 
 /**
@@ -1600,6 +1694,7 @@ function renderChatResults() {
                 <div class="transcript-buttons">
                     <button class="btn btn-outline toggle-transcript" id="toggleTranscript">Show Transcript</button>
                     <button class="btn btn-outline" id="downloadTranscriptResultsBtn">Download as .txt</button>
+                    <button class="btn btn-primary" id="downloadPdfBtn">Download PDF Report</button>
                 </div>
                 <div class="transcript-content" id="transcriptContent" style="display: none;">
                     ${transcript.map((msg, i) => `
@@ -1633,6 +1728,10 @@ function renderChatResults() {
 
     document.getElementById('downloadTranscriptResultsBtn').addEventListener('click', () => {
         downloadTranscriptWithAnalysis(analysis, transcript);
+    });
+
+    document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+        downloadAnalysisPdf(analysis, transcript);
     });
 
     document.getElementById('practiceAgainBtn').addEventListener('click', () => {
@@ -1733,6 +1832,198 @@ function downloadTranscriptWithAnalysis(analysis, transcript) {
 }
 
 /**
+ * Download analysis as a formatted PDF file
+ */
+function downloadAnalysisPdf(analysis, transcript) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const date = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    let yPos = 20;
+    const margin = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const contentWidth = pageWidth - (margin * 2);
+    const lineHeight = 7;
+
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MI Practice Chat - Session Report', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Client: ${chatState.personaName}`, margin, yPos);
+    yPos += lineHeight;
+    doc.text(`Date: ${date}`, margin, yPos);
+    yPos += lineHeight;
+    doc.text(`Total Turns: ${chatState.analysis.total_turns}`, margin, yPos);
+    yPos += 15;
+
+    doc.setDrawColor(79, 70, 229);
+    doc.setLineWidth(0.5);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Scores', margin, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+
+    const scores = [
+        ['Overall Score', `${analysis.overall_score.toFixed(1)} / 5`],
+        ['Trust & Safety', `${analysis.foundational_trust_safety.toFixed(1)} / 5`],
+        ['Empathy & Partnership', `${analysis.empathic_partnership_autonomy.toFixed(1)} / 5`],
+        ['Empowerment & Clarity', `${analysis.empowerment_clarity.toFixed(1)} / 5`],
+        ['MI Spirit Score', `${analysis.mi_spirit_score.toFixed(1)} / 5`]
+    ];
+
+    scores.forEach(([label, value]) => {
+        doc.text(label, margin, yPos);
+        doc.text(value, pageWidth - margin - 30, yPos, { align: 'right' });
+        yPos += lineHeight;
+    });
+    yPos += 5;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('MI Spirit Components', margin, yPos);
+    yPos += 8;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    const spiritComponents = [
+        ['Partnership', analysis.partnership_demonstrated],
+        ['Acceptance', analysis.acceptance_demonstrated],
+        ['Compassion', analysis.compassion_demonstrated],
+        ['Evocation', analysis.evocation_demonstrated]
+    ];
+
+    spiritComponents.forEach(([label, demonstrated]) => {
+        const status = demonstrated ? 'Demonstrated' : 'Not Yet Demonstrated';
+        doc.text(`${label}: ${status}`, margin, yPos);
+        yPos += 6;
+    });
+    yPos += 5;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Client Response', margin, yPos);
+    yPos += 8;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Movement: ${formatMovement(analysis.client_movement)}`, margin, yPos);
+    yPos += 6;
+    doc.text(`Change Talk Evoked: ${analysis.change_talk_evoked ? 'Yes' : 'No'}`, margin, yPos);
+    yPos += 10;
+
+    if (analysis.strengths && analysis.strengths.length > 0) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Strengths', margin, yPos);
+        yPos += 8;
+
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        analysis.strengths.forEach(s => {
+            const lines = doc.splitTextToSize(`• ${s}`, contentWidth);
+            lines.forEach(line => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.text(line, margin, yPos);
+                yPos += 6;
+            });
+        });
+        yPos += 5;
+    }
+
+    if (analysis.areas_for_improvement && analysis.areas_for_improvement.length > 0) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Areas for Improvement', margin, yPos);
+        yPos += 8;
+
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        analysis.areas_for_improvement.forEach(a => {
+            const lines = doc.splitTextToSize(`• ${a}`, contentWidth);
+            lines.forEach(line => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+                doc.text(line, margin, yPos);
+                yPos += 6;
+            });
+        });
+        yPos += 5;
+    }
+
+    if (analysis.summary) {
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Summary', margin, yPos);
+        yPos += 8;
+
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        const summaryLines = doc.splitTextToSize(analysis.summary, contentWidth);
+        summaryLines.forEach(line => {
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+            doc.text(line, margin, yPos);
+            yPos += 6;
+        });
+        yPos += 5;
+    }
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Full Transcript', margin, yPos);
+    yPos += 8;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+
+    transcript.forEach((msg) => {
+        const speaker = msg.role === 'user' ? 'Practitioner' : chatState.personaName;
+        const text = `${speaker}: ${msg.content}`;
+        const lines = doc.splitTextToSize(text, contentWidth);
+
+        lines.forEach(line => {
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+            doc.text(line, margin, yPos);
+            yPos += 5;
+        });
+        yPos += 3;
+    });
+
+    doc.setFontSize(8);
+    doc.setTextColor(128);
+    doc.text('Generated by MI Learning Platform', pageWidth / 2, 285, { align: 'center' });
+
+    const filename = `MI_Practice_Report_${chatState.personaName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+    doc.save(filename);
+
+    showToast('PDF report downloaded', 'success');
+}
+
+/**
  * Helper functions for results display
  */
 function getScoreClass(score) {
@@ -1767,6 +2058,11 @@ function resetChatState() {
     chatState.maxTurns = 20;
     chatState.isTyping = false;
     chatState.analysis = null;
+    demoMode = false;
+    if (demoInterval) {
+        clearTimeout(demoInterval);
+        demoInterval = null;
+    }
 }
 
 // =====================================================
