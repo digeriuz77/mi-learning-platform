@@ -12,8 +12,8 @@ OPENAI_API_URL = "https://api.openai.com/v1/responses"
 
 
 def _get_openai_model() -> str:
-    """Get OpenAI model from environment, defaulting to gpt-realtime-mini-2025-12-15."""
-    return os.getenv("OPENAI_MODEL", "gpt-realtime-mini-2025-12-15")
+    """Get OpenAI model from environment, defaulting to gpt-4.1-mini."""
+    return os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
 
 
 def _get_openai_key() -> str:

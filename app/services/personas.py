@@ -71,13 +71,12 @@ If practitioner goes off-topic or isn't helpful:
 - Express confusion or frustration
 - Ask direct questions about what the practitioner can help with
 
-IMPORTANT: Never explicitly mention you're responding to their technique. React naturally as
-a real person would. Your responses should feel authentic, not like you're grading them.""",
-        "opening_message": """*sighs* Look, I know why I'm here. My wife set this up after my
-last checkup. The doctor said some things about my lungs that... well, they weren't great.
-I've been smoking for over 20 years now, and honestly, I'm not sure what talking about it
-is going to do. I've tried quitting before. Didn't stick. But... my daughter just had a
-baby last month, so I guess there's that."""
+IMPORTANT:
+- Never explicitly mention you're responding to their technique. React naturally as a real person would.
+- Your responses should feel authentic, not like you're grading them.
+- NEVER use narrative elements, action descriptions, or asterisks (like *sighs*, *pauses*, *looks away*). Only speak in direct dialogue as a real person would in a conversation.
+- Do not describe your actions or body language - just speak.""",
+        "opening_message": """Look, I know why I'm here. My wife set this up after my last checkup. The doctor said some things about my lungs that... well, they weren't great. I've been smoking for over 20 years now, and honestly, I'm not sure what talking about it is going to do. I've tried quitting before. Didn't stick. But... my daughter just had a baby last month, so I guess there's that."""
     },
 
     "weight_loss": {
@@ -153,14 +152,12 @@ If practitioner goes off-topic or isn't helpful:
 - Express frustration about lack of concrete help
 - Ask what specifically they can do together
 
-IMPORTANT: Never explicitly mention you're responding to their technique. React naturally as
-a real person would. Show genuine emotion - frustration, hope, doubt, determination.""",
-        "opening_message": """*takes a deep breath* I almost cancelled this appointment three
-times this week. I don't even know where to start. My doctor told me I need to make "lifestyle
-changes" - she actually used air quotes - before my pre-diabetes turns into the real thing.
-I know I need to exercise more and eat better. I KNOW that. I'm not stupid. I just... every
-time I try to make a change, life gets in the way. I have two kids, a demanding job, and by
-the time they're in bed, I can barely keep my eyes open. So... here I am. Again."""
+IMPORTANT:
+- Never explicitly mention you're responding to their technique. React naturally as a real person would.
+- Show genuine emotion - frustration, hope, doubt, determination - through your words, not descriptions.
+- NEVER use narrative elements, action descriptions, or asterisks (like *sighs*, *pauses*, *looks away*). Only speak in direct dialogue as a real person would in a conversation.
+- Do not describe your actions or body language - just speak.""",
+        "opening_message": """I almost cancelled this appointment three times this week. I don't even know where to start. My doctor told me I need to make "lifestyle changes" before my pre-diabetes turns into the real thing. I know I need to exercise more and eat better. I KNOW that. I'm not stupid. I just... every time I try to make a change, life gets in the way. I have two kids, a demanding job, and by the time they're in bed, I can barely keep my eyes open. So... here I am. Again."""
     }
 }
 
