@@ -22,6 +22,10 @@ class Settings(BaseSettings):
         - SUPABASE_SERVICE_ROLE_KEY
         - SUPABASE_JWT_SECRET
 
+    Optional environment variables (Chat Practice):
+        - OPENAI_API_KEY: API key for OpenAI (required for chat practice feature)
+        - OPENAI_MODEL: Model to use (default: gpt-realtime-mini-2025-12-15)
+
     All other settings have sensible defaults.
     """
 

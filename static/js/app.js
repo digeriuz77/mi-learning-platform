@@ -188,6 +188,40 @@ const leaderboardAPI = {
     }
 };
 
+/**
+ * Chat Practice API calls
+ */
+const chatPracticeAPI = {
+    async getPersonas() {
+        return apiRequest('/chat-practice/personas');
+    },
+
+    async startSession(personaId) {
+        return apiRequest('/chat-practice/start', {
+            method: 'POST',
+            body: JSON.stringify({ persona_id: personaId })
+        });
+    },
+
+    async sendMessage(sessionId, message) {
+        return apiRequest('/chat-practice/message', {
+            method: 'POST',
+            body: JSON.stringify({ session_id: sessionId, message: message })
+        });
+    },
+
+    async endSession(sessionId) {
+        return apiRequest('/chat-practice/end', {
+            method: 'POST',
+            body: JSON.stringify({ session_id: sessionId })
+        });
+    },
+
+    async getSessionStatus(sessionId) {
+        return apiRequest(`/chat-practice/session/${sessionId}`);
+    }
+};
+
 // =====================================================
 // UI Components
 // =====================================================
@@ -201,6 +235,7 @@ function renderNav() {
     if (state.user) {
         navItems.innerHTML = `
             <a href="#" data-link="/modules">Modules</a>
+            <a href="#" data-link="/chat-practice">Practice Chat</a>
             <a href="#" data-link="/progress">Progress</a>
             <a href="#" data-link="/leaderboard">Leaderboard</a>
             <span>${state.user.display_name || state.user.email}</span>
@@ -345,6 +380,10 @@ async function renderHome() {
                     <a href="#" data-link="/modules" class="action-card">
                         <span class="action-icon">📚</span>
                         <span class="action-text">Continue Learning</span>
+                    </a>
+                    <a href="#" data-link="/chat-practice" class="action-card">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Practice Chat</span>
                     </a>
                     <a href="#" data-link="/leaderboard" class="action-card">
                         <span class="action-icon">🏆</span>
@@ -1008,6 +1047,568 @@ async function renderLogout() {
 }
 
 // =====================================================
+// Chat Practice Pages
+// =====================================================
+
+// Chat Practice State
+const chatState = {
+    sessionId: null,
+    personaName: null,
+    personaAvatar: null,
+    messages: [],
+    currentTurn: 0,
+    maxTurns: 20,
+    isTyping: false
+};
+
+/**
+ * Chat Practice - Persona Selection Page
+ */
+async function renderChatPractice() {
+    const app = document.getElementById('app');
+    showLoading();
+
+    try {
+        const data = await chatPracticeAPI.getPersonas();
+
+        app.innerHTML = `
+            <div class="page-header">
+                <h1>MI Practice Chat</h1>
+                <p>Practice your Motivational Interviewing skills with simulated clients</p>
+            </div>
+
+            <div class="chat-practice-intro">
+                <div class="intro-card">
+                    <h3>How it works</h3>
+                    <ul>
+                        <li>Select a client persona to practice with</li>
+                        <li>You have <strong>20 turns</strong> to conduct your MI conversation</li>
+                        <li>The client will respond based on your approach and techniques</li>
+                        <li>After the session, you'll receive detailed feedback and analysis</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2 class="section-title">Choose a Client</h2>
+            <div class="personas-grid">
+                ${data.personas.map(persona => `
+                    <div class="persona-card" data-persona-id="${persona.id}">
+                        <div class="persona-avatar">${persona.avatar}</div>
+                        <div class="persona-info">
+                            <h3 class="persona-name">${persona.name}</h3>
+                            <p class="persona-title">${persona.title}</p>
+                            <p class="persona-description">${persona.description}</p>
+                        </div>
+                        <button class="btn btn-primary start-chat-btn">Start Practice</button>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Add click handlers for persona cards
+        document.querySelectorAll('.start-chat-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const card = btn.closest('.persona-card');
+                const personaId = card.dataset.personaId;
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-small"></span> Starting...';
+
+                try {
+                    const session = await chatPracticeAPI.startSession(personaId);
+
+                    // Initialize chat state
+                    chatState.sessionId = session.session_id;
+                    chatState.personaName = session.persona_name;
+                    chatState.personaAvatar = session.persona_avatar;
+                    chatState.maxTurns = session.max_turns;
+                    chatState.currentTurn = session.current_turn;
+                    chatState.messages = [{
+                        role: 'assistant',
+                        content: session.opening_message
+                    }];
+
+                    router.navigate('/chat-practice/session');
+                } catch (error) {
+                    showToast(error.message, 'error');
+                    btn.disabled = false;
+                    btn.textContent = 'Start Practice';
+                }
+            });
+        });
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+/**
+ * Chat Practice - Active Session Page
+ */
+function renderChatSession() {
+    const app = document.getElementById('app');
+
+    if (!chatState.sessionId) {
+        router.navigate('/chat-practice');
+        return;
+    }
+
+    app.innerHTML = `
+        <div class="chat-session-page">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <button class="back-btn" id="exitChatBtn">&larr; Exit</button>
+                    <div class="chat-persona">
+                        <span class="chat-avatar">${chatState.personaAvatar}</span>
+                        <span class="chat-name">${chatState.personaName}</span>
+                    </div>
+                </div>
+                <div class="chat-header-right">
+                    <div class="turn-counter">
+                        <span class="turn-current">${chatState.currentTurn}</span>
+                        <span class="turn-separator">/</span>
+                        <span class="turn-max">${chatState.maxTurns}</span>
+                        <span class="turn-label">turns</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                ${chatState.messages.map(msg => renderChatMessage(msg)).join('')}
+            </div>
+
+            <div class="chat-input-area">
+                <div class="chat-input-container">
+                    <textarea
+                        id="chatInput"
+                        class="chat-input"
+                        placeholder="Type your response..."
+                        rows="2"
+                        ${chatState.currentTurn >= chatState.maxTurns ? 'disabled' : ''}
+                    ></textarea>
+                    <button class="btn btn-primary send-btn" id="sendBtn" ${chatState.currentTurn >= chatState.maxTurns ? 'disabled' : ''}>
+                        Send
+                    </button>
+                </div>
+                <div class="chat-tips">
+                    <span class="tip-icon">💡</span>
+                    <span class="tip-text">Try using open questions, reflections, and affirmations</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Scroll to bottom of messages
+    const messagesContainer = document.getElementById('chatMessages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Event handlers
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const exitBtn = document.getElementById('exitChatBtn');
+
+    // Send message handler
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message || chatState.isTyping) return;
+
+        // Add user message to UI
+        chatState.messages.push({ role: 'user', content: message });
+        messagesContainer.innerHTML += renderChatMessage({ role: 'user', content: message });
+        chatInput.value = '';
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Show typing indicator
+        chatState.isTyping = true;
+        sendBtn.disabled = true;
+        chatInput.disabled = true;
+        messagesContainer.innerHTML += `
+            <div class="chat-message assistant typing-indicator" id="typingIndicator">
+                <span class="message-avatar">${chatState.personaAvatar}</span>
+                <div class="message-bubble">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        try {
+            const response = await chatPracticeAPI.sendMessage(chatState.sessionId, message);
+
+            // Remove typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) typingIndicator.remove();
+
+            // Add assistant response
+            chatState.messages.push({ role: 'assistant', content: response.response });
+            chatState.currentTurn = response.current_turn;
+
+            messagesContainer.innerHTML += renderChatMessage({ role: 'assistant', content: response.response });
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Update turn counter
+            document.querySelector('.turn-current').textContent = chatState.currentTurn;
+
+            // Check if session is complete
+            if (response.is_session_complete) {
+                showSessionCompleteModal();
+            } else {
+                chatState.isTyping = false;
+                sendBtn.disabled = false;
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        } catch (error) {
+            // Remove typing indicator
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) typingIndicator.remove();
+
+            showToast(error.message, 'error');
+            chatState.isTyping = false;
+            sendBtn.disabled = false;
+            chatInput.disabled = false;
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    exitBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to exit? You can end the session to get your feedback.')) {
+            if (chatState.currentTurn > 0) {
+                showSessionCompleteModal();
+            } else {
+                resetChatState();
+                router.navigate('/chat-practice');
+            }
+        }
+    });
+}
+
+/**
+ * Render a single chat message
+ */
+function renderChatMessage(msg) {
+    const isUser = msg.role === 'user';
+    return `
+        <div class="chat-message ${isUser ? 'user' : 'assistant'}">
+            ${!isUser ? `<span class="message-avatar">${chatState.personaAvatar}</span>` : ''}
+            <div class="message-bubble">
+                <p class="message-content">${escapeHtml(msg.content)}</p>
+            </div>
+            ${isUser ? '<span class="message-avatar user-avatar">You</span>' : ''}
+        </div>
+    `;
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Show session complete modal
+ */
+function showSessionCompleteModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'feedback-overlay';
+
+    overlay.innerHTML = `
+        <div class="feedback-modal session-complete-modal">
+            <div class="feedback-header">
+                <div class="feedback-icon">🎉</div>
+                <h2 class="feedback-title">Session Complete!</h2>
+            </div>
+            <div class="feedback-body">
+                <p>Great work! You completed ${chatState.currentTurn} turns with ${chatState.personaName}.</p>
+                <p>Click below to get detailed feedback on your MI techniques.</p>
+            </div>
+            <div class="feedback-footer">
+                <button class="btn btn-primary btn-lg" id="getAnalysisBtn" style="width: 100%;">
+                    Get My Feedback
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    document.body.classList.add('modal-open');
+    setTimeout(() => overlay.classList.add('show'), 10);
+
+    document.getElementById('getAnalysisBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('getAnalysisBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-small"></span> Analyzing...';
+
+        try {
+            const analysis = await chatPracticeAPI.endSession(chatState.sessionId);
+
+            // Store analysis in state for the results page
+            chatState.analysis = analysis;
+
+            overlay.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+                router.navigate('/chat-practice/results');
+            }, 300);
+        } catch (error) {
+            showToast(error.message, 'error');
+            btn.disabled = false;
+            btn.textContent = 'Get My Feedback';
+        }
+    });
+}
+
+/**
+ * Chat Practice - Results/Analysis Page
+ */
+function renderChatResults() {
+    const app = document.getElementById('app');
+
+    if (!chatState.analysis) {
+        router.navigate('/chat-practice');
+        return;
+    }
+
+    const analysis = chatState.analysis.analysis;
+    const transcript = chatState.analysis.transcript;
+
+    app.innerHTML = `
+        <div class="chat-results-page">
+            <div class="results-header">
+                <h1>Session Feedback</h1>
+                <p>Here's how your conversation with ${chatState.personaName} went</p>
+            </div>
+
+            <div class="scores-overview">
+                <div class="overall-score">
+                    <div class="score-circle ${getScoreClass(analysis.overall_score)}">
+                        <span class="score-value">${analysis.overall_score.toFixed(1)}</span>
+                        <span class="score-max">/5</span>
+                    </div>
+                    <span class="score-label">Overall Score</span>
+                </div>
+            </div>
+
+            <div class="scores-grid">
+                <div class="score-card">
+                    <div class="score-header">
+                        <span class="score-title">Trust & Safety</span>
+                        <span class="score-value ${getScoreClass(analysis.foundational_trust_safety)}">${analysis.foundational_trust_safety.toFixed(1)}</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${analysis.foundational_trust_safety * 20}%"></div>
+                    </div>
+                </div>
+                <div class="score-card">
+                    <div class="score-header">
+                        <span class="score-title">Empathy & Partnership</span>
+                        <span class="score-value ${getScoreClass(analysis.empathic_partnership_autonomy)}">${analysis.empathic_partnership_autonomy.toFixed(1)}</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${analysis.empathic_partnership_autonomy * 20}%"></div>
+                    </div>
+                </div>
+                <div class="score-card">
+                    <div class="score-header">
+                        <span class="score-title">Empowerment & Clarity</span>
+                        <span class="score-value ${getScoreClass(analysis.empowerment_clarity)}">${analysis.empowerment_clarity.toFixed(1)}</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${analysis.empowerment_clarity * 20}%"></div>
+                    </div>
+                </div>
+                <div class="score-card">
+                    <div class="score-header">
+                        <span class="score-title">MI Spirit</span>
+                        <span class="score-value ${getScoreClass(analysis.mi_spirit_score)}">${analysis.mi_spirit_score.toFixed(1)}</span>
+                    </div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${analysis.mi_spirit_score * 20}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mi-spirit-indicators">
+                <h3>MI Spirit Components</h3>
+                <div class="spirit-grid">
+                    <div class="spirit-item ${analysis.partnership_demonstrated ? 'demonstrated' : 'not-demonstrated'}">
+                        <span class="spirit-icon">${analysis.partnership_demonstrated ? '✓' : '○'}</span>
+                        <span class="spirit-name">Partnership</span>
+                    </div>
+                    <div class="spirit-item ${analysis.acceptance_demonstrated ? 'demonstrated' : 'not-demonstrated'}">
+                        <span class="spirit-icon">${analysis.acceptance_demonstrated ? '✓' : '○'}</span>
+                        <span class="spirit-name">Acceptance</span>
+                    </div>
+                    <div class="spirit-item ${analysis.compassion_demonstrated ? 'demonstrated' : 'not-demonstrated'}">
+                        <span class="spirit-icon">${analysis.compassion_demonstrated ? '✓' : '○'}</span>
+                        <span class="spirit-name">Compassion</span>
+                    </div>
+                    <div class="spirit-item ${analysis.evocation_demonstrated ? 'demonstrated' : 'not-demonstrated'}">
+                        <span class="spirit-icon">${analysis.evocation_demonstrated ? '✓' : '○'}</span>
+                        <span class="spirit-name">Evocation</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="techniques-section">
+                <h3>Techniques Used</h3>
+                <div class="techniques-counts">
+                    ${Object.entries(analysis.techniques_count || {}).map(([technique, count]) => `
+                        <div class="technique-count ${count > 0 ? 'used' : 'not-used'}">
+                            <span class="technique-name">${formatTechniqueName(technique)}</span>
+                            <span class="technique-number">${count}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="client-movement-section">
+                <h3>Client Response</h3>
+                <div class="movement-indicator ${analysis.client_movement}">
+                    <span class="movement-icon">${getMovementIcon(analysis.client_movement)}</span>
+                    <span class="movement-text">${formatMovement(analysis.client_movement)}</span>
+                </div>
+                <div class="change-talk-indicator ${analysis.change_talk_evoked ? 'evoked' : 'not-evoked'}">
+                    <span class="change-talk-icon">${analysis.change_talk_evoked ? '✓' : '○'}</span>
+                    <span class="change-talk-text">Change talk ${analysis.change_talk_evoked ? 'was' : 'was not'} evoked</span>
+                </div>
+            </div>
+
+            <div class="feedback-sections">
+                <div class="feedback-section strengths">
+                    <h3>Strengths</h3>
+                    <ul>
+                        ${(analysis.strengths || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="feedback-section improvements">
+                    <h3>Areas for Improvement</h3>
+                    <ul>
+                        ${(analysis.areas_for_improvement || []).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="summary-section">
+                <h3>Summary</h3>
+                <p>${escapeHtml(analysis.summary || '')}</p>
+            </div>
+
+            ${(analysis.key_moments || []).length > 0 ? `
+                <div class="key-moments-section">
+                    <h3>Key Moments</h3>
+                    <div class="moments-list">
+                        ${analysis.key_moments.map(m => `
+                            <div class="moment-item ${m.impact}">
+                                <span class="moment-turn">Turn ${m.turn}</span>
+                                <span class="moment-description">${escapeHtml(m.moment)}</span>
+                                <span class="moment-impact ${m.impact}">${m.impact}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+
+            <div class="suggestions-section">
+                <h3>Suggestions for Next Time</h3>
+                <ul>
+                    ${(analysis.suggestions_for_next_time || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+                </ul>
+            </div>
+
+            <div class="transcript-section">
+                <h3>Full Transcript</h3>
+                <button class="btn btn-outline toggle-transcript" id="toggleTranscript">Show Transcript</button>
+                <div class="transcript-content" id="transcriptContent" style="display: none;">
+                    ${transcript.map((msg, i) => `
+                        <div class="transcript-message ${msg.role}">
+                            <span class="transcript-role">${msg.role === 'user' ? 'You' : chatState.personaName}:</span>
+                            <span class="transcript-text">${escapeHtml(msg.content)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="results-actions">
+                <button class="btn btn-outline" id="practiceAgainBtn">Practice Again</button>
+                <a href="#" data-link="/modules" class="btn btn-primary">Back to Modules</a>
+            </div>
+        </div>
+    `;
+
+    // Event handlers
+    document.getElementById('toggleTranscript').addEventListener('click', (e) => {
+        const content = document.getElementById('transcriptContent');
+        const btn = e.target;
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+            btn.textContent = 'Hide Transcript';
+        } else {
+            content.style.display = 'none';
+            btn.textContent = 'Show Transcript';
+        }
+    });
+
+    document.getElementById('practiceAgainBtn').addEventListener('click', () => {
+        resetChatState();
+        router.navigate('/chat-practice');
+    });
+}
+
+/**
+ * Helper functions for results display
+ */
+function getScoreClass(score) {
+    if (score >= 4) return 'score-excellent';
+    if (score >= 3) return 'score-good';
+    if (score >= 2) return 'score-fair';
+    return 'score-poor';
+}
+
+function formatTechniqueName(name) {
+    return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function getMovementIcon(movement) {
+    if (movement === 'toward_change') return '↗️';
+    if (movement === 'away_from_change') return '↘️';
+    return '→';
+}
+
+function formatMovement(movement) {
+    if (movement === 'toward_change') return 'Client moved toward change';
+    if (movement === 'away_from_change') return 'Client moved away from change';
+    return 'Client remained stable';
+}
+
+function resetChatState() {
+    chatState.sessionId = null;
+    chatState.personaName = null;
+    chatState.personaAvatar = null;
+    chatState.messages = [];
+    chatState.currentTurn = 0;
+    chatState.maxTurns = 20;
+    chatState.isTyping = false;
+    chatState.analysis = null;
+}
+
+// =====================================================
 // Router
 // =====================================================
 
@@ -1021,6 +1622,9 @@ const router = {
         '/modules/:id/dialogue': renderDialogue,
         '/progress': renderProgress,
         '/leaderboard': renderLeaderboard,
+        '/chat-practice': renderChatPractice,
+        '/chat-practice/session': renderChatSession,
+        '/chat-practice/results': renderChatResults,
         '/logout': renderLogout
     },
 
