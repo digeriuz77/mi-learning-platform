@@ -105,6 +105,18 @@ async def root(request: Request):
     }
 
 
+@app.get("/admin")
+async def admin_dashboard(request: Request):
+    """Admin dashboard endpoint - serve the admin HTML with Supabase config"""
+    if templates:
+        return templates.TemplateResponse("admin.html", {
+            "request": request,
+            "supabase_url": getattr(settings, "SUPABASE_URL", ""),
+            "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
+        })
+    return {"error": "Templates not configured"}
+
+
 @app.get("/health")
 async def health_check():
     """Basic health check for Railway"""

@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - MI Learning Platform</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+
+    <!-- Supabase Configuration from Environment -->
+    <script>
+        window.SUPABASE_URL = '{{ supabase_url|default:"" }}';
+        window.SUPABASE_ANON_KEY = '{{ supabase_anon_key|default:"" }}';
+    </script>
+</head>
+
+<body>
+    <nav class="admin-nav">
+        <div class="nav-brand">MI Learning Platform - Admin</div>
+        <div class="nav-user">
+            <span id="currentUserEmail">Loading...</span>
+            <button onclick="logout()" class="btn btn-secondary">Logout</button>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <ul class="sidebar-menu">
+                <li class="active" data-tab="dashboard">Dashboard</li>
+                <li data-tab="users">User Management</li>
+                <li data-tab="modules">Module Analytics</li>
+                <li data-tab="settings">Settings</li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <h1>Dashboard Overview</h1>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3>Total Users</h3>
+                            <p id="totalUsers">-</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🆕</div>
+                        <div class="stat-info">
+                            <h3>New Users (24h)</h3>
+                            <p id="newUsers24h">-</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-info">
+                            <h3>Modules Completed</h3>
+                            <p id="modulesCompleted">-</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <h3>Avg Progress</h3>
+                            <p id="avgProgress">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-section">
+                    <h2>Recent Activity</h2>
+                    <div id="activityChart" class="chart-placeholder">
+                        <p>Activity chart will be displayed here</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Tab -->
+            <section id="users" class="tab-content">
+                <h1>User Management</h1>
+
+                <div class="user-controls">
+                    <input type="text" id="userSearch" placeholder="Search by email..." class="search-input">
+                    <button onclick="refreshUsers()" class="btn btn-primary">Refresh</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Display Name</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Modules</th>
+                                <th>Points</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="8" class="loading">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button onclick="previousPage()" id="prevPage" class="btn btn-secondary">Previous</button>
+                    <span id="pageInfo">Page 1</span>
+                    <button onclick="nextPage()" id="nextPage" class="btn btn-secondary">Next</button>
+                </div>
+            </section>
+
+            <!-- Modules Tab -->
+            <section id="modules" class="tab-content">
+                <h1>Module Analytics</h1>
+
+                <div class="module-stats">
+                    <div id="moduleStatsGrid" class="stats-grid">
+                        <!-- Module stats will be populated here -->
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h2>Module Completion Details</h2>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Module</th>
+                                <th>Total Enrolled</th>
+                                <th>Completed</th>
+                                <th>In Progress</th>
+                                <th>Avg Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="moduleStatsBody">
+                            <tr>
+                                <td colspan="5" class="loading">Loading module stats...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="settings" class="tab-content">
+                <h1>Admin Settings</h1>
+
+                <div class="settings-section">
+                    <h2>User Promotion</h2>
+                    <p>Enter a user ID to promote them to admin:</p>
+                    <div class="form-group">
+                        <input type="text" id="promoteUserId" placeholder="User ID">
+                        <button onclick="promoteToAdmin()" class="btn btn-primary">Promote to Admin</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h2>Database Actions</h2>
+                    <p>Use with caution - these actions are irreversible:</p>
+                    <div class="danger-zone">
+                        <button onclick="showDeleteConfirmation()" class="btn btn-danger">Delete All Inactive
+                            Users</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for user actions -->
+    <div id="userActionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">User Actions</h2>
+            <div id="modalBody">
+                <!-- Modal content will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeConfirmModal()">&times;</span>
+            <h2 id="confirmTitle">Confirm Action</h2>
+            <p id="confirmMessage"></p>
+            <div class="modal-actions">
+                <button onclick="closeConfirmModal()" class="btn btn-secondary">Cancel</button>
+                <button id="confirmButton" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Admin Dashboard JS -->
+    <script src="{% static 'js/admin.js' %}"></script>
+</body>
+
+</html>

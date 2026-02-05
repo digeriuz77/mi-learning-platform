@@ -1,0 +1,183 @@
+Supabase_Context
+
+The tables that are present at Supabase:
+---
+#Name
+##schema
+###RLS Status
+
+#Users
+##create table public.users (
+  id uuid not null,
+  email text not null,
+  display_name text null,
+  created_at timestamp with time zone null default now(),
+  constraint users_pkey primary key (id),
+  constraint users_id_fkey foreign KEY (id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
+###RLS_ENabled
+
+#user_score
+##create table public.user_score (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid null,
+  total_points integer null default 0,
+  modules_completed integer null default 0,
+  technique_mastery jsonb null default '{}'::jsonb,
+  change_talk_evoked integer null default 0,
+  reflections_offered integer null default 0,
+  summaries_created integer null default 0,
+  last_updated timestamp with time zone null default now(),
+  constraint user_score_pkey primary key (id),
+  constraint user_score_user_id_key unique (user_id),
+  constraint user_score_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
+###RLS_Disabled
+
+#user_progress
+##create table public.user_progress (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null,
+  module_id uuid not null,
+  status character varying(20) null default 'not_started'::character varying,
+  current_node_id character varying(50) null default 'node_1'::character varying,
+  nodes_completed text[] null default '{}'::text[],
+  points_earned integer null default 0,
+  completion_score integer null default 0,
+  techniques_demonstrated jsonb null default '{}'::jsonb,
+  started_at timestamp with time zone null default now(),
+  completed_at timestamp with time zone null,
+  updated_at timestamp with time zone null default now(),
+  constraint user_progress_pkey primary key (id),
+  constraint user_progress_user_id_module_id_key unique (user_id, module_id),
+  constraint user_progress_module_id_fkey foreign KEY (module_id) references learning_modules (id) on delete CASCADE,
+  constraint user_progress_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE,
+  constraint user_progress_status_check check (
+    (
+      (status)::text = any (
+        (
+          array[
+            'not_started'::character varying,
+            'in_progress'::character varying,
+            'completed'::character varying
+          ]
+        )::text[]
+      )
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_user_progress_user on public.user_progress using btree (user_id, status) TABLESPACE pg_default;
+
+create index IF not exists idx_user_progress_module on public.user_progress using btree (module_id, status) TABLESPACE pg_default;
+
+create trigger update_user_progress_updated_at BEFORE
+update on user_progress for EACH row
+execute FUNCTION update_updated_at_column ();
+###RLS_Enabled
+
+#user_profiles
+##create table public.user_profiles (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null,
+  display_name character varying(100) null,
+  total_points integer null default 0,
+  level integer null default 1,
+  modules_completed integer null default 0,
+  change_talk_evoked integer null default 0,
+  reflections_offered integer null default 0,
+  technique_mastery jsonb null default '{}'::jsonb,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  last_active_at timestamp with time zone null default now(),
+  constraint user_profiles_pkey primary key (id),
+  constraint user_profiles_user_id_key unique (user_id),
+  constraint user_profiles_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_user_profiles_points on public.user_profiles using btree (total_points desc, level desc) TABLESPACE pg_default;
+
+create index IF not exists idx_user_profiles_user_id on public.user_profiles using btree (user_id) TABLESPACE pg_default;
+
+create trigger update_user_profiles_updated_at BEFORE
+update on user_profiles for EACH row
+execute FUNCTION update_updated_at_column ();
+###RLS_Enabled
+
+#learning_modules
+##create table public.learning_modules (
+  id uuid not null default gen_random_uuid (),
+  module_number integer not null,
+  title character varying(255) not null,
+  slug character varying(255) not null,
+  learning_objective text not null,
+  technique_focus character varying(100) not null,
+  stage_of_change character varying(50) not null,
+  mi_process character varying(50) null,
+  description text not null,
+  dialogue_content jsonb not null,
+  points integer null default 500,
+  display_order integer null default 0,
+  is_published boolean null default true,
+  created_at timestamp with time zone null default now(),
+  updated_at timestamp with time zone null default now(),
+  constraint learning_modules_pkey primary key (id),
+  constraint learning_modules_module_number_key unique (module_number),
+  constraint learning_modules_slug_key unique (slug)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_learning_modules_published on public.learning_modules using btree (is_published, display_order) TABLESPACE pg_default;
+
+create trigger update_learning_modules_updated_at BEFORE
+update on learning_modules for EACH row
+execute FUNCTION update_updated_at_column ();
+###RLS_Enabled
+
+#dialogue_attempts
+##create table public.dialogue_attempts (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null,
+  module_id uuid not null,
+  progress_id uuid null,
+  node_id character varying(50) not null,
+  choice_id character varying(50) not null,
+  choice_text text not null,
+  technique character varying(100) not null,
+  is_correct_technique boolean not null,
+  feedback_text text not null,
+  evoked_change_talk boolean null default false,
+  points_earned integer null default 0,
+  created_at timestamp with time zone null default now(),
+  constraint dialogue_attempts_pkey primary key (id),
+  constraint dialogue_attempts_module_id_fkey foreign KEY (module_id) references learning_modules (id) on delete CASCADE,
+  constraint dialogue_attempts_progress_id_fkey foreign KEY (progress_id) references user_progress (id) on delete CASCADE,
+  constraint dialogue_attempts_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_dialogue_attempts_user on public.dialogue_attempts using btree (user_id, created_at desc) TABLESPACE pg_default;
+
+create index IF not exists idx_dialogue_attempts_progress on public.dialogue_attempts using btree (progress_id) TABLESPACE pg_default;
+
+create trigger trigger_update_user_score
+after INSERT
+or DELETE
+or
+update on dialogue_attempts for EACH row
+execute FUNCTION update_user_score_trigger ();
+###RLS_Enabled
+
+
+---
+Supabase_Policies for Tables
+Users
+Users can insert own user record
+Users can view own user record
+
+user_profiles
+Users can insert own profile
+Uses can update own profile
+Users can view own profile
+
+
+
+
