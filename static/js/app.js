@@ -6,16 +6,6 @@
 // API Configuration
 const API_BASE = '/api/v1';
 
-// =====================================================
-// Supabase Client Initialization
-// =====================================================
-
-// The Supabase JS library exposes 'supabase' on window as a global namespace.
-// We use it to create a client instance, then refer to the client as 'supabaseClient'.
-const supabaseClient = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase)
-    ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
-    : null;
-
 // App State
 const state = {
     user: null,
@@ -253,19 +243,13 @@ async function renderNav() {
     const navItems = document.getElementById('nav-items');
 
     if (state.user) {
-        // Check if user is admin via Supabase
+        // Check if user is admin via backend API (uses service role to bypass RLS)
         let isAdmin = false;
-        if (supabaseClient) {
-            try {
-                const { data } = await supabaseClient
-                    .from('users')
-                    .select('role')
-                    .eq('id', state.user.id)
-                    .single();
-                isAdmin = data?.role === 'admin';
-            } catch (e) {
-                console.error('Error checking admin status:', e);
-            }
+        try {
+            const roleData = await apiRequest('/auth/role');
+            isAdmin = roleData?.role === 'admin';
+        } catch (e) {
+            console.error('Error checking admin status:', e);
         }
 
         let adminLink = isAdmin ? '<a href="/admin" class="nav-admin-link">Admin</a>' : '';

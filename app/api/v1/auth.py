@@ -503,6 +503,32 @@ async def forgot_password(email: EmailStr):
         }
 
 
+@router.get("/role")
+async def get_user_role(auth_context: AuthContext = Depends(get_current_user)):
+    """
+    Get the current user's role from the users table.
+
+    Returns the role (e.g. 'user', 'admin', 'moderator') for the authenticated user.
+    Uses the admin client to bypass RLS.
+    """
+    try:
+        supabase_admin = get_supabase_admin()
+        response = (
+            supabase_admin.table("users")
+            .select("role")
+            .eq("id", auth_context.user_id)
+            .maybe_single()
+            .execute()
+        )
+        role = "user"
+        if response.data and response.data.get("role"):
+            role = response.data["role"]
+        return {"role": role}
+    except Exception as e:
+        logger.error(f"Error fetching user role: {e}")
+        return {"role": "user"}
+
+
 @router.get("/verify")
 async def verify_token(auth_context: AuthContext = Depends(get_current_user)):
     """
