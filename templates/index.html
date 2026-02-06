@@ -7,8 +7,8 @@
     <title>MI Learning Platform</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <script>
-        window.SUPABASE_URL = '{{ supabase_url|default:"" }}';
-        window.SUPABASE_ANON_KEY = '{{ supabase_anon_key|default:"" }}';
+        window.SUPABASE_URL = '{{ supabase_url or "" }}';
+        window.SUPABASE_ANON_KEY = '{{ supabase_anon_key or "" }}';
     </script>
 </head>
 
