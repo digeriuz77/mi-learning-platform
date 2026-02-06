@@ -6,8 +6,16 @@
 // API Configuration
 const API_BASE = '/api/v1';
 
-// Supabase client - initialized by the Supabase JS library loaded in index.html
-// We use the global 'supabase' object created by the library
+// =====================================================
+// Supabase Client Initialization
+// =====================================================
+
+// The Supabase JS library exposes 'supabase' as a global namespace
+// We create a client instance using the window variables from template
+let supabase = null;
+if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+    supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+}
 
 // App State
 const state = {
