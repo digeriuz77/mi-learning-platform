@@ -6,6 +6,12 @@
 // API Configuration
 const API_BASE = '/api/v1';
 
+// Supabase Configuration (from window variables set by backend)
+let supabase = null;
+if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+    supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+}
+
 // App State
 const state = {
     user: null,
