@@ -10,12 +10,11 @@ const API_BASE = '/api/v1';
 // Supabase Client Initialization
 // =====================================================
 
-// The Supabase JS library exposes 'supabase' as a global namespace
-// We create a client instance using the window variables from template
-let supabase = null;
-if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-    supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-}
+// The Supabase JS library exposes 'supabase' on window as a global namespace.
+// We use it to create a client instance, then refer to the client as 'supabaseClient'.
+const supabaseClient = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase)
+    ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+    : null;
 
 // App State
 const state = {
@@ -254,17 +253,19 @@ async function renderNav() {
     const navItems = document.getElementById('nav-items');
 
     if (state.user) {
-        // Check if user is admin
+        // Check if user is admin via Supabase
         let isAdmin = false;
-        try {
-            const { data } = await supabase
-                .from('users')
-                .select('role')
-                .eq('id', state.user.id)
-                .single();
-            isAdmin = data?.role === 'admin';
-        } catch (e) {
-            console.error('Error checking admin status:', e);
+        if (supabaseClient) {
+            try {
+                const { data } = await supabaseClient
+                    .from('users')
+                    .select('role')
+                    .eq('id', state.user.id)
+                    .single();
+                isAdmin = data?.role === 'admin';
+            } catch (e) {
+                console.error('Error checking admin status:', e);
+            }
         }
 
         let adminLink = isAdmin ? '<a href="/admin" class="nav-admin-link">Admin</a>' : '';

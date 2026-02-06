@@ -1,15 +1,10 @@
 // Admin Dashboard JavaScript Module
 // Compatible with existing Supabase schema
 
-// Configuration - Replace with your actual Supabase credentials
-const SUPABASE_URL = window.SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
-
-// Initialize Supabase client
-let supabase;
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-    supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
+// Initialize Supabase client using the CDN global (window.supabase)
+const supabaseClient = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase)
+    ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+    : null;
 
 // State
 let currentUser = null;
@@ -37,7 +32,7 @@ const elements = {
 async function initAdmin() {
     try {
         // 1. Check authentication
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
 
         if (sessionError || !session) {
             showToast('Please log in to access the admin dashboard', 'error');
@@ -79,7 +74,7 @@ async function initAdmin() {
 // Load dashboard statistics
 async function loadDashboardStats() {
     try {
-        const { data, error } = await supabase.rpc('get_dashboard_stats');
+        const { data, error } = await supabaseClient.rpc('get_dashboard_stats');
 
         if (error) throw error;
 
@@ -101,7 +96,7 @@ async function loadUsers(searchEmail = null) {
 
         const offset = (currentPage - 1) * pageSize;
 
-        const { data, error } = await supabase.rpc('get_all_users_with_progress', {
+        const { data, error } = await supabaseClient.rpc('get_all_users_with_progress', {
             search_email: searchEmail,
             limit_count: pageSize,
             offset_count: offset
@@ -144,7 +139,7 @@ function renderUsersTable() {
 // Load module statistics
 async function loadModuleStats() {
     try {
-        const { data, error } = await supabase.rpc('get_module_stats');
+        const { data, error } = await supabaseClient.rpc('get_module_stats');
 
         if (error) throw error;
 
@@ -303,7 +298,7 @@ function closeConfirmModal() {
 // Invoke admin action via Edge Function
 async function invokeAdminAction(action, targetUserId, newRole = null) {
     try {
-        const { data, error } = await supabase.functions.invoke('admin-actions', {
+        const { data, error } = await supabaseClient.functions.invoke('admin-actions', {
             body: { action, targetUserId, newRole }
         });
 
@@ -360,7 +355,7 @@ async function refreshUsers() {
 
 // Logout
 async function logout() {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     window.location.href = '/';
 }
 
