@@ -1,10 +1,8 @@
 // Admin Dashboard JavaScript Module
-// Compatible with existing Supabase schema
+// Uses backend API endpoints (not browser-side Supabase client)
 
-// Initialize Supabase client using the CDN global (window.supabase)
-const supabaseClient = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY && window.supabase)
-    ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
-    : null;
+const ADMIN_API = '/api/v1/admin';
+const AUTH_API = '/api/v1/auth';
 
 // State
 let currentUser = null;
@@ -28,29 +26,50 @@ const elements = {
     confirmModal: document.getElementById('confirmModal')
 };
 
+// API helper - sends requests with JWT from localStorage
+async function adminRequest(url, options = {}) {
+    const token = localStorage.getItem('access_token');
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, { ...options, headers });
+
+    if (response.status === 401) {
+        showToast('Session expired. Redirecting to login...', 'error');
+        setTimeout(() => window.location.href = '/', 2000);
+        throw new Error('Unauthorized');
+    }
+
+    if (response.status === 403) {
+        showToast('Access denied. Admin privileges required.', 'error');
+        setTimeout(() => window.location.href = '/', 3000);
+        throw new Error('Forbidden');
+    }
+
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: response.statusText }));
+        throw new Error(error.detail || 'Request failed');
+    }
+
+    return response.json();
+}
+
 // Initialize the dashboard
 async function initAdmin() {
     try {
-        // 1. Check authentication
-        const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+        // 1. Check authentication via backend
+        const me = await adminRequest(`${AUTH_API}/me`);
+        currentUser = me;
+        elements.currentUserEmail.textContent = me.email;
 
-        if (sessionError || !session) {
-            showToast('Please log in to access the admin dashboard', 'error');
-            setTimeout(() => window.location.href = '/login', 2000);
-            return;
-        }
-
-        currentUser = session.user;
-        elements.currentUserEmail.textContent = currentUser.email;
-
-        // 2. Check admin role (using users table)
-        const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', currentUser.id)
-            .single();
-
-        if (profileError || profile?.role !== 'admin') {
+        // 2. Check admin role via backend
+        const roleData = await adminRequest(`${AUTH_API}/role`);
+        if (roleData.role !== 'admin') {
             showToast('Access denied. Admin privileges required.', 'error');
             setTimeout(() => window.location.href = '/', 3000);
             return;
@@ -67,16 +86,16 @@ async function initAdmin() {
         showToast('Admin dashboard loaded successfully', 'success');
     } catch (error) {
         console.error('Admin initialization error:', error);
-        showToast('Error initializing admin dashboard', 'error');
+        if (error.message !== 'Unauthorized' && error.message !== 'Forbidden') {
+            showToast('Error initializing admin dashboard', 'error');
+        }
     }
 }
 
 // Load dashboard statistics
 async function loadDashboardStats() {
     try {
-        const { data, error } = await supabaseClient.rpc('get_dashboard_stats');
-
-        if (error) throw error;
+        const data = await adminRequest(`${ADMIN_API}/stats`);
 
         if (data) {
             document.getElementById('totalUsers').textContent = data.total_users || 0;
@@ -95,14 +114,12 @@ async function loadUsers(searchEmail = null) {
         elements.usersTableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading users...</td></tr>';
 
         const offset = (currentPage - 1) * pageSize;
+        let url = `${ADMIN_API}/users?limit=${pageSize}&offset=${offset}`;
+        if (searchEmail) {
+            url += `&search=${encodeURIComponent(searchEmail)}`;
+        }
 
-        const { data, error } = await supabaseClient.rpc('get_all_users_with_progress', {
-            search_email: searchEmail,
-            limit_count: pageSize,
-            offset_count: offset
-        });
-
-        if (error) throw error;
+        const data = await adminRequest(url);
 
         users = data || [];
         renderUsersTable();
@@ -139,9 +156,7 @@ function renderUsersTable() {
 // Load module statistics
 async function loadModuleStats() {
     try {
-        const { data, error } = await supabaseClient.rpc('get_module_stats');
-
-        if (error) throw error;
+        const data = await adminRequest(`${ADMIN_API}/modules/stats`);
 
         moduleStats = data || [];
         renderModuleStats();
@@ -215,22 +230,22 @@ function showUserActions(userId, email, role, isActive) {
         <div class="user-actions">
             <p><strong>Current Role:</strong> ${role}</p>
             <p><strong>Status:</strong> ${isActive ? 'Active' : 'Banned'}</p>
-            
+
             <hr>
-            
+
             <h4>Role Management</h4>
             ${role !== 'admin' ? `<button onclick="promoteUser('${userId}')" class="btn btn-primary" style="margin-right: 0.5rem;">Promote to Admin</button>` : ''}
             ${role === 'admin' ? `<button onclick="demoteUser('${userId}')" class="btn btn-warning" style="margin-right: 0.5rem;">Demote from Admin</button>` : ''}
             ${role !== 'moderator' ? `<button onclick="setUserRole('${userId}', 'moderator')" class="btn btn-secondary" style="margin-right: 0.5rem;">Set as Moderator</button>` : ''}
             ${role !== 'user' ? `<button onclick="setUserRole('${userId}', 'user')" class="btn btn-secondary" style="margin-right: 0.5rem;">Set as User</button>` : ''}
-            
+
             <hr>
-            
+
             <h4>User Status</h4>
             ${isActive ? `<button onclick="banUser('${userId}')" class="btn btn-danger">Ban User</button>` : `<button onclick="unbanUser('${userId}')" class="btn btn-success">Unban User</button>`}
-            
+
             <hr>
-            
+
             <h4>Danger Zone</h4>
             <button onclick="confirmDeleteUser('${userId}', '${email}')" class="btn btn-danger">Delete User Permanently</button>
         </div>
@@ -295,14 +310,17 @@ function closeConfirmModal() {
     elements.confirmModal.style.display = 'none';
 }
 
-// Invoke admin action via Edge Function
+// Invoke admin action via backend API
 async function invokeAdminAction(action, targetUserId, newRole = null) {
     try {
-        const { data, error } = await supabaseClient.functions.invoke('admin-actions', {
-            body: { action, targetUserId, newRole }
+        const data = await adminRequest(`${ADMIN_API}/action`, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: action,
+                target_user_id: targetUserId,
+                new_role: newRole
+            })
         });
-
-        if (error) throw error;
 
         showToast(data.message || 'Action completed successfully', 'success');
         return true;
@@ -341,7 +359,6 @@ function nextPage() {
 }
 
 function updatePagination() {
-    const totalPages = Math.ceil(users.length / pageSize);
     elements.pageInfo.textContent = `Page ${currentPage}`;
     elements.prevPage.disabled = currentPage === 1;
     elements.nextPage.disabled = users.length < pageSize;
@@ -355,7 +372,21 @@ async function refreshUsers() {
 
 // Logout
 async function logout() {
-    await supabaseClient.auth.signOut();
+    try {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            await fetch(`${AUTH_API}/logout`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+    } catch (e) {
+        // Ignore logout errors
+    }
+    localStorage.removeItem('access_token');
     window.location.href = '/';
 }
 

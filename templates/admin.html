@@ -7,12 +7,6 @@
     <title>Admin Dashboard - MI Learning Platform</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/admin.css">
-
-    <!-- Supabase Configuration from Environment -->
-    <script>
-        window.SUPABASE_URL = '{{ supabase_url or "" }}';
-        window.SUPABASE_ANON_KEY = '{{ supabase_anon_key or "" }}';
-    </script>
 </head>
 
 <body>
@@ -201,8 +195,6 @@
     <!-- Toast notifications -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Admin Dashboard JS -->
     <script src="/static/js/admin.js"></script>
 </body>
