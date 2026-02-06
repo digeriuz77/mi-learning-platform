@@ -9,8 +9,6 @@ const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
 let supabase;
 if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} else {
-    console.error('Supabase credentials not configured');
 }
 
 // State
