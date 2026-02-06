@@ -7,8 +7,17 @@
 const API_BASE = '/api/v1';
 
 // Supabase Configuration (from window variables set by backend)
-// The supabase client is created by the Supabase JS library loaded in index.html
-// We access it via the global supabase object
+// Create the Supabase client explicitly
+let supabase = null;
+
+async function initSupabase() {
+    if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+        const { createClient } = supabase;
+        supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        return supabase;
+    }
+    return null;
+}
 
 // App State
 const state = {
@@ -250,12 +259,15 @@ async function renderNav() {
         // Check if user is admin
         let isAdmin = false;
         try {
-            const { data } = await supabase
-                .from('users')
-                .select('role')
-                .eq('id', state.user.id)
-                .single();
-            isAdmin = data?.role === 'admin';
+            const client = await initSupabase();
+            if (client) {
+                const { data } = await client
+                    .from('users')
+                    .select('role')
+                    .eq('id', state.user.id)
+                    .single();
+                isAdmin = data?.role === 'admin';
+            }
         } catch (e) {
             console.error('Error checking admin status:', e);
         }
