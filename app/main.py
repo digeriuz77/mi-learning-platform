@@ -95,7 +95,11 @@ if templates_dir.exists():
 async def root(request: Request):
     """Root endpoint - serve the frontend HTML"""
     if templates:
-        return templates.TemplateResponse("index.html", {"request": request})
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "supabase_url": getattr(settings, "SUPABASE_URL", ""),
+            "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
+        })
     # Fallback to JSON if templates not found
     return {
         "name": getattr(settings, "APP_NAME", "MI Learning Platform"),
