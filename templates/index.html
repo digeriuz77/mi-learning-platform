@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MI Learning Platform</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        window.SUPABASE_URL = '{{ supabase_url|default:"" }}';
+        window.SUPABASE_ANON_KEY = '{{ supabase_anon_key|default:"" }}';
+    </script>
 </head>
+
 <body>
     <nav class="navbar">
         <div class="container">
@@ -28,4 +34,5 @@
 
     <script src="/static/js/app.js"></script>
 </body>
+
 </html>
