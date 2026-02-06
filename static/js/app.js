@@ -7,10 +7,8 @@
 const API_BASE = '/api/v1';
 
 // Supabase Configuration (from window variables set by backend)
-let supabase = null;
-if (window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-    supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-}
+// The supabase client is created by the Supabase JS library loaded in index.html
+// We access it via the global supabase object
 
 // App State
 const state = {
