@@ -239,11 +239,27 @@ const chatPracticeAPI = {
 /**
  * Render navigation bar
  */
-function renderNav() {
+async function renderNav() {
     const navItems = document.getElementById('nav-items');
 
     if (state.user) {
+        // Check if user is admin
+        let isAdmin = false;
+        try {
+            const { data } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', state.user.id)
+                .single();
+            isAdmin = data?.role === 'admin';
+        } catch (e) {
+            console.error('Error checking admin status:', e);
+        }
+
+        let adminLink = isAdmin ? '<a href="/admin" class="nav-admin-link">Admin</a>' : '';
+
         navItems.innerHTML = `
+            ${adminLink}
             <a href="#" data-link="/modules">Modules</a>
             <a href="#" data-link="/chat-practice">Practice Chat</a>
             <a href="#" data-link="/progress">Progress</a>
@@ -575,7 +591,7 @@ function renderRegister() {
         try {
             const result = await authAPI.register(email, password, displayName);
             renderNav();
-            
+
             // Check if token was returned or email confirmation is needed
             if (result.access_token && result.access_token !== "") {
                 showToast('Account created successfully!', 'success');
@@ -2125,7 +2141,7 @@ async function initApp() {
             }
         }
     }
-    
+
     // Initialize router
     router.init();
 }
