@@ -34,7 +34,7 @@ except Exception as e:
 
 # Import routers
 try:
-    from app.api.v1 import auth, modules, dialogue, progress, leaderboard, chat_practice
+    from app.api.v1 import auth, modules, dialogue, progress, leaderboard, chat_practice, admin
 
     ROUTERS_LOADED = True
 except Exception as e:
@@ -78,6 +78,7 @@ if ROUTERS_LOADED:
         leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"]
     )
     app.include_router(chat_practice.router, prefix="/api/v1", tags=["Chat Practice"])
+    app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 
 # Mount static files
 static_dir = Path(__file__).parent.parent / "static"
