@@ -79,6 +79,7 @@ async function initAdmin() {
         await loadDashboardStats();
         await loadUsers();
         await loadModuleStats();
+        await loadPracticeAnalytics();
 
         // 4. Setup event listeners
         setupEventListeners();
@@ -215,6 +216,18 @@ function setupEventListeners() {
             loadUsers(e.target.value.trim() || null);
         }, 300);
     });
+
+    // Analytics search
+    const analyticsSearch = document.getElementById('analyticsUserSearch');
+    if (analyticsSearch) {
+        analyticsSearch.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                practiceAnalytics.page = 1;
+                loadUsersWithAnalytics(e.target.value.trim() || null);
+            }, 300);
+        });
+    }
 
     // Close modals on outside click
     window.addEventListener('click', (e) => {
@@ -419,6 +432,187 @@ function formatDate(dateString) {
     });
 }
 
+// Practice Analytics State
+let practiceAnalytics = {
+    comprehensive: null,
+    leaderboard: [],
+    users: [],
+    page: 1,
+    pageSize: 20
+};
+
+// Load practice analytics
+async function loadPracticeAnalytics() {
+    try {
+        await Promise.all([
+            loadComprehensiveAnalytics(),
+            loadPracticeLeaderboard(),
+            loadUsersWithAnalytics()
+        ]);
+    } catch (error) {
+        console.error('Error loading practice analytics:', error);
+        showToast('Error loading practice analytics', 'error');
+    }
+}
+
+// Load comprehensive analytics
+async function loadComprehensiveAnalytics() {
+    try {
+        const data = await adminRequest(`${ADMIN_API}/analytics/comprehensive`);
+        practiceAnalytics.comprehensive = data;
+
+        // Update stats
+        document.getElementById('totalPracticeSessions').textContent = data.total_sessions || 0;
+        document.getElementById('activePractitioners').textContent = data.total_users || 0;
+        document.getElementById('avgOverallScore').textContent = 
+            data.avg_overall_score ? data.avg_overall_score.toFixed(1) + '/5' : '-';
+
+        // Calculate change talk rate
+        if (data.total_sessions > 0) {
+            const rate = ((data.sessions_with_change_talk / data.total_sessions) * 100).toFixed(0);
+            document.getElementById('changeTalkRate').textContent = rate + '%';
+        } else {
+            document.getElementById('changeTalkRate').textContent = '-';
+        }
+
+        // Update score bars
+        updateScoreBar('trustSafety', data.avg_trust_safety);
+        updateScoreBar('empathy', data.avg_empathy);
+        updateScoreBar('empowerment', data.avg_empowerment);
+        updateScoreBar('miSpirit', data.avg_mi_spirit);
+
+    } catch (error) {
+        console.error('Error loading comprehensive analytics:', error);
+    }
+}
+
+function updateScoreBar(metric, score) {
+    const scoreEl = document.getElementById(`${metric}Score`);
+    const barEl = document.getElementById(`${metric}Bar`);
+
+    if (score) {
+        scoreEl.textContent = score.toFixed(1);
+        const percentage = (score / 5) * 100;
+        barEl.style.width = `${percentage}%`;
+
+        // Color based on score
+        barEl.className = 'score-bar';
+        if (score >= 4) barEl.classList.add('excellent');
+        else if (score >= 3) barEl.classList.add('good');
+        else if (score >= 2) barEl.classList.add('fair');
+        else barEl.classList.add('poor');
+    } else {
+        scoreEl.textContent = '-';
+        barEl.style.width = '0%';
+    }
+}
+
+// Load practice leaderboard
+async function loadPracticeLeaderboard() {
+    try {
+        const data = await adminRequest(`${ADMIN_API}/analytics/leaderboard?limit=10`);
+        practiceAnalytics.leaderboard = data.leaderboard || [];
+        renderLeaderboard();
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+    }
+}
+
+function renderLeaderboard() {
+    const tbody = document.getElementById('leaderboardBody');
+
+    if (!practiceAnalytics.leaderboard || practiceAnalytics.leaderboard.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">No practice data available</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = practiceAnalytics.leaderboard.map((user, index) => `
+        <tr>
+            <td><span class="rank rank-${index + 1}">${index + 1}</span></td>
+            <td>${escapeHtml(user.display_name || 'Anonymous')}</td>
+            <td>${user.practice_sessions_count}</td>
+            <td><span class="score ${getScoreClass(user.avg_overall_score)}">${user.avg_overall_score ? user.avg_overall_score.toFixed(1) : '-'}</span></td>
+            <td>${user.avg_trust_safety ? user.avg_trust_safety.toFixed(1) : '-'}</td>
+            <td>${user.avg_empathy_partnership ? user.avg_empathy_partnership.toFixed(1) : '-'}</td>
+            <td>${user.avg_mi_spirit ? user.avg_mi_spirit.toFixed(1) : '-'}</td>
+        </tr>
+    `).join('');
+}
+
+function getScoreClass(score) {
+    if (!score) return '';
+    if (score >= 4) return 'excellent';
+    if (score >= 3) return 'good';
+    if (score >= 2) return 'fair';
+    return 'poor';
+}
+
+// Load users with analytics
+async function loadUsersWithAnalytics(search = null) {
+    try {
+        const offset = (practiceAnalytics.page - 1) * practiceAnalytics.pageSize;
+        let url = `${ADMIN_API}/analytics/users?limit=${practiceAnalytics.pageSize}&offset=${offset}`;
+        if (search) {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const data = await adminRequest(url);
+        practiceAnalytics.users = data.users || [];
+        renderUsersAnalytics();
+        updateAnalyticsPagination();
+    } catch (error) {
+        console.error('Error loading users with analytics:', error);
+    }
+}
+
+function renderUsersAnalytics() {
+    const tbody = document.getElementById('usersAnalyticsBody');
+
+    if (!practiceAnalytics.users || practiceAnalytics.users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">No users found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = practiceAnalytics.users.map(user => `
+        <tr>
+            <td>${escapeHtml(user.email)}</td>
+            <td>${escapeHtml(user.display_name || '-')}</td>
+            <td>${user.practice_sessions_count || 0}</td>
+            <td><span class="score ${getScoreClass(user.avg_overall_score)}">${user.avg_overall_score ? user.avg_overall_score.toFixed(1) : '-'}</span></td>
+            <td>${user.avg_trust_safety ? user.avg_trust_safety.toFixed(1) : '-'}</td>
+            <td>${user.avg_empathy_partnership ? user.avg_empathy_partnership.toFixed(1) : '-'}</td>
+            <td>${user.avg_empowerment_clarity ? user.avg_empowerment_clarity.toFixed(1) : '-'}</td>
+            <td>${user.avg_mi_spirit ? user.avg_mi_spirit.toFixed(1) : '-'}</td>
+            <td>${formatDate(user.last_practice_at)}</td>
+        </tr>
+    `).join('');
+}
+
+function updateAnalyticsPagination() {
+    document.getElementById('analyticsPageInfo').textContent = `Page ${practiceAnalytics.page}`;
+    document.getElementById('prevAnalyticsPage').disabled = practiceAnalytics.page === 1;
+    document.getElementById('nextAnalyticsPage').disabled = practiceAnalytics.users.length < practiceAnalytics.pageSize;
+}
+
+function previousAnalyticsPage() {
+    if (practiceAnalytics.page > 1) {
+        practiceAnalytics.page--;
+        const search = document.getElementById('analyticsUserSearch').value.trim();
+        loadUsersWithAnalytics(search || null);
+    }
+}
+
+function nextAnalyticsPage() {
+    practiceAnalytics.page++;
+    const search = document.getElementById('analyticsUserSearch').value.trim();
+    loadUsersWithAnalytics(search || null);
+}
+
+async function refreshPracticeAnalytics() {
+    practiceAnalytics.page = 1;
+    await loadPracticeAnalytics();
+}
+
 // Make functions globally available
 window.showUserActions = showUserActions;
 window.closeModal = closeModal;
@@ -434,6 +628,9 @@ window.previousPage = previousPage;
 window.nextPage = nextPage;
 window.refreshUsers = refreshUsers;
 window.logout = logout;
+window.refreshPracticeAnalytics = refreshPracticeAnalytics;
+window.previousAnalyticsPage = previousAnalyticsPage;
+window.nextAnalyticsPage = nextAnalyticsPage;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);

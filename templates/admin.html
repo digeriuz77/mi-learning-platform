@@ -24,6 +24,7 @@
             <ul class="sidebar-menu">
                 <li class="active" data-tab="dashboard">Dashboard</li>
                 <li data-tab="users">User Management</li>
+                <li data-tab="practice-analytics">Practice Analytics</li>
                 <li data-tab="modules">Module Analytics</li>
                 <li data-tab="settings">Settings</li>
             </ul>
@@ -109,6 +110,135 @@
                     <button onclick="previousPage()" id="prevPage" class="btn btn-secondary">Previous</button>
                     <span id="pageInfo">Page 1</span>
                     <button onclick="nextPage()" id="nextPage" class="btn btn-secondary">Next</button>
+                </div>
+            </section>
+
+            <!-- Practice Analytics Tab -->
+            <section id="practice-analytics" class="tab-content">
+                <h1>Practice Analytics</h1>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💬</div>
+                        <div class="stat-info">
+                            <h3>Total Sessions</h3>
+                            <p id="totalPracticeSessions">-</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h3>Active Practitioners</h3>
+                            <p id="activePractitioners">-</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <h3>Avg Overall Score</h3>
+                            <p id="avgOverallScore">-</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <h3>Change Talk Evoked</h3>
+                            <p id="changeTalkRate">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scores-grid">
+                    <h2>MAPS Framework Averages</h2>
+                    <div class="score-breakdown">
+                        <div class="score-item">
+                            <span class="score-label">Trust & Safety</span>
+                            <div class="score-bar-container">
+                                <div id="trustSafetyBar" class="score-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="trustSafetyScore" class="score-value">-</span>
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Empathy & Partnership</span>
+                            <div class="score-bar-container">
+                                <div id="empathyBar" class="score-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="empathyScore" class="score-value">-</span>
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">Empowerment & Clarity</span>
+                            <div class="score-bar-container">
+                                <div id="empowermentBar" class="score-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="empowermentScore" class="score-value">-</span>
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">MI Spirit</span>
+                            <div class="score-bar-container">
+                                <div id="miSpiritBar" class="score-bar" style="width: 0%"></div>
+                            </div>
+                            <span id="miSpiritScore" class="score-value">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-section">
+                    <h2>Top Performers</h2>
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>User</th>
+                                    <th>Sessions</th>
+                                    <th>Avg Score</th>
+                                    <th>Trust</th>
+                                    <th>Empathy</th>
+                                    <th>MI Spirit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody">
+                                <tr>
+                                    <td colspan="7" class="loading">Loading leaderboard...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="users-analytics-section">
+                    <h2>User Practice Analytics</h2>
+                    <div class="user-controls">
+                        <input type="text" id="analyticsUserSearch" placeholder="Search by email..." class="search-input">
+                        <button onclick="refreshPracticeAnalytics()" class="btn btn-primary">Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Display Name</th>
+                                    <th>Sessions</th>
+                                    <th>Avg Score</th>
+                                    <th>Trust</th>
+                                    <th>Empathy</th>
+                                    <th>Empowerment</th>
+                                    <th>MI Spirit</th>
+                                    <th>Last Practice</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersAnalyticsBody">
+                                <tr>
+                                    <td colspan="9" class="loading">Loading user analytics...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <button onclick="previousAnalyticsPage()" id="prevAnalyticsPage" class="btn btn-secondary">Previous</button>
+                        <span id="analyticsPageInfo">Page 1</span>
+                        <button onclick="nextAnalyticsPage()" id="nextAnalyticsPage" class="btn btn-secondary">Next</button>
+                    </div>
                 </div>
             </section>
 

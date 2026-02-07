@@ -420,3 +420,160 @@ async def get_recent_feedback(
     except Exception as e:
         logger.error(f"Error loading recent feedback: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/analytics/comprehensive")
+async def get_comprehensive_analytics(admin: AuthContext = Depends(require_admin)):
+    """
+    Get comprehensive practice analytics.
+
+    Returns aggregate statistics across all practice sessions.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        # Call the database function for comprehensive analytics
+        result = supabase.rpc("get_comprehensive_practice_analytics").execute()
+
+        if result.data:
+            return result.data
+
+        return {
+            "total_sessions": 0,
+            "total_users": 0,
+            "avg_overall_score": 0.0,
+            "avg_trust_safety": 0.0,
+            "avg_empathy": 0.0,
+            "avg_empowerment": 0.0,
+            "avg_mi_spirit": 0.0,
+            "sessions_with_change_talk": 0,
+            "avg_turns": 0.0,
+        }
+
+    except Exception as e:
+        logger.error(f"Error loading comprehensive analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/analytics/users")
+async def get_users_with_analytics(
+    search: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    admin: AuthContext = Depends(require_admin),
+):
+    """
+    Get all users with their practice analytics.
+
+    Returns users with practice session counts and average scores.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        # Call the database function for users with analytics
+        result = supabase.rpc(
+            "get_all_users_with_practice_analytics",
+            {"search_email": search, "limit_count": limit, "offset_count": offset},
+        ).execute()
+
+        if result.data:
+            return {
+                "users": result.data,
+                "total": len(result.data),
+                "limit": limit,
+                "offset": offset,
+            }
+
+        return {"users": [], "total": 0, "limit": limit, "offset": offset}
+
+    except Exception as e:
+        logger.error(f"Error loading users with analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/analytics/leaderboard")
+async def get_practice_analytics_leaderboard(
+    limit: int = 20, admin: AuthContext = Depends(require_admin)
+):
+    """
+    Get practice leaderboard - top users by performance.
+
+    Returns top users sorted by average overall score.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        # Call the database function for leaderboard
+        result = supabase.rpc(
+            "get_practice_leaderboard", {"limit_count": limit}
+        ).execute()
+
+        if result.data:
+            return {"leaderboard": result.data, "total": len(result.data)}
+
+        return {"leaderboard": [], "total": 0}
+
+    except Exception as e:
+        logger.error(f"Error loading practice leaderboard: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/analytics/user/{user_id}")
+async def get_user_detailed_analytics(
+    user_id: str, admin: AuthContext = Depends(require_admin)
+):
+    """
+    Get detailed analytics for a specific user.
+
+    Returns user profile with practice analytics and recent analyses.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        # Get user basic info
+        user_result = (
+            supabase.table("users")
+            .select("id, email, display_name, created_at, role, is_active")
+            .eq("id", user_id)
+            .single()
+            .execute()
+        )
+
+        if not user_result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user = user_result.data
+
+        # Get user analytics
+        analytics_result = supabase.rpc(
+            "get_user_practice_analytics", {"p_user_id": user_id}
+        ).execute()
+
+        # Get recent analyses for this user
+        analyses_result = (
+            supabase.table("conversation_analyses")
+            .select("id, session_id, persona_name, overall_score, created_at")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(10)
+            .execute()
+        )
+
+        return {
+            "user": {
+                "id": user.get("id"),
+                "email": user.get("email"),
+                "display_name": user.get("display_name"),
+                "created_at": user.get("created_at"),
+                "role": user.get("role", "user"),
+                "is_active": user.get("is_active", True),
+            },
+            "analytics": analytics_result.data if analytics_result.data else {},
+            "recent_analyses": analyses_result.data if analyses_result.data else [],
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error loading user analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
