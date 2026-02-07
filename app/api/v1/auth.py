@@ -539,13 +539,15 @@ async def forgot_password(request: PasswordResetRequest):
             site_url = "https://mi-learning-platform-production.up.railway.app"
         redirect_url = f"{site_url}/reset-password"
 
+        logger.info(f"Sending password reset email to {request.email} with redirect URL: {redirect_url}")
+
         # Request password reset from Supabase
         # Note: reset_password_email sends the email with a link
-        supabase.auth.reset_password_email(
+        result = supabase.auth.reset_password_email(
             request.email, options={"redirect_to": redirect_url}
         )
 
-        logger.info(f"Password reset email sent to {request.email}")
+        logger.info(f"Password reset email sent successfully to {request.email}")
 
         return {
             "success": True,
@@ -553,8 +555,9 @@ async def forgot_password(request: PasswordResetRequest):
         }
 
     except Exception as e:
-        # Don't reveal if email exists or not for security
-        logger.warning(f"Password reset request for {request.email}: {e}")
+        # Log error prominently for debugging
+        logger.error(f"Password reset FAILED for {request.email}: {e}")
+        # Still return success message for security (don't reveal if email exists)
         return {
             "success": True,
             "message": "If an account exists with this email, a password reset link has been sent.",
