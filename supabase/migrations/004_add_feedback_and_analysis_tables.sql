@@ -122,7 +122,7 @@ CREATE POLICY "Users can create their own analyses"
 CREATE POLICY "Admins can create analyses for any user"
     ON conversation_analyses FOR INSERT
     TO authenticated
-    USING (auth.jwt()->>'role' IN ('admin', 'moderator'));
+    WITH CHECK (auth.jwt()->>'role' IN ('admin', 'moderator'));
 
 -- ============================================
 -- Indexes for performance
