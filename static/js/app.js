@@ -115,6 +115,16 @@ const authAPI = {
     },
 
     async updatePassword(password) {
+        // Get the access token from localStorage for password reset
+        const accessToken = localStorage.getItem('access_token');
+        if (accessToken) {
+            // Use the reset-password-confirm endpoint that accepts the token directly
+            return apiRequest('/auth/reset-password-confirm', {
+                method: 'POST',
+                body: JSON.stringify({ access_token: accessToken, password })
+            });
+        }
+        // Fallback to the original endpoint
         return apiRequest('/auth/update-password', {
             method: 'POST',
             body: JSON.stringify({ password })

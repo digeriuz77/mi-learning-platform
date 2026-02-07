@@ -618,7 +618,7 @@ async def reset_password_confirm(request: ResetPasswordConfirmRequest):
     Reset password using a recovery token from email link.
 
     This endpoint is used after the user clicks the password reset email link.
-    It exchanges the recovery token for a session and updates the password.
+    It validates the token using Supabase and updates the password.
 
     Args:
         request: ResetPasswordConfirmRequest with access token and new password
@@ -630,22 +630,23 @@ async def reset_password_confirm(request: ResetPasswordConfirmRequest):
         supabase = get_supabase()
         supabase_admin = get_supabase_admin()
 
-        # First, decode the token to get the user_id
+        # Validate the token and get user info using Supabase's get_user method
         try:
-            payload = decode_jwt_token(request.access_token)
-            user_id = payload.get("sub")
-            if not user_id:
+            user_response = supabase.auth.get_user(request.access_token)
+            if not user_response or not user_response.user:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid token: missing user ID",
+                    detail="Invalid or expired token",
                 )
-        except AuthenticationError as e:
+            user_id = str(user_response.user.id)
+        except Exception as e:
+            logger.error(f"Failed to validate token: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(e),
+                detail="Invalid or expired token",
             )
 
-        # Update the user's password using admin API (more reliable)
+        # Update the user's password using admin API
         result = supabase_admin.auth.admin.update_user_by_id(
             user_id,
             {"password": request.password}
