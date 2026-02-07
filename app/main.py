@@ -140,6 +140,21 @@ async def admin_dashboard(request: Request):
     return {"error": "Templates not configured"}
 
 
+@app.get("/reset-password")
+async def reset_password_page(request: Request):
+    """Password reset page - serves the SPA for password reset flow"""
+    if templates:
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "supabase_url": getattr(settings, "SUPABASE_URL", ""),
+                "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
+            },
+        )
+    return {"error": "Templates not configured"}
+
+
 @app.get("/health")
 async def health_check():
     """Basic health check for Railway"""

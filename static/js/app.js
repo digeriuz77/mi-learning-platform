@@ -115,6 +115,16 @@ const authAPI = {
     },
 
     async updatePassword(password) {
+        // Get the access token from localStorage for password reset
+        const accessToken = localStorage.getItem('access_token');
+        if (accessToken) {
+            // Use the new reset-password-confirm endpoint that accepts the token directly
+            return apiRequest('/auth/reset-password-confirm', {
+                method: 'POST',
+                body: JSON.stringify({ access_token: accessToken, password })
+            });
+        }
+        // Fallback to the original endpoint
         return apiRequest('/auth/update-password', {
             method: 'POST',
             body: JSON.stringify({ password })
@@ -653,7 +663,7 @@ function renderForgotPassword() {
  */
 async function renderResetPassword() {
     const app = document.getElementById('app');
-    
+
     // Check if user is authenticated (they should be after clicking the email link)
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -2133,10 +2143,10 @@ function exportAnalysisToHTML(analysis, transcript) {
         format: "html",
         title: `MI Practice Analysis - ${chatState.personaName || 'Session'}`
     };
-    
+
     // Open a new window with the styled report
     const exportWindow = window.open('', '_blank');
-    
+
     fetch(`${API_BASE}/export/report/html`, {
         method: 'POST',
         headers: {
@@ -2145,17 +2155,17 @@ function exportAnalysisToHTML(analysis, transcript) {
         },
         body: JSON.stringify(exportData)
     })
-    .then(response => response.text())
-    .then(html => {
-        exportWindow.document.write(html);
-        exportWindow.document.close();
-        showToast('Report opened in new window. Use Print to save as PDF.', 'success');
-    })
-    .catch(error => {
-        exportWindow.close();
-        showToast('Failed to generate report', 'error');
-        console.error('Export error:', error);
-    });
+        .then(response => response.text())
+        .then(html => {
+            exportWindow.document.write(html);
+            exportWindow.document.close();
+            showToast('Report opened in new window. Use Print to save as PDF.', 'success');
+        })
+        .catch(error => {
+            exportWindow.close();
+            showToast('Failed to generate report', 'error');
+            console.error('Export error:', error);
+        });
 }
 
 /**
@@ -2363,7 +2373,7 @@ const router = {
     /**
      * Initialize router
      */
-    init() {
+    init(initialPath = null) {
         // Handle link clicks
         document.addEventListener('click', (e) => {
             const link = e.target.closest('[data-link]');
@@ -2380,9 +2390,10 @@ const router = {
             this.navigate(hash);
         });
 
-        // Load initial route
+        // Load initial route (use provided path or read from hash, default to /)
         const hash = window.location.hash.slice(1) || '/';
-        this.navigate(hash);
+        const path = initialPath || hash;
+        this.navigate(path);
 
         // Render initial nav
         renderNav();
@@ -2394,12 +2405,16 @@ const router = {
 // =====================================================
 
 async function initApp() {
+    // Store the current path before processing hash
+    let currentPath = window.location.pathname;
+
     // Check URL hash for auth tokens (from Supabase email confirmation redirect)
     const hash = window.location.hash;
     if (hash && hash.includes('access_token')) {
         const params = new URLSearchParams(hash.slice(1));
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
+        const type = params.get('type');
 
         if (accessToken) {
             state.token = accessToken;
@@ -2409,8 +2424,13 @@ async function initApp() {
             localStorage.setItem('refresh_token', refreshToken);
         }
 
+        // For password reset, navigate to /reset-password if type is recovery
+        if (type === 'recovery') {
+            currentPath = '/reset-password';
+        }
+
         // Clear the hash to clean up URL
-        window.history.replaceState(null, '', window.location.pathname);
+        window.history.replaceState(null, '', currentPath);
     }
 
     // Check for existing token and validate it
@@ -2442,8 +2462,8 @@ async function initApp() {
         }
     }
 
-    // Initialize router
-    router.init();
+    // Initialize router with the correct path
+    router.init(currentPath);
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

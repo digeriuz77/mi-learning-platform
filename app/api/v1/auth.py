@@ -507,6 +507,13 @@ class UpdatePasswordRequest(BaseModel):
     password: str = Field(..., min_length=6, max_length=100)
 
 
+class ResetPasswordConfirmRequest(BaseModel):
+    """Password reset confirmation request with token"""
+
+    access_token: str
+    password: str = Field(..., min_length=6, max_length=100)
+
+
 @router.post("/forgot-password")
 async def forgot_password(request: PasswordResetRequest):
     """
@@ -573,10 +580,13 @@ async def update_password(
         Success message
     """
     try:
-        supabase = get_supabase()
+        supabase_admin = get_supabase_admin()
 
-        # Update the user's password
-        result = supabase.auth.update_user({"password": request.password})
+        # Update the user's password using admin API
+        result = supabase_admin.auth.admin.update_user_by_id(
+            auth_context.user_id,
+            {"password": request.password}
+        )
 
         if result.user:
             logger.info(
@@ -599,6 +609,67 @@ async def update_password(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update password. Please try again.",
+        )
+
+
+@router.post("/reset-password-confirm")
+async def reset_password_confirm(request: ResetPasswordConfirmRequest):
+    """
+    Reset password using a recovery token from email link.
+
+    This endpoint is used after the user clicks the password reset email link.
+    It exchanges the recovery token for a session and updates the password.
+
+    Args:
+        request: ResetPasswordConfirmRequest with access token and new password
+
+    Returns:
+        Success message
+    """
+    try:
+        supabase = get_supabase()
+        supabase_admin = get_supabase_admin()
+
+        # First, decode the token to get the user_id
+        try:
+            payload = decode_jwt_token(request.access_token)
+            user_id = payload.get("sub")
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid token: missing user ID",
+                )
+        except AuthenticationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
+
+        # Update the user's password using admin API (more reliable)
+        result = supabase_admin.auth.admin.update_user_by_id(
+            user_id,
+            {"password": request.password}
+        )
+
+        if result.user:
+            logger.info(f"Password reset successfully for user {user_id}")
+            return {
+                "success": True,
+                "message": "Password updated successfully. Please log in with your new password.",
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to update password",
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error resetting password: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reset password. Please try again.",
         )
 
 
