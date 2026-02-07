@@ -1775,8 +1775,15 @@ function renderChatResults() {
                 </div>
             </div>
 
+            ${analysis.transcript_summary ? `
+            <div class="transcript-summary-section" style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid #0ea5e9;">
+                <h3 style="margin-top: 0; color: #0369a1;">Conversation Summary</h3>
+                <p>${escapeHtml(analysis.transcript_summary)}</p>
+            </div>
+            ` : ''}
+
             <div class="summary-section">
-                <h3>Summary</h3>
+                <h3>Performance Summary</h3>
                 <p>${escapeHtml(analysis.summary || '')}</p>
             </div>
 
@@ -1818,7 +1825,20 @@ function renderChatResults() {
                 </div>
             </div>
 
-            <div class="results-actions">
+            <div class="feedback-section user-feedback" style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e5e7eb;">
+                <h3>Share Your Feedback</h3>
+                <p>How was your practice experience? Your feedback helps us improve the platform.</p>
+                <div class="feedback-actions" style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="giveFeedbackBtn">
+                        Give Feedback
+                    </button>
+                    <button class="btn btn-outline" id="exportReportBtn">
+                        Export Styled Report
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-actions" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
                 <button class="btn btn-outline" id="practiceAgainBtn">Practice Again</button>
                 <a href="#" data-link="/modules" class="btn btn-primary">Back to Modules</a>
             </div>
@@ -1845,6 +1865,14 @@ function renderChatResults() {
     document.getElementById('practiceAgainBtn').addEventListener('click', () => {
         resetChatState();
         router.navigate('/chat-practice');
+    });
+
+    document.getElementById('giveFeedbackBtn').addEventListener('click', () => {
+        showFeedbackForm();
+    });
+
+    document.getElementById('exportReportBtn').addEventListener('click', () => {
+        exportAnalysisToHTML(analysis, transcript);
     });
 }
 
@@ -1979,6 +2007,165 @@ function resetChatState() {
         clearTimeout(demoInterval);
         demoInterval = null;
     }
+}
+
+/**
+ * Export analysis report to styled HTML (for PDF printing)
+ */
+function exportAnalysisToHTML(analysis, transcript) {
+    const exportData = {
+        analysis: analysis,
+        format: "html",
+        title: `MI Practice Analysis - ${chatState.personaName || 'Session'}`
+    };
+    
+    // Open a new window with the styled report
+    const exportWindow = window.open('', '_blank');
+    
+    fetch(`${API_BASE}/export/report/html`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': state.token ? `Bearer ${state.token}` : ''
+        },
+        body: JSON.stringify(exportData)
+    })
+    .then(response => response.text())
+    .then(html => {
+        exportWindow.document.write(html);
+        exportWindow.document.close();
+        showToast('Report opened in new window. Use Print to save as PDF.', 'success');
+    })
+    .catch(error => {
+        exportWindow.close();
+        showToast('Failed to generate report', 'error');
+        console.error('Export error:', error);
+    });
+}
+
+/**
+ * Show feedback form modal
+ */
+function showFeedbackForm() {
+    const overlay = document.createElement('div');
+    overlay.className = 'feedback-overlay';
+    overlay.id = 'feedbackOverlay';
+
+    overlay.innerHTML = `
+        <div class="feedback-modal" style="max-width: 500px;">
+            <div class="feedback-header">
+                <div class="feedback-icon">💭</div>
+                <h2 class="feedback-title">Share Your Feedback</h2>
+                <p class="feedback-subtitle">Help us improve the MI Learning Platform</p>
+            </div>
+            <div class="feedback-body">
+                <form id="feedbackForm">
+                    <div class="form-group">
+                        <label for="helpfulnessScore">How helpful was this practice session? (0-10)</label>
+                        <div class="score-slider-container">
+                            <input type="range" id="helpfulnessScore" name="helpfulnessScore" min="0" max="10" value="8" class="score-slider">
+                            <span class="score-display" id="scoreDisplay">8</span>
+                        </div>
+                        <div class="score-labels">
+                            <span>Not helpful</span>
+                            <span>Very helpful</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="whatWasHelpful">What was most helpful?</label>
+                        <textarea id="whatWasHelpful" name="whatWasHelpful" rows="3" placeholder="Tell us what worked well for you..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="improvementSuggestions">How can we improve?</label>
+                        <textarea id="improvementSuggestions" name="improvementSuggestions" rows="3" placeholder="Share your suggestions..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userEmail">Email (optional)</label>
+                        <input type="email" id="userEmail" name="userEmail" placeholder="your@email.com">
+                        <small>We'll only use this to follow up on your feedback if needed.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="feedback-footer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <button type="button" class="btn btn-primary btn-lg" id="submitFeedbackBtn" style="width: 100%;">
+                    Submit Feedback
+                </button>
+                <button type="button" class="btn btn-outline" id="skipFeedbackBtn" style="width: 100%;">
+                    Skip
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    document.body.classList.add('modal-open');
+    setTimeout(() => overlay.classList.add('show'), 10);
+
+    // Score slider handler
+    const scoreSlider = overlay.querySelector('#helpfulnessScore');
+    const scoreDisplay = overlay.querySelector('#scoreDisplay');
+    scoreSlider.addEventListener('input', (e) => {
+        scoreDisplay.textContent = e.target.value;
+    });
+
+    // Submit handler
+    overlay.querySelector('#submitFeedbackBtn').addEventListener('click', async () => {
+        const submitBtn = overlay.querySelector('#submitFeedbackBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-small"></span> Submitting...';
+
+        try {
+            const feedbackData = {
+                session_id: chatState.sessionId || 'demo',
+                persona_practiced: chatState.personaName,
+                helpfulness_score: parseInt(overlay.querySelector('#helpfulnessScore').value),
+                what_was_helpful: overlay.querySelector('#whatWasHelpful').value,
+                improvement_suggestions: overlay.querySelector('#improvementSuggestions').value,
+                user_email: overlay.querySelector('#userEmail').value || null
+            };
+
+            const response = await fetch(`${API_BASE}/feedback/submit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': state.token ? `Bearer ${state.token}` : ''
+                },
+                body: JSON.stringify(feedbackData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to submit feedback');
+            }
+
+            overlay.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+                showToast('Thank you for your feedback!', 'success');
+            }, 300);
+
+        } catch (error) {
+            showToast(error.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Feedback';
+        }
+    });
+
+    // Skip handler
+    overlay.querySelector('#skipFeedbackBtn').addEventListener('click', () => {
+        overlay.classList.remove('show');
+        document.body.classList.remove('modal-open');
+        setTimeout(() => {
+            if (document.body.contains(overlay)) {
+                document.body.removeChild(overlay);
+            }
+        }, 300);
+    });
 }
 
 // =====================================================

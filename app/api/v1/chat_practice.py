@@ -23,6 +23,7 @@ from app.models.chat import (
 from app.services.personas import get_persona_list, get_persona
 from app.services import chat_service
 from app.services import conversation_analysis_service
+from app.services.analysis_persistence_service import save_conversation_analysis
 from app.core.auth import get_current_user, AuthContext
 
 router = APIRouter(prefix="/chat-practice", tags=["Chat Practice"])
@@ -168,6 +169,7 @@ async def end_chat_session(
             areas_for_improvement=analysis_result.get("areas_for_improvement", []),
             client_movement=analysis_result.get("client_movement", "stable"),
             change_talk_evoked=analysis_result.get("change_talk_evoked", False),
+            transcript_summary=analysis_result.get("transcript_summary", ""),
             summary=analysis_result.get("summary", ""),
             key_moments=analysis_result.get("key_moments", []),
             suggestions_for_next_time=analysis_result.get(
@@ -180,6 +182,21 @@ async def end_chat_session(
             {"role": msg["role"], "content": msg["content"]}
             for msg in session_data["transcript"]
         ]
+
+        # Save analysis to database (async background operation)
+        try:
+            save_conversation_analysis(
+                session_id=request.session_id,
+                analysis=analysis,
+                transcript=transcript,
+                persona_id=session_data.get("persona_id"),
+                persona_name=persona_name,
+                user_id=auth.user_id if auth else None,
+                total_turns=session_data["total_turns"],
+            )
+        except Exception as e:
+            # Log error but don't fail the request
+            logger.warning(f"Failed to save analysis to database: {e}")
 
         return ChatEndResponse(
             session_id=request.session_id,
@@ -285,6 +302,7 @@ async def analyze_transcript(
             areas_for_improvement=analysis_result.get("areas_for_improvement", []),
             client_movement=analysis_result.get("client_movement", "stable"),
             change_talk_evoked=analysis_result.get("change_talk_evoked", False),
+            transcript_summary=analysis_result.get("transcript_summary", ""),
             summary=analysis_result.get("summary", ""),
             key_moments=analysis_result.get("key_moments", []),
             suggestions_for_next_time=analysis_result.get(

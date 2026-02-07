@@ -34,7 +34,17 @@ except Exception as e:
 
 # Import routers
 try:
-    from app.api.v1 import auth, modules, dialogue, progress, leaderboard, chat_practice, admin
+    from app.api.v1 import (
+        auth,
+        modules,
+        dialogue,
+        progress,
+        leaderboard,
+        chat_practice,
+        admin,
+        feedback,
+        report_export,
+    )
 
     ROUTERS_LOADED = True
 except Exception as e:
@@ -79,6 +89,8 @@ if ROUTERS_LOADED:
     )
     app.include_router(chat_practice.router, prefix="/api/v1", tags=["Chat Practice"])
     app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+    app.include_router(feedback.router, prefix="/api/v1", tags=["Feedback"])
+    app.include_router(report_export.router, prefix="/api/v1", tags=["Export"])
 
 # Mount static files
 static_dir = Path(__file__).parent.parent / "static"
@@ -96,11 +108,14 @@ if templates_dir.exists():
 async def root(request: Request):
     """Root endpoint - serve the frontend HTML"""
     if templates:
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "supabase_url": getattr(settings, "SUPABASE_URL", ""),
-            "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
-        })
+        return templates.TemplateResponse(
+            "index.html",
+            {
+                "request": request,
+                "supabase_url": getattr(settings, "SUPABASE_URL", ""),
+                "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
+            },
+        )
     # Fallback to JSON if templates not found
     return {
         "name": getattr(settings, "APP_NAME", "MI Learning Platform"),
@@ -114,11 +129,14 @@ async def root(request: Request):
 async def admin_dashboard(request: Request):
     """Admin dashboard endpoint - serve the admin HTML with Supabase config"""
     if templates:
-        return templates.TemplateResponse("admin.html", {
-            "request": request,
-            "supabase_url": getattr(settings, "SUPABASE_URL", ""),
-            "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
-        })
+        return templates.TemplateResponse(
+            "admin.html",
+            {
+                "request": request,
+                "supabase_url": getattr(settings, "SUPABASE_URL", ""),
+                "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
+            },
+        )
     return {"error": "Templates not configured"}
 
 

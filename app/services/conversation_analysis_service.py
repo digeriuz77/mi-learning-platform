@@ -2,10 +2,11 @@
 Conversation Analysis Service for MI Practice Sessions.
 Analyzes conversations using MAPS framework and MI technique detection.
 """
+
 import os
 import httpx
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 OPENAI_API_URL = "https://api.openai.com/v1/responses"
@@ -100,6 +101,7 @@ Please provide your analysis in the following JSON format (ensure valid JSON):
     "areas_for_improvement": ["<area 1>", "<area 2>", ...],
     "client_movement": "<toward_change/stable/away_from_change>",
     "change_talk_evoked": <true/false>,
+    "transcript_summary": "<1-2 paragraph summary of what actually happened in the conversation - the key topics discussed, how the client responded, and the flow of dialogue>",
     "summary": "<2-3 paragraph summary of the conversation quality and practitioner performance>",
     "key_moments": [
         {{
@@ -131,8 +133,7 @@ def _format_conversation(transcript: List[Dict[str, str]], persona_name: str) ->
 
 
 async def analyze_conversation(
-    transcript: List[Dict[str, str]],
-    persona_name: str = "Client"
+    transcript: List[Dict[str, str]], persona_name: str = "Client"
 ) -> Dict[str, Any]:
     """
     Analyze a practice conversation and return detailed feedback.
@@ -152,10 +153,7 @@ async def analyze_conversation(
     # Build the analysis request
     prompt = ANALYSIS_PROMPT.format(conversation=formatted_conversation)
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
     payload = {
         "model": _get_openai_model(),
@@ -163,15 +161,13 @@ async def analyze_conversation(
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            OPENAI_API_URL,
-            headers=headers,
-            json=payload
-        )
+        response = await client.post(OPENAI_API_URL, headers=headers, json=payload)
 
         if response.status_code != 200:
             error_detail = response.text
-            raise Exception(f"OpenAI API error: {response.status_code} - {error_detail}")
+            raise Exception(
+                f"OpenAI API error: {response.status_code} - {error_detail}"
+            )
 
         data = response.json()
 
@@ -233,7 +229,7 @@ def _parse_analysis_json(response_text: str) -> Dict[str, Any]:
         return _get_default_analysis(f"Failed to parse analysis: {str(e)}")
 
 
-def _get_default_analysis(error_message: str = None) -> Dict[str, Any]:
+def _get_default_analysis(error_message: Optional[str] = None) -> Dict[str, Any]:
     """Return a default analysis structure when parsing fails."""
     return {
         "overall_score": 3.0,
@@ -254,15 +250,19 @@ def _get_default_analysis(error_message: str = None) -> Dict[str, Any]:
             "affirmation": 0,
             "summary": 0,
             "giving_advice": 0,
-            "directing": 0
+            "directing": 0,
         },
         "strengths": ["Analysis could not be completed"],
         "areas_for_improvement": ["Please try again"],
         "client_movement": "stable",
         "change_talk_evoked": False,
-        "summary": error_message or "Analysis could not be generated. Please try again.",
+        "transcript_summary": "Analysis could not be generated. Please try again.",
+        "summary": error_message
+        or "Analysis could not be generated. Please try again.",
         "key_moments": [],
-        "suggestions_for_next_time": ["Practice with longer conversations for more detailed feedback"]
+        "suggestions_for_next_time": [
+            "Practice with longer conversations for more detailed feedback"
+        ],
     }
 
 
@@ -271,21 +271,29 @@ def calculate_technique_balance(techniques_count: Dict[str, int]) -> Dict[str, A
     oars = {
         "open_questions": techniques_count.get("open_question", 0),
         "affirmations": techniques_count.get("affirmation", 0),
-        "reflections": techniques_count.get("simple_reflection", 0) + techniques_count.get("complex_reflection", 0),
-        "summaries": techniques_count.get("summary", 0)
+        "reflections": techniques_count.get("simple_reflection", 0)
+        + techniques_count.get("complex_reflection", 0),
+        "summaries": techniques_count.get("summary", 0),
     }
 
     total_oars = sum(oars.values())
-    non_mi = techniques_count.get("giving_advice", 0) + techniques_count.get("directing", 0)
+    non_mi = techniques_count.get("giving_advice", 0) + techniques_count.get(
+        "directing", 0
+    )
 
     # Calculate reflection to question ratio
-    total_questions = techniques_count.get("open_question", 0) + techniques_count.get("closed_question", 0)
-    reflection_ratio = oars["reflections"] / total_questions if total_questions > 0 else 0
+    total_questions = techniques_count.get("open_question", 0) + techniques_count.get(
+        "closed_question", 0
+    )
+    reflection_ratio = (
+        oars["reflections"] / total_questions if total_questions > 0 else 0
+    )
 
     # Calculate open vs closed question ratio
     open_question_ratio = (
         techniques_count.get("open_question", 0) / total_questions
-        if total_questions > 0 else 0
+        if total_questions > 0
+        else 0
     )
 
     return {
@@ -295,7 +303,9 @@ def calculate_technique_balance(techniques_count: Dict[str, int]) -> Dict[str, A
         "reflection_to_question_ratio": round(reflection_ratio, 2),
         "open_question_percentage": round(open_question_ratio * 100, 1),
         "mi_adherent_percentage": round(
-            total_oars / (total_oars + non_mi) * 100 if (total_oars + non_mi) > 0 else 0,
-            1
-        )
+            total_oars / (total_oars + non_mi) * 100
+            if (total_oars + non_mi) > 0
+            else 0,
+            1,
+        ),
     }

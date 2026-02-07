@@ -3096,3 +3096,116 @@ body.modal-open {
         align-items: center;
     }
 }
+
+/* =====================================================
+   Feedback Form Styles
+   ===================================================== */
+
+.score-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.score-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    outline: none;
+}
+
+.score-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.score-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.score-slider::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.score-display {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 40px;
+    text-align: center;
+}
+
+.score-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--gray);
+}
+
+.feedback-subtitle {
+    color: var(--gray);
+    margin-top: 0.5rem;
+}
+
+.transcript-summary-section {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: var(--radius-lg);
+    border-left: 4px solid #0ea5e9;
+}
+
+.transcript-summary-section h3 {
+    margin-top: 0;
+    color: #0369a1;
+    margin-bottom: 0.75rem;
+}
+
+.user-feedback {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border-top: 2px solid #e5e7eb;
+}
+
+.user-feedback h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.user-feedback p {
+    color: var(--gray);
+    margin-bottom: 1rem;
+}
+
+.feedback-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .feedback-actions {
+        flex-direction: column;
+    }
+    
+    .feedback-actions .btn {
+        width: 100%;
+    }
+}
