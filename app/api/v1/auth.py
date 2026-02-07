@@ -359,6 +359,10 @@ async def login(request: LoginRequest):
         raise
     except Exception as e:
         error_msg = str(e).lower()
+        error_str = str(e)
+
+        # Log the full error for debugging
+        logger.error(f"Login error for {request.email}: {error_str}")
 
         # Handle specific Supabase auth errors
         if "invalid login credentials" in error_msg or "invalid password" in error_msg:
@@ -371,8 +375,25 @@ async def login(request: LoginRequest):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Email not confirmed. Please check your inbox.",
             )
+        elif "user not found" in error_msg or "user not found" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
+        elif "user is banned" in error_msg or "banned" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account has been disabled. Please contact support.",
+            )
+        elif "jsondecode" in error_msg or "bad request" in error_msg:
+            # This might indicate a configuration issue
+            logger.error(f"Supabase auth configuration error: {error_str}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication service error. Please try again later.",
+            )
         else:
-            logger.error(f"Login error: {e}")
+            logger.error(f"Unexpected login error: {error_str}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Login failed. Please try again.",
