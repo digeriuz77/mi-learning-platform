@@ -1,10 +1,10 @@
--- Migration: Fix Practice Analytics Functions
+-- Migration: Fix Practice Analytics Functions (v2)
 -- Date: 2026-02-07
--- Description: Fixes column references and removes redundant admin checks
+-- Description: Fixes SQL errors in practice analytics functions
 
 -- ============================================
 -- Fix: Get all users with practice analytics
--- Remove admin check (API already checks) and fix display_name reference
+-- Fix modules_completed count and GROUP BY issues
 -- ============================================
 CREATE OR REPLACE FUNCTION get_all_users_with_practice_analytics(
     search_email text DEFAULT null,
@@ -27,7 +27,7 @@ BEGIN
                 'created_at', u.created_at,
                 'role', COALESCE(u2.role, 'user'),
                 'is_active', COALESCE(u2.is_active, true),
-                'modules_completed', COALESCE(up.modules_completed, 0),
+                'modules_completed', COALESCE(module_count.count, 0),
                 'total_points', COALESCE(ups.total_points, 0),
                 'level', COALESCE(ups.level, 1),
                 'practice_sessions_count', COALESCE(ups.practice_sessions_count, 0),
@@ -41,14 +41,14 @@ BEGIN
         ) INTO result
         FROM auth.users u
         LEFT JOIN public.users u2 ON u.id = u2.id
-        LEFT JOIN public.user_progress up ON u.id = up.user_id AND up.status = 'completed'
         LEFT JOIN public.user_profiles ups ON u.id = ups.user_id
+        LEFT JOIN (
+            SELECT user_id, COUNT(*) as count
+            FROM public.user_progress
+            WHERE status = 'completed'
+            GROUP BY user_id
+        ) module_count ON u.id = module_count.user_id
         WHERE u.email ILIKE '%' || search_email || '%'
-        GROUP BY u.id, u.email, u.created_at, u2.display_name, u2.role, u2.is_active, 
-                 up.modules_completed, ups.total_points, ups.level,
-                 ups.practice_sessions_count, ups.avg_overall_score, ups.avg_trust_safety,
-                 ups.avg_empathy_partnership, ups.avg_empowerment_clarity, ups.avg_mi_spirit,
-                 ups.last_practice_at
         ORDER BY u.created_at DESC
         LIMIT limit_count OFFSET offset_count;
     ELSE
@@ -60,7 +60,7 @@ BEGIN
                 'created_at', u.created_at,
                 'role', COALESCE(u2.role, 'user'),
                 'is_active', COALESCE(u2.is_active, true),
-                'modules_completed', COALESCE(up.modules_completed, 0),
+                'modules_completed', COALESCE(module_count.count, 0),
                 'total_points', COALESCE(ups.total_points, 0),
                 'level', COALESCE(ups.level, 1),
                 'practice_sessions_count', COALESCE(ups.practice_sessions_count, 0),
@@ -74,13 +74,13 @@ BEGIN
         ) INTO result
         FROM auth.users u
         LEFT JOIN public.users u2 ON u.id = u2.id
-        LEFT JOIN public.user_progress up ON u.id = up.user_id AND up.status = 'completed'
         LEFT JOIN public.user_profiles ups ON u.id = ups.user_id
-        GROUP BY u.id, u.email, u.created_at, u2.display_name, u2.role, u2.is_active, 
-                 up.modules_completed, ups.total_points, ups.level,
-                 ups.practice_sessions_count, ups.avg_overall_score, ups.avg_trust_safety,
-                 ups.avg_empathy_partnership, ups.avg_empowerment_clarity, ups.avg_mi_spirit,
-                 ups.last_practice_at
+        LEFT JOIN (
+            SELECT user_id, COUNT(*) as count
+            FROM public.user_progress
+            WHERE status = 'completed'
+            GROUP BY user_id
+        ) module_count ON u.id = module_count.user_id
         ORDER BY u.created_at DESC
         LIMIT limit_count OFFSET offset_count;
     END IF;
@@ -93,7 +93,7 @@ COMMENT ON FUNCTION get_all_users_with_practice_analytics IS 'Returns all users 
 
 -- ============================================
 -- Fix: Get practice leaderboard
--- Fix display_name reference
+-- Remove unnecessary GROUP BY
 -- ============================================
 CREATE OR REPLACE FUNCTION get_practice_leaderboard(limit_count int DEFAULT 20)
 RETURNS json
@@ -127,62 +127,3 @@ END;
 $$;
 
 COMMENT ON FUNCTION get_practice_leaderboard IS 'Returns top users by practice performance scores';
-
--- ============================================
--- Fix: Get comprehensive practice analytics
--- Remove admin check (API already checks)
--- ============================================
-CREATE OR REPLACE FUNCTION get_comprehensive_practice_analytics()
-RETURNS json
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-    v_total_sessions BIGINT;
-    v_total_users BIGINT;
-    v_avg_overall_score NUMERIC;
-    v_avg_trust_safety NUMERIC;
-    v_avg_empathy NUMERIC;
-    v_avg_empowerment NUMERIC;
-    v_avg_mi_spirit NUMERIC;
-    v_sessions_with_change_talk BIGINT;
-    v_avg_turns NUMERIC;
-BEGIN
-    -- Get aggregate stats from conversation_analyses
-    SELECT 
-        COUNT(*)::BIGINT,
-        COUNT(DISTINCT user_id)::BIGINT,
-        ROUND(AVG(overall_score), 2),
-        ROUND(AVG(foundational_trust_safety), 2),
-        ROUND(AVG(empathic_partnership_autonomy), 2),
-        ROUND(AVG(empowerment_clarity), 2),
-        ROUND(AVG(mi_spirit_score), 2),
-        COUNT(*) FILTER (WHERE change_talk_evoked = TRUE)::BIGINT,
-        ROUND(AVG(total_turns), 1)
-    INTO 
-        v_total_sessions,
-        v_total_users,
-        v_avg_overall_score,
-        v_avg_trust_safety,
-        v_avg_empathy,
-        v_avg_empowerment,
-        v_avg_mi_spirit,
-        v_sessions_with_change_talk,
-        v_avg_turns
-    FROM public.conversation_analyses;
-
-    RETURN json_build_object(
-        'total_sessions', COALESCE(v_total_sessions, 0),
-        'total_users', COALESCE(v_total_users, 0),
-        'avg_overall_score', v_avg_overall_score,
-        'avg_trust_safety', v_avg_trust_safety,
-        'avg_empathy', v_avg_empathy,
-        'avg_empowerment', v_avg_empowerment,
-        'avg_mi_spirit', v_avg_mi_spirit,
-        'sessions_with_change_talk', COALESCE(v_sessions_with_change_talk, 0),
-        'avg_turns', v_avg_turns
-    );
-END;
-$$;
-
-COMMENT ON FUNCTION get_comprehensive_practice_analytics IS 'Returns comprehensive practice analytics for admin dashboard';
