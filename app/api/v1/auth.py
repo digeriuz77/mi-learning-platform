@@ -583,13 +583,10 @@ async def update_password(
         Success message
     """
     try:
-        supabase_admin = get_supabase_admin()
+        supabase = get_supabase()
 
-        # Update the user's password using admin API
-        result = supabase_admin.auth.admin.update_user_by_id(
-            auth_context.user_id,
-            {"password": request.password}
-        )
+        # Update the user's password using the authenticated session
+        result = supabase.auth.update_user({"password": request.password})
 
         if result.user:
             logger.info(
