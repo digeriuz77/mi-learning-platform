@@ -495,33 +495,111 @@ async def refresh_token(authorization: Optional[str] = Header(None)):
         )
 
 
+class PasswordResetRequest(BaseModel):
+    """Password reset request"""
+
+    email: EmailStr
+
+
+class UpdatePasswordRequest(BaseModel):
+    """Update password request"""
+
+    password: str = Field(..., min_length=6, max_length=100)
+
+
 @router.post("/forgot-password")
-async def forgot_password(email: EmailStr):
+async def forgot_password(request: PasswordResetRequest):
     """
     Request password reset email.
 
-    Sends a password reset email to the user.
+    Sends a password reset email to the user with a link to reset their password.
+    The link will redirect to the app's reset password page.
 
     Args:
-        email: User's email address
+        request: PasswordResetRequest with email address
+
+    Returns:
+        Success message (always returns success for security)
+    """
+    try:
+        supabase = get_supabase()
+
+        # Build the redirect URL for password reset
+        # Use SITE_URL if set, otherwise construct from request
+        site_url = settings.SITE_URL or ""
+        if not site_url:
+            # Fallback - this should be configured in production
+            site_url = "https://mi-learning-platform-production.up.railway.app"
+        redirect_url = f"{site_url}/reset-password"
+
+        # Request password reset from Supabase
+        # Note: reset_password_email sends the email with a link
+        supabase.auth.reset_password_email(
+            request.email, options={"redirect_to": redirect_url}
+        )
+
+        logger.info(f"Password reset email sent to {request.email}")
+
+        return {
+            "success": True,
+            "message": "If an account exists with this email, a password reset link has been sent.",
+        }
+
+    except Exception as e:
+        # Don't reveal if email exists or not for security
+        logger.warning(f"Password reset request for {request.email}: {e}")
+        return {
+            "success": True,
+            "message": "If an account exists with this email, a password reset link has been sent.",
+        }
+
+
+@router.post("/update-password")
+async def update_password(
+    request: UpdatePasswordRequest,
+    auth_context: AuthContext = Depends(get_current_user),
+):
+    """
+    Update user password.
+
+    Updates the password for the currently authenticated user.
+    This is used after the user clicks the password reset link.
+
+    Args:
+        request: UpdatePasswordRequest with new password
+        auth_context: Authentication context from the recovery token
 
     Returns:
         Success message
     """
-    supabase = get_supabase()
-
     try:
-        # Request password reset
-        supabase.auth.reset_password_email(email)
+        supabase = get_supabase()
 
-        return {"message": "Password reset email sent. Check your inbox."}
+        # Update the user's password
+        result = supabase.auth.update_user({"password": request.password})
 
+        if result.user:
+            logger.info(
+                f"Password updated successfully for user {auth_context.user_id}"
+            )
+            return {
+                "success": True,
+                "message": "Password updated successfully. Please log in with your new password.",
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to update password",
+            )
+
+    except HTTPException:
+        raise
     except Exception as e:
-        # Don't reveal if email exists or not for security
-        logger.warning(f"Password reset request for {email}: {e}")
-        return {
-            "message": "If an account exists with this email, a password reset link has been sent."
-        }
+        logger.error(f"Error updating password: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update password. Please try again.",
+        )
 
 
 @router.get("/role")

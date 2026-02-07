@@ -107,6 +107,20 @@ const authAPI = {
         }
     },
 
+    async forgotPassword(email) {
+        return apiRequest('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email })
+        });
+    },
+
+    async updatePassword(password) {
+        return apiRequest('/auth/update-password', {
+            method: 'POST',
+            body: JSON.stringify({ password })
+        });
+    },
+
     async refreshToken() {
         const data = await apiRequest('/auth/refresh', {
             method: 'POST'
@@ -447,6 +461,9 @@ function renderLogin() {
                     <button type="submit" class="btn btn-primary btn-lg" style="width: 100%">Sign In</button>
                 </form>
                 <p class="auth-footer">
+                    <a href="#" data-link="/forgot-password" style="font-size: 0.9rem;">Forgot your password?</a>
+                </p>
+                <p class="auth-footer">
                     Don't have an account? <a href="#" data-link="/register">Create one</a>
                 </p>
             </div>
@@ -601,6 +618,125 @@ function renderRegister() {
         } finally {
             btn.disabled = false;
             btn.textContent = 'Create Account';
+        }
+    });
+}
+
+/**
+ * Forgot password page
+ */
+function renderForgotPassword() {
+    const app = document.getElementById('app');
+
+    app.innerHTML = `
+        <div class="auth-container">
+            <div class="auth-card">
+                <h2 class="auth-title">Reset Password</h2>
+                <p class="auth-subtitle">Enter your email and we'll send you a link to reset your password</p>
+                <form id="forgotPasswordForm" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required placeholder="you@example.com">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%">Send Reset Link</button>
+                </form>
+                <p class="auth-footer">
+                    Remember your password? <a href="#" data-link="/login">Sign in</a>
+                </p>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('forgotPasswordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const email = formData.get('email');
+
+        const btn = e.target.querySelector('button');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-small"></span> Sending...';
+
+        try {
+            const result = await authAPI.forgotPassword(email);
+            showToast(result.message || 'Password reset email sent!', 'success');
+            setTimeout(() => router.navigate('/login'), 2000);
+        } catch (error) {
+            showToast(error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send Reset Link';
+        }
+    });
+}
+
+/**
+ * Reset password page (accessed from email link)
+ */
+async function renderResetPassword() {
+    const app = document.getElementById('app');
+    
+    // Check if user is authenticated (they should be after clicking the email link)
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        app.innerHTML = `
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h2 class="auth-title">Invalid Reset Link</h2>
+                    <p class="auth-subtitle">This password reset link is invalid or has expired.</p>
+                    <a href="#" data-link="/forgot-password" class="btn btn-primary" style="width: 100%">Request New Link</a>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    app.innerHTML = `
+        <div class="auth-container">
+            <div class="auth-card">
+                <h2 class="auth-title">Set New Password</h2>
+                <p class="auth-subtitle">Enter your new password below</p>
+                <form id="resetPasswordForm" class="auth-form">
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-control" name="password" required minlength="6" placeholder="Create a new password (min 6 characters)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" name="confirmPassword" required minlength="6" placeholder="Confirm your new password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%">Update Password</button>
+                </form>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const password = formData.get('password');
+        const confirmPassword = formData.get('confirmPassword');
+
+        if (password !== confirmPassword) {
+            showToast('Passwords do not match', 'error');
+            return;
+        }
+
+        const btn = e.target.querySelector('button');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-small"></span> Updating...';
+
+        try {
+            const result = await authAPI.updatePassword(password);
+            showToast(result.message || 'Password updated successfully!', 'success');
+            // Log them out so they can log in with the new password
+            await authAPI.logout();
+            renderNav();
+            setTimeout(() => router.navigate('/login'), 2000);
+        } catch (error) {
+            showToast(error.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Update Password';
         }
     });
 }
@@ -2177,6 +2313,8 @@ const router = {
         '/': renderHome,
         '/login': renderLogin,
         '/register': renderRegister,
+        '/forgot-password': renderForgotPassword,
+        '/reset-password': renderResetPassword,
         '/about': renderAbout,
         '/modules': renderModules,
         '/modules/:id': renderModuleDetail,
