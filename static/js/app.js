@@ -357,7 +357,7 @@ async function renderHome() {
             <div class="hero">
                 <div class="hero-content">
                     <h1 class="hero-title">Master Motivational Interviewing</h1>
-                    <p class="hero-subtitle">Learn evidence-based communication techniques through interactive dialogue practice with virtual patients.</p>
+                    <p class="hero-subtitle">Learn evidence-based communication techniques through interactive dialogue practice.</p>
                     <div class="hero-buttons">
                         <a href="#" data-link="/register" class="btn btn-primary btn-lg">Get Started</a>
                         <a href="#" data-link="/login" class="btn btn-outline btn-lg">Sign In</a>
@@ -384,7 +384,7 @@ async function renderHome() {
                 <div class="feature-card">
                     <div class="feature-icon">🎯</div>
                     <h3>Interactive Scenarios</h3>
-                    <p>Practice with realistic patient dialogues across different stages of change</p>
+                    <p>Practice with realistic dialogues across different stages of change</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
@@ -743,7 +743,7 @@ async function renderModules() {
         app.innerHTML = `
             <div class="page-header">
                 <h1>Learning Modules</h1>
-                <p>Practice MI techniques through interactive dialogues with virtual patients</p>
+                <p>Practice MI techniques through interactive dialogues</p>
             </div>
             <div class="modules-grid">
                 ${data.modules.map(module => `
