@@ -16,6 +16,8 @@ class PersonaSummary(BaseModel):
     title: str
     description: str
     avatar: str
+    topic: Optional[str] = None
+    stage_of_change: Optional[str] = None
 
 
 class PersonaListResponse(BaseModel):
