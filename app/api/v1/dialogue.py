@@ -58,19 +58,75 @@ def get_node_number(dialogue_content: dict, node_id: str) -> int:
     return 0
 
 
-def is_correct_technique(choice: dict) -> bool:
-    """Determine if a choice uses the correct MI technique"""
+def get_technique_quality(choice: dict) -> str:
+    """
+    Determine the quality of a technique choice.
+    
+    Returns:
+        'excellent': Best MI technique (complex reflection, affirmation + reflection)
+        'good': Solid MI technique (simple reflection, open question)
+        'acceptable': Basic MI technique (affirmation, boundary setting)
+        'poor': Non-MI technique (closed question, interpretation)
+    """
     technique = choice.get('technique', '').lower()
-    # Non-MI techniques
+    feedback = choice.get('feedback', '').lower()
+    
+    # Non-MI techniques (poor quality)
     non_mi_keywords = ['non-mi', 'righting reflex', 'educating', 'lecturing',
-                       'defending', 'challenging', 'questioning']
-    return not any(keyword in technique for keyword in non_mi_keywords)
+                       'defending', 'challenging', 'interpretation', 'closed question',
+                       'non-impartial', 'colluding']
+    if any(keyword in technique for keyword in non_mi_keywords):
+        return 'poor'
+    
+    # Check feedback for quality indicators
+    if any(kw in feedback for kw in ['miss', 'stops the flow', 'surface level', 
+                                     'risk breaking', 'does not dig deeper']):
+        return 'acceptable'
+    
+    # Excellent techniques - complex combinations
+    excellent_keywords = ['complex reflection', 'reflection + open', 'reflection + affirmation',
+                          'summary', 'affirmation + reflection', 'double-sided reflection']
+    if any(keyword in technique for keyword in excellent_keywords):
+        return 'excellent'
+    
+    # Good techniques - core MI skills
+    good_keywords = ['reflection', 'open question', 'empathic', 'affirmation +']
+    if any(keyword in technique for keyword in good_keywords):
+        # But check if feedback suggests it's only acceptable
+        if 'but' in feedback or 'however' in feedback or 'miss' in feedback:
+            return 'acceptable'
+        return 'good'
+    
+    # Acceptable techniques - basic skills
+    acceptable_keywords = ['affirmation', 'boundary', 'acknowledgment', 'validat']
+    if any(keyword in technique for keyword in acceptable_keywords):
+        return 'acceptable'
+    
+    # Default to good if it doesn't match non-MI patterns
+    return 'good'
+
+
+def is_correct_technique(choice: dict) -> bool:
+    """Determine if a choice uses an acceptable or better MI technique"""
+    quality = get_technique_quality(choice)
+    return quality in ['excellent', 'good', 'acceptable']
 
 
 def evokes_change_talk(node: dict, choice: dict) -> bool:
     """Determine if a choice evokes change talk (simplified heuristic)"""
     feedback = choice.get('feedback', '').lower()
-    return 'change talk' in feedback or 'evoked' in feedback
+    technique = choice.get('technique', '').lower()
+    
+    # Check feedback for change talk indicators
+    if any(kw in feedback for kw in ['change talk', 'evoked', 'sustain talk', 
+                                     'explores ambivalence', 'deeper sharing']):
+        return True
+    
+    # Check technique for change-talk evoking patterns
+    if any(kw in technique for kw in ['open question', 'reflection', 'explor']):
+        return True
+        
+    return False
 
 
 # =====================================================
@@ -176,19 +232,24 @@ async def submit_choice(
             detail="Invalid choice"
         )
 
-    # Determine if correct and if evokes change talk
-    is_correct = is_correct_technique(selected_choice)
+    # Determine technique quality and if evokes change talk
+    technique_quality = get_technique_quality(selected_choice)
+    is_correct = technique_quality != 'poor'  # Correct if not poor
     evoked_ct = evokes_change_talk(node, selected_choice)
 
-    # Determine if first attempt
+    # Get existing tracking lists
     nodes_completed = progress.get('nodes_completed', [])
+    nodes_visited = progress.get('nodes_visited', []) or []
+    
+    # Track if this is the first attempt (for bonus points)
     is_first_attempt = choice_data.node_id not in nodes_completed
-
-    # Calculate points
+    
+    # Calculate points using quality-based scoring
     points_earned = ScoringService.calculate_choice_points(
         is_correct=is_correct,
         is_first_attempt=is_first_attempt,
-        evoked_change_talk=evoked_ct
+        evoked_change_talk=evoked_ct,
+        technique_quality=technique_quality
     )
 
     # Record attempt
@@ -206,33 +267,57 @@ async def submit_choice(
         'points_earned': points_earned
     }).execute()
 
-    # Update progress
+    # Update progress - track both completed and visited
     new_nodes_completed = list(nodes_completed)
+    new_nodes_visited = list(nodes_visited)
+    
+    # Add current node to visited if not already there
+    if choice_data.node_id not in new_nodes_visited:
+        new_nodes_visited.append(choice_data.node_id)
+    
+    # Add to completed if first attempt and correct technique
     if is_first_attempt and is_correct:
         new_nodes_completed.append(choice_data.node_id)
 
     next_node_id = selected_choice.get('next_node_id')
+    
+    total_nodes = len(dialogue_content.get('nodes', []))
+    
+    # Calculate progress percentage (how far through the module)
+    visited_count = len(new_nodes_visited)
+    progress_percentage = int((visited_count / total_nodes) * 100) if total_nodes > 0 else 0
 
-    # Check if module is complete (no next node or reached end)
-    is_module_complete = (
-        not next_node_id or
-        next_node_id.startswith('node_end') or
-        next_node_id == 'end'
-    )
+    # Check if module is complete - check if next node is an ending node or no next node
+    is_module_complete = False
+    if next_node_id:
+        # Check if the next node is an ending node
+        next_node = find_dialogue_node(dialogue_content, next_node_id)
+        if next_node and next_node.get('is_ending', False):
+            is_module_complete = True
+        elif next_node_id.startswith('node_end') or next_node_id == 'end':
+            is_module_complete = True
+    else:
+        # No next node means we've reached the end
+        is_module_complete = True
 
-    status = progress['status']
+    progress_status = progress['status']
     completion_score = progress.get('completion_score', 0)
-
+    
     if is_module_complete:
-        status = 'completed'
-        total_nodes = len(dialogue_content.get('nodes', []))
+        progress_status = 'completed'
         correct_attempts = len(new_nodes_completed)
+        visited_count = len(new_nodes_visited)
+        
+        # Calculate completion score based on visited nodes (progress) and correct choices (accuracy)
         completion_score = ScoringService.calculate_completion_score(
             total_nodes=total_nodes,
-            nodes_completed=len(new_nodes_completed),
-            correct_choices=correct_attempts
+            nodes_completed=visited_count,  # Use visited for progress
+            correct_choices=correct_attempts  # Use correct for accuracy
         )
-
+        
+        # Ensure completion score is at least the progress percentage for partial completion
+        completion_score = max(completion_score, progress_percentage)
+        
         # Add completion bonus
         points_earned += ScoringService.MODULE_COMPLETION_BONUS
 
@@ -240,6 +325,7 @@ async def submit_choice(
     update_data = {
         'current_node_id': next_node_id if not is_module_complete else choice_data.node_id,
         'nodes_completed': new_nodes_completed,
+        'nodes_visited': new_nodes_visited,
         'points_earned': progress.get('points_earned', 0) + points_earned,
     }
 
@@ -278,7 +364,9 @@ async def submit_choice(
             is_module_complete=is_module_complete,
             completion_score=completion_score if is_module_complete else None,
             total_points=new_total_points,
-            level=new_level
+            level=new_level,
+            technique_quality=technique_quality,
+            progress_percentage=progress_percentage
         )
 
     # Fallback if no profile (shouldn't happen)
@@ -288,5 +376,7 @@ async def submit_choice(
         points_earned=points_earned,
         evoked_change_talk=evoked_ct,
         next_node_id=next_node_id,
-        is_module_complete=is_module_complete
+        is_module_complete=is_module_complete,
+        technique_quality=technique_quality,
+        progress_percentage=progress_percentage
     )

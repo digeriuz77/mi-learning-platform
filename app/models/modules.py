@@ -89,3 +89,5 @@ class ChoiceFeedback(BaseModel):
     completion_score: Optional[int] = None
     total_points: Optional[int] = None
     level: Optional[int] = None
+    technique_quality: Optional[str] = None  # 'excellent', 'good', 'acceptable', 'poor'
+    progress_percentage: Optional[int] = None  # Progress through module (0-100)

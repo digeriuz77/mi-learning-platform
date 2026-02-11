@@ -19,6 +19,12 @@ class ScoringService:
     CHANGE_TALK_BONUS = 50
     MODULE_COMPLETION_BONUS = 200
 
+    # Quality-based point values
+    EXCELLENT_POINTS = 150  # Best MI technique
+    GOOD_POINTS = 100       # Solid MI technique
+    ACCEPTABLE_POINTS = 50  # Basic MI technique
+    POOR_POINTS = 0         # Non-MI technique
+
     # Level thresholds
     LEVEL_THRESHOLDS = [
         0,      # Level 1
@@ -37,18 +43,50 @@ class ScoringService:
     def calculate_choice_points(
         is_correct: bool,
         is_first_attempt: bool,
-        evoked_change_talk: bool
+        evoked_change_talk: bool,
+        technique_quality: str = 'good'
     ) -> int:
         """
         Calculate points earned for a dialogue choice.
 
         Args:
-            is_correct: Whether the technique was correct
+            is_correct: Whether the technique was correct (deprecated, use technique_quality)
             is_first_attempt: Whether this is the first attempt at this node
             evoked_change_talk: Whether the choice evoked change talk
+            technique_quality: Quality of technique ('excellent', 'good', 'acceptable', 'poor')
 
         Returns:
             int: Points earned
+        """
+        # Base points based on technique quality
+        quality_points = {
+            'excellent': ScoringService.EXCELLENT_POINTS,
+            'good': ScoringService.GOOD_POINTS,
+            'acceptable': ScoringService.ACCEPTABLE_POINTS,
+            'poor': ScoringService.POOR_POINTS
+        }
+        
+        points = quality_points.get(technique_quality, ScoringService.GOOD_POINTS)
+        
+        # First attempt bonus only for good or excellent techniques
+        if is_first_attempt and technique_quality in ['excellent', 'good']:
+            points += ScoringService.FIRST_ATTEMPT_BONUS
+        
+        # Change talk bonus for any non-poor technique
+        if evoked_change_talk and technique_quality != 'poor':
+            points += ScoringService.CHANGE_TALK_BONUS
+            
+        return points
+
+    @staticmethod
+    def calculate_choice_points_legacy(
+        is_correct: bool,
+        is_first_attempt: bool,
+        evoked_change_talk: bool
+    ) -> int:
+        """
+        Legacy method for backward compatibility.
+        Calculate points earned for a dialogue choice.
         """
         points = 0
         if is_correct:

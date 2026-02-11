@@ -895,12 +895,19 @@ async function renderModuleDetail(moduleId) {
 
         if (restartBtn) {
             restartBtn.addEventListener('click', async () => {
-                if (confirm('Are you sure you want to restart? Your progress will be reset.')) {
+                const confirmMsg = module.user_status === 'completed'
+                    ? 'Restarting will reset your progress and deduct the points you earned. Continue?'
+                    : 'Are you sure you want to restart? Your progress will be reset.';
+                
+                if (confirm(confirmMsg)) {
                     restartBtn.disabled = true;
                     restartBtn.innerHTML = '<span class="spinner-small"></span> Restarting...';
                     try {
                         const result = await modulesAPI.restart(moduleId);
                         state.progressId = result.progress_id;
+                        if (result.points_deducted && result.points_deducted > 0) {
+                            showToast(`Module restarted. ${result.points_deducted} points deducted.`, 'info');
+                        }
                         router.navigate(`/modules/${moduleId}/dialogue`);
                     } catch (error) {
                         showToast(error.message, 'error');
@@ -1021,11 +1028,27 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
 }
 
 /**
+ * Get quality label and icon for technique quality
+ */
+function getQualityDisplay(quality) {
+    const qualityMap = {
+        'excellent': { label: 'Excellent!', icon: '⭐', class: 'quality-excellent' },
+        'good': { label: 'Good choice', icon: '✓', class: 'quality-good' },
+        'acceptable': { label: 'Acceptable', icon: '○', class: 'quality-acceptable' },
+        'poor': { label: 'Not recommended', icon: '✗', class: 'quality-poor' }
+    };
+    return qualityMap[quality] || qualityMap['good'];
+}
+
+/**
  * Show feedback modal
  */
 function showFeedback(feedback, moduleId, dialogueContent) {
     const isCorrect = feedback.is_correct;
     const isComplete = feedback.is_module_complete;
+    const quality = feedback.technique_quality || (isCorrect ? 'good' : 'poor');
+    const qualityDisplay = getQualityDisplay(quality);
+    const progressPercentage = feedback.progress_percentage || 0;
 
     const overlay = document.createElement('div');
     overlay.className = 'feedback-overlay';
@@ -1033,8 +1056,8 @@ function showFeedback(feedback, moduleId, dialogueContent) {
     overlay.innerHTML = `
         <div class="feedback-modal ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}">
             <div class="feedback-header">
-                <div class="feedback-icon">${isCorrect ? '✓' : '✗'}</div>
-                <h2 class="feedback-title">${isCorrect ? 'Correct!' : 'Not Quite'}</h2>
+                <div class="feedback-icon ${qualityDisplay.class}">${qualityDisplay.icon}</div>
+                <h2 class="feedback-title">${qualityDisplay.label}</h2>
             </div>
 
             <div class="feedback-body">
@@ -1049,6 +1072,15 @@ function showFeedback(feedback, moduleId, dialogueContent) {
                     <div class="change-talk-badge">
                         <span class="badge-icon">🎯</span>
                         <span>Change talk evoked!</span>
+                    </div>
+                ` : ''}
+
+                ${!isComplete ? `
+                    <div class="progress-indicator">
+                        <div class="progress-bar-mini">
+                            <div class="progress-fill-mini" style="width: ${progressPercentage}%"></div>
+                        </div>
+                        <span class="progress-text-mini">${progressPercentage}% complete</span>
                     </div>
                 ` : ''}
 
