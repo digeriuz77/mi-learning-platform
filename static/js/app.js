@@ -1272,6 +1272,9 @@ const chatState = {
     isTyping: false
 };
 
+// Persona filter state
+let personaTopicFilter = 'all'; // 'all', 'smoking_cessation', 'weight_loss'
+
 // Quick demo conversation for Marcus (MI adherent demonstration)
 const QUICK_DEMO_MESSAGES = [
     { role: 'assistant', content: "Look, I know why I'm here. My wife set this up after my last checkup. The doctor said some things about my lungs that... well, they weren't great. I've been smoking for over 20 years now, and honestly, I'm not sure what talking about it is going to do. I've tried quitting before. Didn't stick. But... my daughter just had a baby last month, so I guess there's that." },
@@ -1313,6 +1316,17 @@ async function renderChatPractice() {
     try {
         const data = await chatPracticeAPI.getPersonas();
 
+        // Filter personas based on selected topic
+        const filteredPersonas = personaTopicFilter === 'all'
+            ? data.personas
+            : data.personas.filter(p => p.topic === personaTopicFilter);
+
+        const topicLabels = {
+            'all': 'All Personas',
+            'smoking_cessation': 'Smoking Cessation',
+            'weight_loss': 'Weight Loss'
+        };
+
         app.innerHTML = `
             <div class="page-header">
                 <h1>MI Practice Chat</h1>
@@ -1331,14 +1345,30 @@ async function renderChatPractice() {
                 </div>
             </div>
 
-            <h2 class="section-title">Choose a Client</h2>
+            <div class="persona-filters">
+                <button class="filter-btn ${personaTopicFilter === 'all' ? 'active' : ''}" data-topic="all">
+                    <span>All</span>
+                    <span class="filter-count">${data.personas.length}</span>
+                </button>
+                <button class="filter-btn ${personaTopicFilter === 'smoking_cessation' ? 'active' : ''}" data-topic="smoking_cessation">
+                    <span>🚬 Smoking</span>
+                    <span class="filter-count">${data.personas.filter(p => p.topic === 'smoking_cessation').length}</span>
+                </button>
+                <button class="filter-btn ${personaTopicFilter === 'weight_loss' ? 'active' : ''}" data-topic="weight_loss">
+                    <span>⚖️ Weight</span>
+                    <span class="filter-count">${data.personas.filter(p => p.topic === 'weight_loss').length}</span>
+                </button>
+            </div>
+
+            <h2 class="section-title">${topicLabels[personaTopicFilter]} (${filteredPersonas.length})</h2>
             <div class="personas-grid">
-                ${data.personas.map(persona => `
+                ${filteredPersonas.map(persona => `
                     <div class="persona-card" data-persona-id="${persona.id}">
                         <div class="persona-avatar">${persona.avatar}</div>
                         <div class="persona-info">
                             <h3 class="persona-name">${persona.name}</h3>
                             <p class="persona-title">${persona.title}</p>
+                            <span class="persona-topic-badge ${persona.topic}">${persona.topic === 'smoking_cessation' ? 'Smoking Cessation' : 'Weight Loss'}</span>
                             <p class="persona-description">${persona.description}</p>
                         </div>
                         <button class="btn btn-primary start-chat-btn">Start Practice</button>
@@ -1346,6 +1376,14 @@ async function renderChatPractice() {
                 `).join('')}
             </div>
         `;
+
+        // Add click handlers for filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                personaTopicFilter = btn.dataset.topic;
+                renderChatPractice();
+            });
+        });
 
         // Add click handlers for persona cards
         document.querySelectorAll('.start-chat-btn').forEach(btn => {

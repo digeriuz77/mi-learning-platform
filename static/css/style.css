@@ -2027,6 +2027,73 @@ body.modal-open {
     margin: 0;
 }
 
+/* Persona Topic Badge */
+.persona-topic-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    margin-bottom: 0.5rem;
+}
+
+.persona-topic-badge.smoking_cessation {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.persona-topic-badge.weight_loss {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Persona Filter Buttons */
+.persona-filters {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border: 2px solid var(--gray-light);
+    background: white;
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.filter-btn.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+}
+
+.filter-count {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+.filter-btn.active .filter-count {
+    background: rgba(255, 255, 255, 0.25);
+}
+
 .start-chat-btn {
     width: 100%;
 }
