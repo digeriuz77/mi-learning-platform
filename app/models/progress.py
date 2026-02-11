@@ -14,11 +14,13 @@ class UserProgress(BaseModel):
     status: str  # not_started, in_progress, completed
     current_node_id: str
     nodes_completed: List[str]
+    nodes_visited: List[str] = []  # Nodes the user has visited
     points_earned: int
     completion_score: int
     techniques_demonstrated: dict
     started_at: datetime
     completed_at: Optional[datetime] = None
+    total_nodes: int = 0  # Total nodes in the module for progress calculation
 
     class Config:
         from_attributes = True

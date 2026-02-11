@@ -66,23 +66,32 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
         )
         total_modules_completed = completed_resp.count or 0
 
-        # Average progress (simplified)
+        # Average progress - calculate properly based on nodes_visited vs total nodes per module
         progress_resp = (
-            supabase.table("user_progress").select("nodes_completed").execute()
+            supabase.table("user_progress")
+            .select("nodes_visited, nodes_completed, status, module_id, learning_modules(id, dialogue_content)")
+            .execute()
         )
         avg_progress = 0.0
         if progress_resp.data:
-            completions = []
+            progress_values = []
             for row in progress_resp.data:
-                nodes = row.get("nodes_completed")
-                if nodes and isinstance(nodes, list):
-                    completions.append(len(nodes))
+                if row.get("status") == "completed":
+                    progress_values.append(100)
                 else:
-                    completions.append(0)
-            if completions:
-                avg_progress = (
-                    sum(completions) / len(completions) * 10
-                )  # rough percentage
+                    # Calculate progress based on nodes visited
+                    nodes_visited = row.get("nodes_visited", []) or []
+                    visited_count = len(nodes_visited)
+                    
+                    # Get total nodes from module
+                    module_data = row.get("learning_modules")
+                    if module_data:
+                        dialogue_content = module_data.get("dialogue_content", {})
+                        total_nodes = len(dialogue_content.get("nodes", []))
+                        if total_nodes > 0:
+                            progress_values.append((visited_count / total_nodes) * 100)
+            if progress_values:
+                avg_progress = sum(progress_values) / len(progress_values)
 
         return {
             "total_users": total_users,

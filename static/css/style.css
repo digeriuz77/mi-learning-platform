@@ -1273,6 +1273,53 @@ body.modal-open {
     color: #92400e;
 }
 
+/* Quality display styles */
+.quality-excellent {
+    color: #fbbf24;
+}
+
+.quality-good {
+    color: #10b981;
+}
+
+.quality-acceptable {
+    color: #f59e0b;
+}
+
+.quality-poor {
+    color: #ef4444;
+}
+
+/* Progress indicator in feedback */
+.progress-indicator {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f0f9ff;
+    border-radius: var(--radius);
+    text-align: center;
+}
+
+.progress-bar-mini {
+    height: 8px;
+    background: #e0e7ff;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill-mini {
+    height: 100%;
+    background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text-mini {
+    font-size: 0.875rem;
+    color: var(--primary);
+    font-weight: 600;
+}
+
 .feedback-footer {
     padding: 0 2rem 2rem;
 }
