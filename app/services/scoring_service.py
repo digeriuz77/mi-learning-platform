@@ -7,7 +7,7 @@ Implements the MI Learning Platform gamification logic:
 - Change talk evoked: +50 points
 - Module completion: +200 points
 """
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class ScoringService:
@@ -119,15 +119,132 @@ class ScoringService:
         return min(level, 10)  # Cap at level 10
 
     @staticmethod
+    def calculate_max_points_available(dialogue_content: dict) -> int:
+        """
+        Calculate the maximum points available for a module based on its dialogue structure.
+        This finds the optimal path through the dialogue and sums the maximum possible
+        points for each node on that path.
+
+        Args:
+            dialogue_content: The module's dialogue JSON content
+
+        Returns:
+            int: Maximum points achievable in the module
+        """
+        if not dialogue_content:
+            return 0
+        
+        nodes = dialogue_content.get('nodes', [])
+        if not nodes:
+            return 0
+        
+        # Build a node lookup map
+        node_map = {node['id']: node for node in nodes}
+        
+        # Calculate max points for each ending node path
+        def get_max_points_for_path(node_id: str, visited: set = None) -> int:
+            if visited is None:
+                visited = set()
+            
+            if node_id in visited:
+                return 0  # Prevent infinite loops
+            
+            if node_id not in node_map:
+                return 0
+            
+            node = node_map[node_id]
+            
+            # Check if this is an ending node
+            if node.get('is_ending', False):
+                # Add completion bonus for ending
+                return ScoringService.MODULE_COMPLETION_BONUS
+            
+            # Find the best path through choices
+            best_path_points = 0
+            choices = node.get('practitioner_choices', [])
+            
+            for choice in choices:
+                next_node_id = choice.get('next_node_id')
+                # Calculate max points for this choice path
+                path_points = ScoringService.calculate_max_points_for_choice(choice)
+                next_points = get_max_points_for_path(next_node_id, visited | {node_id})
+                total_path = path_points + next_points
+                best_path_points = max(best_path_points, total_path)
+            
+            return best_path_points
+        
+        # Start from the start node
+        start_node_id = dialogue_content.get('start_node', 'node_1')
+        
+        # Get the best path and add starting node's first choice points
+        start_node = node_map.get(start_node_id)
+        if not start_node:
+            return 0
+        
+        # Calculate the optimal first choice points
+        best_first_choice_points = 0
+        for choice in start_node.get('practitioner_choices', []):
+            choice_points = ScoringService.calculate_max_points_for_choice(choice)
+            best_first_choice_points = max(best_first_choice_points, choice_points)
+        
+        # Get remaining path points (excluding the starting node's choice since we counted it)
+        remaining_points = get_max_points_for_path(start_node_id) - best_first_choice_points
+        
+        return best_first_choice_points + remaining_points
+
+    @staticmethod
+    def calculate_max_points_for_choice(choice: dict) -> int:
+        """
+        Calculate the maximum points achievable for a single choice.
+        
+        Args:
+            choice: The choice dictionary
+            
+        Returns:
+            int: Maximum points for this choice
+        """
+        technique = choice.get('technique', '').lower()
+        
+        # Determine quality from technique string
+        if 'excellent' in technique or ('reflection' in technique and 'partial' not in technique and 'incomplete' not in technique):
+            # Excellent choices are best responses
+            base_points = ScoringService.EXCELLENT_POINTS
+        elif 'good' in technique or 'simple reflection' in technique:
+            base_points = ScoringService.GOOD_POINTS
+        elif 'acceptable' in technique:
+            base_points = ScoringService.ACCEPTABLE_POINTS
+        else:
+            # Poor/non-MI choices get 0
+            base_points = ScoringService.POOR_POINTS
+        
+        # Add bonuses for best case scenario
+        max_points = base_points
+        
+        # First attempt bonus (best case: first attempt)
+        if base_points > 0:
+            max_points += ScoringService.FIRST_ATTEMPT_BONUS
+        
+        # Change talk bonus (best case: evoked change talk)
+        if base_points > 0:
+            max_points += ScoringService.CHANGE_TALK_BONUS
+        
+        return max_points
+
+    @staticmethod
     def calculate_completion_score(
         total_nodes: int,
         nodes_completed: int,
         correct_choices: int,
         nodes_visited: int = None,
-        technique_quality_counts: dict = None
+        technique_quality_counts: dict = None,
+        points_earned: int = 0,
+        max_points_available: int = None
     ) -> int:
         """
         Calculate module completion score (0-100).
+
+        Uses points-based scoring when max_points_available is provided,
+        falling back to the old formula for backward compatibility.
 
         Args:
             total_nodes: Total nodes in module
@@ -135,10 +252,18 @@ class ScoringService:
             correct_choices: Number of correct technique choices (deprecated, use technique_quality_counts)
             nodes_visited: Number of nodes visited (all nodes reached)
             technique_quality_counts: Dict with counts of 'excellent', 'good', 'acceptable', 'poor' choices
+            points_earned: Total points earned in the module
+            max_points_available: Maximum points available in the module (calculated from dialogue)
 
         Returns:
             int: Completion score (0-100)
         """
+        # Use points-based scoring if max_points_available is provided
+        if max_points_available is not None and max_points_available > 0:
+            score = int((points_earned / max_points_available) * 100)
+            return min(max(score, 0), 100)  # Clamp between 0 and 100
+        
+        # Fall back to old formula for backward compatibility
         if total_nodes == 0:
             return 0
 

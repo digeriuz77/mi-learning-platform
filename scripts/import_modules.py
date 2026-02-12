@@ -27,6 +27,46 @@ from supabase import create_client
 load_dotenv()
 
 
+def calculate_max_points(dialogue_tree: dict) -> int:
+    """
+    Calculate the maximum points available for a module based on its dialogue structure.
+    
+    This estimates the optimal path through the dialogue and sums the maximum possible
+    points for each node on that path.
+    
+    Returns:
+        int: Maximum points achievable in the module
+    """
+    if not dialogue_tree:
+        return 0
+    
+    nodes = dialogue_tree.get('nodes', [])
+    if not nodes:
+        return 0
+    
+    # Point constants
+    EXCELLENT_POINTS = 150
+    FIRST_ATTEMPT_BONUS = 50
+    CHANGE_TALK_BONUS = 50
+    MODULE_COMPLETION_BONUS = 200
+    MAX_PER_NODE = EXCELLENT_POINTS + FIRST_ATTEMPT_BONUS + CHANGE_TALK_BONUS  # 250
+    
+    # Count nodes
+    non_ending_nodes = [n for n in nodes if not n.get('is_ending', False)]
+    
+    # Typical MI dialogue modules have 4-5 nodes on the main path
+    # Use 5 as a reasonable max for the optimal path
+    estimated_path_length = min(len(non_ending_nodes), 5)
+    
+    # Ensure at least 4 nodes for a meaningful module
+    estimated_path_length = max(estimated_path_length, 4)
+    
+    # Calculate max points
+    max_points = (estimated_path_length * MAX_PER_NODE) + MODULE_COMPLETION_BONUS
+    
+    return max_points
+
+
 def import_module(supabase, module_number: int, file_path: str) -> dict:
     """
     Import a single module from JSON file to Supabase.
@@ -44,6 +84,9 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
             data = json.load(f)
 
         dialogue_tree = data.get('dialogue_tree', data)
+        
+        # Calculate max points available for this module
+        max_points_available = calculate_max_points(dialogue_tree)
 
         # Extract metadata
         module_data = {
@@ -57,6 +100,7 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
             "description": dialogue_tree.get('description', ''),
             "dialogue_content": dialogue_tree,
             "points": 500,
+            "max_points_available": max_points_available,
             "display_order": module_number,
             "is_published": True
         }
@@ -71,7 +115,8 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
                 'status': 'updated',
                 'module_number': module_number,
                 'title': module_data['title'],
-                'id': result.data[0]['id']
+                'id': result.data[0]['id'],
+                'max_points': max_points_available
             }
         else:
             # Insert new module
@@ -80,7 +125,8 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
                 'status': 'created',
                 'module_number': module_number,
                 'title': module_data['title'],
-                'id': result.data[0]['id']
+                'id': result.data[0]['id'],
+                'max_points': max_points_available
             }
 
     except Exception as e:
@@ -98,19 +144,19 @@ def main():
     supabase_key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 
     if not supabase_url or not supabase_key:
-        print("❌ Error: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env file")
+        print("[ERROR] SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env file")
         return 1
 
     # Create Supabase client
-    print(f"🔌 Connecting to Supabase...")
+    print("[INFO] Connecting to Supabase...")
     supabase = create_client(supabase_url, supabase_key)
 
     # Check connection
     try:
         result = supabase.table('learning_modules').select('id').limit(1).execute()
-        print("✅ Connected to Supabase")
+        print("[OK] Connected to Supabase")
     except Exception as e:
-        print(f"❌ Error connecting to Supabase: {e}")
+        print(f"[ERROR] Error connecting to Supabase: {e}")
         print("\nMake sure you have:")
         print("1. Created a Supabase project")
         print("2. Run the schema migration (app/db/migrations/001_init_schema.sql)")
@@ -120,23 +166,23 @@ def main():
     modules_dir = Path(__file__).parent.parent / 'mi_modules'
     results = []
 
-    print(f"\n📦 Importing modules from {modules_dir}...\n")
+    print(f"\n[INFO] Importing modules from {modules_dir}...\n")
 
     for i in range(1, 13):
         module_file = modules_dir / f'module_{i}.json'
 
         if module_file.exists():
-            print(f"  → Module {i}...", end=' ')
+            print(f"  -> Module {i}...", end=' ')
             result = import_module(supabase, i, str(module_file))
             results.append(result)
 
             if result['status'] == 'error':
-                print(f"❌ Error: {result.get('error')}")
+                print(f"[ERROR]: {result.get('error')}")
             else:
-                status_icon = '✓' if result['status'] == 'created' else '↻'
-                print(f"{status_icon} {result['status']}: {result.get('title', 'N/A')}")
+                status_icon = '[NEW]' if result['status'] == 'created' else '[UPD]'
+                print(f"{status_icon} {result.get('title', 'N/A')}")
         else:
-            print(f"  → Module {i}... ❌ File not found: {module_file}")
+            print(f"  -> Module {i}... [ERROR] File not found: {module_file}")
             results.append({
                 'status': 'error',
                 'module_number': i,
@@ -147,18 +193,24 @@ def main():
     print("\n" + "="*50)
     created = sum(1 for r in results if r['status'] == 'created')
     updated = sum(1 for r in results if r['status'] == 'updated')
-    errors = sum(1 for r in r['status'] == 'error' for r in results)
+    errors = sum(1 for r in results if r['status'] == 'error')
 
-    print(f"📊 Import Summary:")
+    print(f"[SUMMARY]")
     print(f"  Created: {created}")
     print(f"  Updated: {updated}")
     print(f"  Errors:  {errors}")
+    
+    # Show max points for each module
+    print("\n[INFO] Max Points per Module:")
+    for r in results:
+        if r['status'] in ['created', 'updated']:
+            print(f"  Module {r['module_number']}: {r.get('max_points', 'N/A')} max points")
 
     if errors > 0:
-        print("\n❌ Some modules failed to import")
+        print("\n[ERROR] Some modules failed to import")
         return 1
     else:
-        print("\n✅ All modules imported successfully!")
+        print("\n[OK] All modules imported successfully!")
         return 0
 
 
