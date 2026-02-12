@@ -171,7 +171,7 @@ async def start_module(
             "progress_id": str(existing_progress["id"]),
             "current_node_id": existing_progress["current_node_id"],
             "status": "in_progress",
-            "nodes_visited": existing_progress.get("nodes_visited", []),
+            "nodes_completed": existing_progress.get("nodes_completed", []),
         }
 
     # Get dialogue content to find start node
@@ -279,7 +279,6 @@ async def restart_module(
                         "status": "in_progress",
                         "current_node_id": start_node,
                         "nodes_completed": [],
-                        "nodes_visited": [],
                         "points_earned": 0,
                         "completion_score": 0,
                         "techniques_demonstrated": {},

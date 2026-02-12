@@ -62,8 +62,8 @@ async def get_user_stats(
             p.pop('learning_modules', None)
             
             # Calculate progress percentage for in-progress modules
-            nodes_visited = p.get('nodes_visited', []) or []
-            visited_count = len(nodes_visited)
+            nodes_completed = p.get('nodes_completed', []) or []
+            visited_count = len(nodes_completed)
             progress_percentage = int((visited_count / total_nodes) * 100) if total_nodes > 0 else 0
             
             # For completed modules, use completion_score as the percentage
@@ -81,8 +81,7 @@ async def get_user_stats(
                 completion_score=display_score,
                 points_earned=p.get('points_earned', 0),
                 current_node_id=p.get('current_node_id'),
-                nodes_completed=p.get('nodes_completed', []),
-                nodes_visited=nodes_visited,
+                nodes_completed=nodes_completed,
                 techniques_demonstrated=p.get('techniques_demonstrated', {}),
                 started_at=p.get('started_at'),
                 completed_at=p.get('completed_at'),
@@ -125,8 +124,8 @@ async def get_module_progress(
     total_nodes = len(dialogue_content.get('nodes', []))
     
     # Calculate progress percentage for in-progress modules
-    nodes_visited = p.get('nodes_visited', []) or []
-    visited_count = len(nodes_visited)
+    nodes_completed = p.get('nodes_completed', []) or []
+    visited_count = len(nodes_completed)
     progress_percentage = int((visited_count / total_nodes) * 100) if total_nodes > 0 else 0
     
     # For completed modules, use completion_score; for in-progress, use progress percentage
@@ -141,8 +140,7 @@ async def get_module_progress(
         completion_score=display_score,
         points_earned=p.get('points_earned', 0),
         current_node_id=p.get('current_node_id'),
-        nodes_completed=p.get('nodes_completed', []),
-        nodes_visited=nodes_visited,
+        nodes_completed=nodes_completed,
         techniques_demonstrated=p.get('techniques_demonstrated', {}),
         started_at=p.get('started_at'),
         completed_at=p.get('completed_at'),
