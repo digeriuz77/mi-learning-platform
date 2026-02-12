@@ -64,8 +64,10 @@ async def get_user_stats(
             p.pop('learning_modules', None)
             
             # Calculate progress percentage for in-progress modules
+            # Use nodes_visited if available, otherwise fall back to nodes_completed
+            nodes_visited = p.get('nodes_visited', []) or []
             nodes_completed = p.get('nodes_completed', []) or []
-            visited_count = len(nodes_completed)
+            visited_count = len(nodes_visited) if nodes_visited else len(nodes_completed)
             progress_percentage = int((visited_count / total_nodes) * 100) if total_nodes > 0 else 0
             
             # For completed modules, use completion_score as the percentage
@@ -130,8 +132,10 @@ async def get_module_progress(
     total_nodes = len(dialogue_content.get('nodes', []))
     
     # Calculate progress percentage for in-progress modules
+    # Use nodes_visited if available, otherwise fall back to nodes_completed
+    nodes_visited = p.get('nodes_visited', []) or []
     nodes_completed = p.get('nodes_completed', []) or []
-    visited_count = len(nodes_completed)
+    visited_count = len(nodes_visited) if nodes_visited else len(nodes_completed)
     progress_percentage = int((visited_count / total_nodes) * 100) if total_nodes > 0 else 0
     
     # For completed modules, use completion_score; for in-progress, use progress percentage

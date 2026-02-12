@@ -122,15 +122,19 @@ class ScoringService:
     def calculate_completion_score(
         total_nodes: int,
         nodes_completed: int,
-        correct_choices: int
+        correct_choices: int,
+        nodes_visited: int = None,
+        technique_quality_counts: dict = None
     ) -> int:
         """
         Calculate module completion score (0-100).
 
         Args:
             total_nodes: Total nodes in module
-            nodes_completed: Number of nodes completed
-            correct_choices: Number of correct technique choices
+            nodes_completed: Number of nodes completed (correct on first attempt)
+            correct_choices: Number of correct technique choices (deprecated, use technique_quality_counts)
+            nodes_visited: Number of nodes visited (all nodes reached)
+            technique_quality_counts: Dict with counts of 'excellent', 'good', 'acceptable', 'poor' choices
 
         Returns:
             int: Completion score (0-100)
@@ -138,8 +142,35 @@ class ScoringService:
         if total_nodes == 0:
             return 0
 
-        progress_score = (nodes_completed / total_nodes) * 50
-        accuracy_score = (correct_choices / nodes_completed) * 50 if nodes_completed > 0 else 0
+        # Use nodes_visited for progress if available, otherwise fall back to nodes_completed
+        visited = nodes_visited if nodes_visited is not None else nodes_completed
+        
+        # Progress score: how far through the module (0-50 points)
+        progress_score = (visited / total_nodes) * 50
+
+        # Accuracy score: based on technique quality (0-50 points)
+        if technique_quality_counts and visited > 0:
+            # Weight technique quality: excellent=1.0, good=0.8, acceptable=0.5, poor=0
+            quality_weights = {
+                'excellent': 1.0,
+                'good': 0.8,
+                'acceptable': 0.5,
+                'poor': 0.0
+            }
+            
+            weighted_score = 0.0
+            for quality, count in technique_quality_counts.items():
+                weight = quality_weights.get(quality, 0.5)
+                weighted_score += count * weight
+            
+            # Normalize to 0-50 scale
+            accuracy_score = (weighted_score / visited) * 50
+        elif visited > 0:
+            # Fallback: use correct_choices ratio
+            accuracy_score = (correct_choices / visited) * 50
+        else:
+            accuracy_score = 0
+
         return int(progress_score + accuracy_score)
 
     @staticmethod
