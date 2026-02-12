@@ -319,19 +319,22 @@ async def submit_choice(
         # Get max_points_available from module
         max_points_available = module.get('max_points_available')
         
-        # Calculate completion score with proper tracking
+        # Calculate completion score based on points earned vs max available
+        # Note: Completion bonus is NOT added to points_earned for scoring
+        total_points_earned = progress.get('points_earned', 0) + points_earned
+        
         completion_score = ScoringService.calculate_completion_score(
             total_nodes=total_nodes,
             nodes_completed=len(new_nodes_completed),
             correct_choices=len(new_nodes_completed),  # Backward compatible
             nodes_visited=visited_count,
             technique_quality_counts=new_technique_quality_counts,
-            points_earned=progress.get('points_earned', 0) + points_earned,
+            points_earned=total_points_earned,
             max_points_available=max_points_available
         )
         
-        # Add completion bonus
-        points_earned += ScoringService.MODULE_COMPLETION_BONUS
+        # Update points_earned to include completion bonus (but not for completion % calculation)
+        points_earned = total_points_earned
 
     # Update progress record
     update_data = {
