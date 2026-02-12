@@ -119,6 +119,10 @@
             <!-- Practice Analytics Tab -->
             <section id="practice-analytics" class="tab-content">
                 <h1>Practice Analytics</h1>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="downloadPracticeAnalyticsCsv()">Download practice analytics CSV</button>
+                    <button class="btn btn-secondary" onclick="downloadUserAnalyticsCsv()">Download user analytics CSV</button>
+                </div>
 
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -248,6 +252,9 @@
             <!-- Modules Tab -->
             <section id="modules" class="tab-content">
                 <h1>Module Analytics</h1>
+                <div class="section-actions">
+                    <button class="btn btn-secondary" onclick="downloadModuleAnalyticsCsv()">Download module analytics CSV</button>
+                </div>
 
                 <div class="module-stats">
                     <div id="moduleStatsGrid" class="stats-grid">
@@ -289,14 +296,6 @@
                     </div>
                 </div>
 
-                <div class="settings-section">
-                    <h2>Database Actions</h2>
-                    <p>Use with caution - these actions are irreversible:</p>
-                    <div class="danger-zone">
-                        <button onclick="showDeleteConfirmation()" class="btn btn-danger">Delete All Inactive
-                            Users</button>
-                    </div>
-                </div>
             </section>
         </main>
     </div>

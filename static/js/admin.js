@@ -613,6 +613,136 @@ async function refreshPracticeAnalytics() {
     await loadPracticeAnalytics();
 }
 
+function toCsvValue(value) {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'number') return value.toString();
+    const text = String(value);
+    const escaped = text.replace(/"/g, '""');
+    return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
+}
+
+function downloadCsvFile(filename, headers, rows) {
+    const headerLine = headers.map(toCsvValue).join(',');
+    const dataLines = rows.map(row => row.map(toCsvValue).join(','));
+    const csvContent = [headerLine, ...dataLines].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+async function downloadUserAnalyticsCsv() {
+    try {
+        const search = document.getElementById('analyticsUserSearch')?.value.trim() || null;
+        const limit = 1000;
+        let offset = 0;
+        let allUsers = [];
+
+        while (true) {
+            let url = `${ADMIN_API}/analytics/users?limit=${limit}&offset=${offset}`;
+            if (search) {
+                url += `&search=${encodeURIComponent(search)}`;
+            }
+            const data = await adminRequest(url);
+            const batch = data.users || [];
+            allUsers = allUsers.concat(batch);
+            if (batch.length < limit) break;
+            offset += limit;
+        }
+
+        const headers = [
+            'email',
+            'display_name',
+            'practice_sessions_count',
+            'avg_overall_score',
+            'avg_trust_safety',
+            'avg_empathy_partnership',
+            'avg_empowerment_clarity',
+            'avg_mi_spirit',
+            'last_practice_at'
+        ];
+        const rows = allUsers.map(user => [
+            user.email,
+            user.display_name,
+            user.practice_sessions_count,
+            user.avg_overall_score,
+            user.avg_trust_safety,
+            user.avg_empathy_partnership,
+            user.avg_empowerment_clarity,
+            user.avg_mi_spirit,
+            user.last_practice_at
+        ]);
+        downloadCsvFile('user_analytics.csv', headers, rows);
+        showToast('User analytics CSV downloaded', 'success');
+    } catch (error) {
+        console.error('Error downloading user analytics CSV:', error);
+        showToast('Failed to download user analytics CSV', 'error');
+    }
+}
+
+async function downloadPracticeAnalyticsCsv() {
+    try {
+        const data = await adminRequest(`${ADMIN_API}/analytics/comprehensive`);
+        const headers = [
+            'total_sessions',
+            'total_users',
+            'avg_overall_score',
+            'avg_trust_safety',
+            'avg_empathy',
+            'avg_empowerment',
+            'avg_mi_spirit',
+            'sessions_with_change_talk',
+            'avg_turns'
+        ];
+        const rows = [[
+            data.total_sessions,
+            data.total_users,
+            data.avg_overall_score,
+            data.avg_trust_safety,
+            data.avg_empathy,
+            data.avg_empowerment,
+            data.avg_mi_spirit,
+            data.sessions_with_change_talk,
+            data.avg_turns
+        ]];
+        downloadCsvFile('practice_analytics.csv', headers, rows);
+        showToast('Practice analytics CSV downloaded', 'success');
+    } catch (error) {
+        console.error('Error downloading practice analytics CSV:', error);
+        showToast('Failed to download practice analytics CSV', 'error');
+    }
+}
+
+async function downloadModuleAnalyticsCsv() {
+    try {
+        const data = await adminRequest(`${ADMIN_API}/modules/stats`);
+        const headers = [
+            'module_id',
+            'module_title',
+            'total_enrolled',
+            'completed_count',
+            'in_progress_count'
+        ];
+        const rows = (data || []).map(module => [
+            module.module_id,
+            module.module_title,
+            module.total_enrolled,
+            module.completed_count,
+            module.in_progress_count
+        ]);
+        downloadCsvFile('module_analytics.csv', headers, rows);
+        showToast('Module analytics CSV downloaded', 'success');
+    } catch (error) {
+        console.error('Error downloading module analytics CSV:', error);
+        showToast('Failed to download module analytics CSV', 'error');
+    }
+}
+
 // Make functions globally available
 window.showUserActions = showUserActions;
 window.closeModal = closeModal;
@@ -631,6 +761,9 @@ window.logout = logout;
 window.refreshPracticeAnalytics = refreshPracticeAnalytics;
 window.previousAnalyticsPage = previousAnalyticsPage;
 window.nextAnalyticsPage = nextAnalyticsPage;
+window.downloadUserAnalyticsCsv = downloadUserAnalyticsCsv;
+window.downloadPracticeAnalyticsCsv = downloadPracticeAnalyticsCsv;
+window.downloadModuleAnalyticsCsv = downloadModuleAnalyticsCsv;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);

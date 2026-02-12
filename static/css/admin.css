@@ -86,6 +86,14 @@ h2 {
     margin: 1.5rem 0 1rem;
 }
 
+/* Section Actions */
+.section-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem;
+}
+
 /* Stats Grid */
 .stats-grid {
     display: grid;
