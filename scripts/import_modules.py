@@ -27,6 +27,48 @@ from supabase import create_client
 load_dotenv()
 
 
+def calculate_max_points(dialogue_tree: dict) -> int:
+    """
+    Calculate the maximum points available for a module based on its dialogue structure.
+    
+    This finds the optimal path through the dialogue and sums the maximum possible
+    points for each node on that path.
+    
+    Returns:
+        int: Maximum points achievable in the module
+    """
+    if not dialogue_tree:
+        return 0
+    
+    nodes = dialogue_tree.get('nodes', [])
+    if not nodes:
+        return 0
+    
+    # Point constants
+    EXCELLENT_POINTS = 150
+    FIRST_ATTEMPT_BONUS = 50
+    CHANGE_TALK_BONUS = 50
+    MODULE_COMPLETION_BONUS = 200
+    MAX_PER_NODE = EXCELLENT_POINTS + FIRST_ATTEMPT_BONUS + CHANGE_TALK_BONUS  # 250
+    
+    # Build node map
+    node_map = {node['id']: node for node in nodes}
+    
+    # Count non-ending nodes and add completion bonus
+    # Most paths have 4-6 nodes plus an ending node
+    non_ending_nodes = [n for n in nodes if not n.get('is_ending', False)]
+    ending_nodes = [n for n in nodes if n.get('is_ending', False)]
+    
+    # Estimate: take the average path length
+    # Most modules have ~5 nodes on the main path
+    num_nodes_on_path = len(non_ending_nodes) if len(non_ending_nodes) <= 6 else 6
+    
+    # Calculate max points
+    max_points = (num_nodes_on_path * MAX_PER_NODE) + MODULE_COMPLETION_BONUS
+    
+    return max_points
+
+
 def import_module(supabase, module_number: int, file_path: str) -> dict:
     """
     Import a single module from JSON file to Supabase.
@@ -44,6 +86,9 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
             data = json.load(f)
 
         dialogue_tree = data.get('dialogue_tree', data)
+        
+        # Calculate max points available for this module
+        max_points_available = calculate_max_points(dialogue_tree)
 
         # Extract metadata
         module_data = {
@@ -57,6 +102,7 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
             "description": dialogue_tree.get('description', ''),
             "dialogue_content": dialogue_tree,
             "points": 500,
+            "max_points_available": max_points_available,
             "display_order": module_number,
             "is_published": True
         }
@@ -71,7 +117,8 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
                 'status': 'updated',
                 'module_number': module_number,
                 'title': module_data['title'],
-                'id': result.data[0]['id']
+                'id': result.data[0]['id'],
+                'max_points': max_points_available
             }
         else:
             # Insert new module
@@ -80,7 +127,8 @@ def import_module(supabase, module_number: int, file_path: str) -> dict:
                 'status': 'created',
                 'module_number': module_number,
                 'title': module_data['title'],
-                'id': result.data[0]['id']
+                'id': result.data[0]['id'],
+                'max_points': max_points_available
             }
 
     except Exception as e:
@@ -153,6 +201,12 @@ def main():
     print(f"  Created: {created}")
     print(f"  Updated: {updated}")
     print(f"  Errors:  {errors}")
+    
+    # Show max points for each module
+    print("\n📈 Max Points per Module:")
+    for r in results:
+        if r['status'] in ['created', 'updated']:
+            print(f"  Module {r['module_number']}: {r.get('max_points', 'N/A')} max points")
 
     if errors > 0:
         print("\n❌ Some modules failed to import")
