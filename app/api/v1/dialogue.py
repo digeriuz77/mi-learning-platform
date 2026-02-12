@@ -148,8 +148,9 @@ async def get_dialogue_node(
     # Get module
     module = await get_module_by_id(module_id, supabase)
 
-    # Check user progress
-    progress = await get_user_module_progress(current_user.user_id, module_id, supabase)
+    # Check user progress - use admin client to bypass RLS
+    supabase_admin = get_supabase_admin()
+    progress = await get_user_module_progress(current_user.user_id, module_id, supabase_admin)
     if not progress:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -194,11 +195,13 @@ async def submit_choice(
 
     Processes the user's choice, awards points, and returns the next node.
     """
+    # Use admin client to bypass RLS for user_progress operations
+    # We've already validated the user through get_current_user
     supabase_admin = get_supabase_admin()
 
     # Get module and progress
     module = await get_module_by_id(choice_data.module_id, supabase)
-    progress = await get_user_module_progress(current_user.user_id, choice_data.module_id, supabase)
+    progress = await get_user_module_progress(current_user.user_id, choice_data.module_id, supabase_admin)
 
     if not progress:
         raise HTTPException(
@@ -251,8 +254,8 @@ async def submit_choice(
         technique_quality=technique_quality
     )
 
-    # Record attempt
-    supabase.table('dialogue_attempts').insert({
+    # Record attempt - use admin client to bypass RLS
+    supabase_admin.table('dialogue_attempts').insert({
         'user_id': current_user.user_id,
         'module_id': choice_data.module_id,
         'progress_id': progress['id'],
@@ -329,7 +332,8 @@ async def submit_choice(
             'completed_at': 'now()'
         })
 
-    supabase.table('user_progress').update(update_data).eq('id', progress['id']).execute()
+    # Update progress record - use admin client to bypass RLS
+    supabase_admin.table('user_progress').update(update_data).eq('id', progress['id']).execute()
 
     # Update user profile
     profile = await get_user_profile(current_user.user_id, supabase_admin)

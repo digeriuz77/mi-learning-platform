@@ -34,6 +34,8 @@ async def get_user_stats(
     """
     Get user's overall statistics and all module progress.
     """
+    # Use admin client to bypass RLS for user_progress operations
+    # We've already validated the user through get_current_user
     supabase_admin = get_supabase_admin()
 
     # Get user profile
@@ -44,8 +46,8 @@ async def get_user_stats(
             detail="Profile not found"
         )
 
-    # Get all progress
-    progress_response = supabase.table('user_progress') \
+    # Get all progress - use admin client to bypass RLS
+    progress_response = supabase_admin.table('user_progress') \
         .select('*, learning_modules(id, title, dialogue_content)') \
         .eq('user_id', current_user.user_id) \
         .order('started_at', desc=True) \
@@ -105,7 +107,11 @@ async def get_module_progress(
     """
     Get progress for a specific module.
     """
-    response = supabase.table('user_progress') \
+    # Use admin client to bypass RLS for user_progress operations
+    # We've already validated the user through get_current_user
+    supabase_admin = get_supabase_admin()
+    
+    response = supabase_admin.table('user_progress') \
         .select('*, learning_modules(id, title, dialogue_content)') \
         .eq('user_id', current_user.user_id) \
         .eq('module_id', module_id) \
