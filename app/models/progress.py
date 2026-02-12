@@ -14,7 +14,6 @@ class UserProgress(BaseModel):
     status: str  # not_started, in_progress, completed
     current_node_id: str
     nodes_completed: List[str]
-    nodes_visited: List[str] = []  # Nodes the user has visited
     points_earned: int
     completion_score: int
     techniques_demonstrated: dict
