@@ -69,8 +69,10 @@ async def list_modules(
         .execute()
     )
 
-    # Get all user progress
-    user_progress = await get_all_user_progress(current_user.user_id, supabase)
+    # Get all user progress - use admin client to bypass RLS
+    # We've already validated the user through get_current_user
+    supabase_admin = get_supabase_admin()
+    user_progress = await get_all_user_progress(current_user.user_id, supabase_admin)
     progress_map = {p["module_id"]: p for p in user_progress}
 
     modules = []
@@ -110,8 +112,9 @@ async def get_module(
     module = response.data[0]
     module_data = {**module, "id": str(module["id"])}
 
-    # Add user progress if exists
-    progress = await get_user_module_progress(current_user.user_id, module_id, supabase)
+    # Add user progress if exists - use admin client to bypass RLS
+    supabase_admin = get_supabase_admin()
+    progress = await get_user_module_progress(current_user.user_id, module_id, supabase_admin)
     if progress:
         module_data["user_status"] = progress["status"]
         module_data["user_score"] = progress.get("completion_score", 0)
@@ -144,9 +147,13 @@ async def start_module(
 
     logger.debug(f"[MODULES] Module {module_id} found, checking existing progress")
 
+    # Use admin client to bypass RLS for user_progress operations
+    # We've already validated the user through get_current_user
+    supabase_admin = get_supabase_admin()
+
     # Check if already started
     existing_progress = await get_user_module_progress(
-        current_user.user_id, module_id, supabase
+        current_user.user_id, module_id, supabase_admin
     )
     if existing_progress:
         logger.debug(
@@ -182,10 +189,10 @@ async def start_module(
         f"[MODULES] Creating new progress for module {module_id}, start_node: {start_node}"
     )
 
-    # Create progress record
+    # Create progress record - use admin client to bypass RLS
     try:
         progress_response = (
-            supabase.table("user_progress")
+            supabase_admin.table("user_progress")
             .insert(
                 {
                     "user_id": current_user.user_id,
@@ -205,28 +212,6 @@ async def start_module(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create progress: {str(e)}",
         )
-
-    progress = progress_response.data[0]
-
-    return {
-        "message": "Module started",
-        "progress_id": str(progress["id"]),
-        "current_node_id": progress["current_node_id"],
-    }
-
-    # Create progress record
-    progress_response = (
-        supabase.table("user_progress")
-        .insert(
-            {
-                "user_id": current_user.user_id,
-                "module_id": module_id,
-                "status": "in_progress",
-                "current_node_id": start_node,
-            }
-        )
-        .execute()
-    )
 
     progress = progress_response.data[0]
 
@@ -260,9 +245,13 @@ async def restart_module(
     dialogue_content = module.get("dialogue_content", {})
     start_node = dialogue_content.get("start_node", "node_1")
 
+    # Use admin client to bypass RLS for user_progress operations
+    # We've already validated the user through get_current_user
+    supabase_admin = get_supabase_admin()
+
     # Check for existing progress
     existing_progress = await get_user_module_progress(
-        current_user.user_id, module_id, supabase
+        current_user.user_id, module_id, supabase_admin
     )
 
     if existing_progress:
@@ -270,10 +259,10 @@ async def restart_module(
         old_points = existing_progress.get("points_earned", 0)
         was_completed = existing_progress.get("status") == "completed"
         
-        # Reset existing progress using authenticated client
+        # Reset existing progress using admin client to bypass RLS
         try:
             update_response = (
-                supabase.table("user_progress")
+                supabase_admin.table("user_progress")
                 .update(
                     {
                         "status": "in_progress",
@@ -293,7 +282,6 @@ async def restart_module(
             # Deduct points from user profile if module was previously completed
             if old_points > 0:
                 try:
-                    supabase_admin = get_supabase_admin()
                     profile_response = supabase_admin.table("user_profiles").select("*").eq("user_id", current_user.user_id).execute()
                     if profile_response.data:
                         profile = profile_response.data[0]
@@ -326,9 +314,9 @@ async def restart_module(
             "points_deducted": old_points,
         }
     else:
-        # Create new progress
+        # Create new progress - use admin client to bypass RLS
         progress_response = (
-            supabase.table("user_progress")
+            supabase_admin.table("user_progress")
             .insert(
                 {
                     "user_id": current_user.user_id,
