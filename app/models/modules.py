@@ -42,6 +42,7 @@ class ModuleResponse(BaseModel):
     stage_of_change: str
     description: str
     points: int = 500
+    max_points_available: Optional[int] = None  # Maximum points achievable in the module
     dialogue_content: Dict[str, Any]
 
     # User progress (optional)
