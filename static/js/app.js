@@ -769,7 +769,7 @@ async function renderModules() {
                             </span>
                             <span class="meta-item">
                                 <span class="meta-icon">⭐</span>
-                                ${module.points} pts
+                                ${module.max_points_available || module.points} pts
                             </span>
                         </div>
                         ${module.user_score !== null ? `
@@ -820,7 +820,7 @@ async function renderModuleDetail(moduleId) {
                     </div>
                     <div class="info-card">
                         <span class="info-label">Points Available</span>
-                        <span class="info-value">${module.points}</span>
+                        <span class="info-value">${module.max_points_available || module.points}</span>
                     </div>
                 </div>
 
@@ -898,7 +898,7 @@ async function renderModuleDetail(moduleId) {
                 const confirmMsg = module.user_status === 'completed'
                     ? 'Restarting will reset your progress and deduct the points you earned. Continue?'
                     : 'Are you sure you want to restart? Your progress will be reset.';
-                
+
                 if (confirm(confirmMsg)) {
                     restartBtn.disabled = true;
                     restartBtn.innerHTML = '<span class="spinner-small"></span> Restarting...';
