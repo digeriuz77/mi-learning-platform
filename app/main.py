@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -195,6 +195,12 @@ async def detailed_health_check():
         health["status"] = "degraded"
 
     return health
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Return an empty favicon response to avoid 404s in logs."""
+    return Response(status_code=204)
 
 
 @app.on_event("startup")

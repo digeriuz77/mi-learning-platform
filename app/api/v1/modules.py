@@ -9,7 +9,7 @@ from supabase import Client
 from typing import List
 import logging
 
-from app.core.supabase import get_supabase, get_authenticated_client, get_supabase_admin
+from app.core.supabase import get_supabase, get_supabase_admin
 from app.core.auth import get_current_user, AuthContext
 from app.models.modules import ModuleResponse, ModuleListResponse
 from app.services.scoring_service import ScoringService
