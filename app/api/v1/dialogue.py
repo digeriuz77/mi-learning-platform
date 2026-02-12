@@ -242,6 +242,8 @@ async def submit_choice(
 
     # Get existing tracking lists
     nodes_completed = progress.get('nodes_completed', [])
+    nodes_visited = progress.get('nodes_visited', [])  # Track all visited nodes
+    technique_quality_counts = progress.get('technique_quality_counts', {})  # Track quality distribution
     
     # Track if this is the first attempt (for bonus points)
     is_first_attempt = choice_data.node_id not in nodes_completed
@@ -271,17 +273,28 @@ async def submit_choice(
 
     # Update progress - track both completed and visited
     new_nodes_completed = list(nodes_completed)
+    new_nodes_visited = list(nodes_visited) if nodes_visited else []
+    new_technique_quality_counts = dict(technique_quality_counts) if technique_quality_counts else {
+        'excellent': 0, 'good': 0, 'acceptable': 0, 'poor': 0
+    }
     
     # Add to completed if first attempt and correct technique
     if is_first_attempt and is_correct:
         new_nodes_completed.append(choice_data.node_id)
+    
+    # Track all visited nodes (for progress calculation)
+    if choice_data.node_id not in new_nodes_visited:
+        new_nodes_visited.append(choice_data.node_id)
+    
+    # Track technique quality (for accuracy calculation)
+    new_technique_quality_counts[technique_quality] = new_technique_quality_counts.get(technique_quality, 0) + 1
 
     next_node_id = selected_choice.get('next_node_id')
     
     total_nodes = len(dialogue_content.get('nodes', []))
     
     # Calculate progress percentage (how far through the module)
-    visited_count = len(new_nodes_completed)
+    visited_count = len(new_nodes_visited)
     progress_percentage = int((visited_count / total_nodes) * 100) if total_nodes > 0 else 0
 
     # Check if module is complete - check if next node is an ending node or no next node
@@ -302,18 +315,15 @@ async def submit_choice(
     
     if is_module_complete:
         progress_status = 'completed'
-        correct_attempts = len(new_nodes_completed)
-        visited_count = len(new_nodes_completed)
         
-        # Calculate completion score based on visited nodes (progress) and correct choices (accuracy)
+        # Calculate completion score with proper tracking
         completion_score = ScoringService.calculate_completion_score(
             total_nodes=total_nodes,
-            nodes_completed=visited_count,  # Use visited for progress
-            correct_choices=correct_attempts  # Use correct for accuracy
+            nodes_completed=len(new_nodes_completed),
+            correct_choices=len(new_nodes_completed),  # Backward compatible
+            nodes_visited=visited_count,
+            technique_quality_counts=new_technique_quality_counts
         )
-        
-        # Ensure completion score is at least the progress percentage for partial completion
-        completion_score = max(completion_score, progress_percentage)
         
         # Add completion bonus
         points_earned += ScoringService.MODULE_COMPLETION_BONUS
@@ -322,6 +332,8 @@ async def submit_choice(
     update_data = {
         'current_node_id': next_node_id if not is_module_complete else choice_data.node_id,
         'nodes_completed': new_nodes_completed,
+        'nodes_visited': new_nodes_visited,
+        'technique_quality_counts': new_technique_quality_counts,
         'points_earned': progress.get('points_earned', 0) + points_earned,
     }
 
