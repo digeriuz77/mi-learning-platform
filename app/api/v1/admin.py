@@ -77,7 +77,7 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
         # Average progress - calculate properly based on nodes_visited vs total nodes per module
         progress_resp = (
             supabase.table("user_progress")
-            .select("nodes_completed, status, module_id, learning_modules(id, dialogue_content)")
+            .select("nodes_completed, nodes_visited, status, module_id, learning_modules(id, dialogue_content)")
             .execute()
         )
         avg_progress = 0.0
@@ -87,9 +87,10 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
                 if row.get("status") == "completed":
                     progress_values.append(100)
                 else:
-                    # Calculate progress based on nodes visited
+                    # Calculate progress based on nodes visited (use nodes_visited if available, else nodes_completed)
+                    nodes_visited = row.get("nodes_visited", []) or []
                     nodes_completed = row.get("nodes_completed", []) or []
-                    visited_count = len(nodes_completed)
+                    visited_count = len(nodes_visited) if nodes_visited else len(nodes_completed)
                     
                     # Get total nodes from module
                     module_data = row.get("learning_modules")
