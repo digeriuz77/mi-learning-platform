@@ -214,11 +214,6 @@ async def start_module(
         "current_node_id": progress["current_node_id"],
     }
 
-    # Get dialogue content to find start node
-    module = module_response.data[0]
-    dialogue_content = module.get("dialogue_content", {})
-    start_node = dialogue_content.get("start_node", "node_1")
-
     # Create progress record
     progress_response = (
         supabase.table("user_progress")

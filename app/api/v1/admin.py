@@ -52,10 +52,18 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
     """Get dashboard statistics."""
     try:
         supabase = get_supabase_admin()
+        from datetime import datetime, timedelta, timezone
 
         # Total users
         users_resp = supabase.table("users").select("id", count="exact").execute()
         total_users = users_resp.count or 0
+
+        # New users in last 24 hours
+        since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+        new_users_resp = (
+            supabase.table("users").select("id", count="exact").gte("created_at", since).execute()
+        )
+        new_users_24h = new_users_resp.count or 0
 
         # Modules completed
         completed_resp = (
@@ -69,7 +77,7 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
         # Average progress - calculate properly based on nodes_visited vs total nodes per module
         progress_resp = (
             supabase.table("user_progress")
-            .select("nodes_visited, nodes_completed, status, module_id, learning_modules(id, dialogue_content)")
+            .select("nodes_completed, status, module_id, learning_modules(id, dialogue_content)")
             .execute()
         )
         avg_progress = 0.0
@@ -80,8 +88,8 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
                     progress_values.append(100)
                 else:
                     # Calculate progress based on nodes visited
-                    nodes_visited = row.get("nodes_visited", []) or []
-                    visited_count = len(nodes_visited)
+                    nodes_completed = row.get("nodes_completed", []) or []
+                    visited_count = len(nodes_completed)
                     
                     # Get total nodes from module
                     module_data = row.get("learning_modules")
@@ -95,7 +103,7 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
 
         return {
             "total_users": total_users,
-            "new_users_24h": 0,
+            "new_users_24h": new_users_24h,
             "total_modules_completed": total_modules_completed,
             "average_progress": round(avg_progress, 1),
         }
