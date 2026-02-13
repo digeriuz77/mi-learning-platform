@@ -333,16 +333,24 @@ async def submit_choice(
             max_points_available=max_points_available
         )
         
-        # Update points_earned to include completion bonus (but not for completion % calculation)
+        # P1-10: Fixed double-counting. total_points_earned already includes current
+        # choice points + previous points. Use it directly instead of adding again.
         points_earned = total_points_earned
 
     # Update progress record
+    if is_module_complete:
+        # When module is complete, points_earned is already the total (previous + current)
+        new_points_earned = points_earned
+    else:
+        # Normal case: add current choice points to existing progress points
+        new_points_earned = progress.get('points_earned', 0) + points_earned
+
     update_data = {
         'current_node_id': next_node_id if not is_module_complete else choice_data.node_id,
         'nodes_completed': new_nodes_completed,
         'nodes_visited': new_nodes_visited,
         'technique_quality_counts': new_technique_quality_counts,
-        'points_earned': progress.get('points_earned', 0) + points_earned,
+        'points_earned': new_points_earned,
     }
 
     if is_module_complete:

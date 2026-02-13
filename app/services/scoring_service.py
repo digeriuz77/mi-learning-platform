@@ -309,6 +309,8 @@ class ScoringService:
         Returns:
             int: Points needed for next level, or 0 if at max level
         """
-        if current_level - 1 < len(ScoringService.LEVEL_THRESHOLDS):
-            return ScoringService.LEVEL_THRESHOLDS[current_level - 1]
+        # P1-14: Fixed - was returning LEVEL_THRESHOLDS[current_level - 1] which is the
+        # *current* level's threshold. Should return the *next* level's threshold.
+        if current_level < len(ScoringService.LEVEL_THRESHOLDS):
+            return ScoringService.LEVEL_THRESHOLDS[current_level]
         return 0

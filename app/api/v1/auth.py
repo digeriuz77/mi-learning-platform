@@ -16,9 +16,11 @@ Endpoints:
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, status, Depends, Header
+from fastapi import APIRouter, HTTPException, status, Depends, Header, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from supabase import Client
 
 from app.config import settings
@@ -35,6 +37,9 @@ router = APIRouter()
 security = HTTPBearer(auto_error=False)
 
 logger = logging.getLogger(__name__)
+
+# P1-7: Rate limiter for auth endpoints to prevent brute-force attacks
+limiter = Limiter(key_func=get_remote_address)
 
 
 # =====================================================

@@ -49,9 +49,9 @@ class Settings(BaseSettings):
     # IMPORTANT: Set this to your production URL for email redirects to work
     SITE_URL: str = ""
 
-    # CORS Settings - default allows all origins for easy deployment
-    # Set to specific origins in production if needed
-    CORS_ORIGINS: List[str] = ["*"]
+    # CORS Settings - SECURITY: Do not use ["*"] with allow_credentials=True
+    # Set CORS_ORIGINS env var to comma-separated allowed origins in production
+    CORS_ORIGINS: List[str] = []
 
     # JWT Settings
     JWT_ALGORITHM: str = "HS256"
@@ -67,12 +67,20 @@ class Settings(BaseSettings):
             raise ValueError("SUPABASE_URL must start with http:// or https://")
         return v.rstrip("/")  # Remove trailing slash
 
+    # SECURITY: OpenAI API key should be accessed through Settings, not os.getenv()
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4.1-mini"
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):
-        """Parse CORS_ORIGINS from comma-separated string or list"""
+        """Parse CORS_ORIGINS from comma-separated string or list.
+        
+        SECURITY: Defaults to empty list (no CORS) rather than ["*"] to prevent
+        credential leakage via cross-origin requests.
+        """
         if v is None or v == "":
-            return ["*"]
+            return []
         if isinstance(v, str):
             if v.strip() == "*":
                 return ["*"]

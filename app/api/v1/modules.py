@@ -210,7 +210,7 @@ async def start_module(
         logger.error(f"[MODULES] Failed to insert progress: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create progress: {str(e)}",
+            detail="Failed to create progress",
         )
 
     progress = progress_response.data[0]
@@ -268,6 +268,10 @@ async def restart_module(
                         "status": "in_progress",
                         "current_node_id": start_node,
                         "nodes_completed": [],
+                        # P1-11: Also reset nodes_visited and technique_quality_counts
+                        # which were previously missing from the restart reset
+                        "nodes_visited": [],
+                        "technique_quality_counts": {},
                         "points_earned": 0,
                         "completion_score": 0,
                         "techniques_demonstrated": {},
@@ -304,7 +308,7 @@ async def restart_module(
             logger.error(f"[MODULES] Failed to reset progress: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to reset progress: {str(e)}",
+                detail="Failed to reset progress",
             )
 
         return {
