@@ -1,6 +1,7 @@
 """
 Pytest configuration and fixtures
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, MagicMock
@@ -19,14 +20,14 @@ def client():
 def mock_supabase_client():
     """Create a mock Supabase client"""
     mock_client = MagicMock()
-    
+
     # Mock auth methods
     mock_client.auth = MagicMock()
     mock_client.auth.sign_up = MagicMock()
     mock_client.auth.sign_in_with_password = MagicMock()
     mock_client.auth.sign_out = MagicMock()
     mock_client.auth.get_user = MagicMock()
-    
+
     # Mock table methods
     mock_table = MagicMock()
     mock_table.select = MagicMock(return_value=mock_table)
@@ -37,9 +38,9 @@ def mock_supabase_client():
     mock_table.order = MagicMock(return_value=mock_table)
     mock_table.limit = MagicMock(return_value=mock_table)
     mock_table.execute = MagicMock(return_value=MagicMock(data=[]))
-    
+
     mock_client.table = MagicMock(return_value=mock_table)
-    
+
     return mock_client
 
 
@@ -50,7 +51,7 @@ def sample_user():
         "id": "test-user-id-123",
         "email": "test@example.com",
         "display_name": "Test User",
-        "created_at": "2026-01-01T00:00:00Z"
+        "created_at": "2026-01-01T00:00:00Z",
     }
 
 
@@ -79,18 +80,18 @@ def sample_module():
                             "text": "Tell me more about that.",
                             "technique": "Open Question",
                             "next_node_id": "node_2",
-                            "feedback": "Good open question."
+                            "feedback": "Good open question.",
                         },
                         {
                             "text": "You need to change right now!",
                             "technique": "Righting Reflex",
                             "next_node_id": "node_3",
-                            "feedback": "This creates resistance."
-                        }
-                    ]
+                            "feedback": "This creates resistance.",
+                        },
+                    ],
                 }
-            ]
-        }
+            ],
+        },
     }
 
 
@@ -107,7 +108,7 @@ def sample_progress():
         "points_earned": 0,
         "completion_score": 0,
         "techniques_demonstrated": {},
-        "started_at": "2026-01-01T00:00:00Z"
+        "started_at": "2026-01-01T00:00:00Z",
     }
 
 
@@ -115,3 +116,27 @@ def sample_progress():
 def auth_headers():
     """Return authentication headers for testing"""
     return {"Authorization": "Bearer test-token-123"}
+
+
+@pytest.fixture
+def admin_user():
+    """Return a sample admin user object"""
+    return {
+        "id": "test-admin-id-123",
+        "email": "admin@example.com",
+        "display_name": "Admin User",
+        "created_at": "2026-01-01T00:00:00Z",
+        "role": "admin",
+    }
+
+
+@pytest.fixture
+def regular_user():
+    """Return a sample regular user object"""
+    return {
+        "id": "test-user-id-456",
+        "email": "user@example.com",
+        "display_name": "Regular User",
+        "created_at": "2026-01-01T00:00:00Z",
+        "role": "user",
+    }

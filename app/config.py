@@ -71,11 +71,20 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4.1-mini"
 
+    # Scoring Configuration (Optional - have defaults)
+    SCORING_EXCELLENT_POINTS: int = 150
+    SCORING_GOOD_POINTS: int = 100
+    SCORING_ACCEPTABLE_POINTS: int = 50
+    SCORING_POOR_POINTS: int = 0
+    SCORING_FIRST_ATTEMPT_BONUS: int = 50
+    SCORING_CHANGE_TALK_BONUS: int = 50
+    SCORING_COMPLETION_BONUS: int = 200
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):
         """Parse CORS_ORIGINS from comma-separated string or list.
-        
+
         SECURITY: Defaults to empty list (no CORS) rather than ["*"] to prevent
         credential leakage via cross-origin requests.
         """
