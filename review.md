@@ -420,11 +420,12 @@ Proposed:
 | 7 | **Add rate limiting** | No rate limiting on login, registration, or API endpoints. Use `slowapi` or similar. |
 | 8 | **Fix `get_feedback_stats()` auth check** | [`feedback.py:115`](app/api/v1/feedback.py:115) references `auth.role` which doesn't exist on `AuthContext`. |
 | 9 | **Add RLS policies for `conversation_analyses` and `user_feedback`** | These tables appear to lack RLS, meaning any authenticated Supabase client can read all records. |
-| 10 | **Fix double-counting in `submit_choice()` completion logic** | [`dialogue.py:337-345`](app/api/v1/dialogue.py:337) may double-count points on module completion. |
+| 10 | **Fix double-counting in `submit_choice()` completion logic** | [`dialogue.py:337-345`](app/api/v1/dialogue.py:337) may double-count points on module completion. The points values displayed on each module can be removed as they serve no purpose. |
 | 11 | **Reset `nodes_visited` and `technique_quality_counts` on module restart** | [`modules.py:267`](app/api/v1/modules.py:267) doesn't reset these fields, leading to stale data. |
 | 12 | **Validate session ownership in chat endpoints** | Any authenticated user can interact with any chat session by knowing the UUID. |
 | 13 | **Implement proper token refresh** | Current refresh endpoint is a no-op. Implement Supabase refresh token flow. |
 | 14 | **Fix `get_next_level_threshold()`** | Returns current level threshold instead of next level's. |
+| 15 | **Remove the % score about progress and change to completion** | remove the score and track if a user has completed the module or not only. |
 
 ### P2 — Nice to Have (Plan for Next Sprint)
 
