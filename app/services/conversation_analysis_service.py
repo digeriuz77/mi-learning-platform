@@ -18,10 +18,14 @@ def _get_openai_model() -> str:
 
 
 def _get_openai_key() -> str:
-    """Get OpenAI API key from environment."""
-    key = os.getenv("OPENAI_API_KEY")
+    """Get OpenAI API key from Settings (consistent with rest of codebase)."""
+    try:
+        from app.config import settings
+        key = settings.OPENAI_API_KEY
+    except Exception:
+        key = os.getenv("OPENAI_API_KEY")
     if not key:
-        raise ValueError("OPENAI_API_KEY environment variable is not set")
+        raise ValueError("OPENAI_API_KEY is not configured")
     return key
 
 

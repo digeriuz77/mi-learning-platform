@@ -86,14 +86,14 @@ However, several medium-priority issues remain, and new observations have emerge
 | **7-day token expiry config is dead code** | **Low** | [`config.py:58`](app/config.py:58) sets `ACCESS_TOKEN_EXPIRE_MINUTES = 10080` but this value is never used — Supabase controls token expiry. Misleading config. |
 | **Token refresh is a no-op** | **Medium** | [`auth.py:488-492`](app/api/v1/auth.py:488) returns the same token if valid. No actual refresh token flow. Users must re-login when tokens expire. |
 | **Admin delete lacks cascade cleanup** | **Medium** | [`admin.py:283`](app/api/v1/admin.py:283) deletes from `users` table but doesn't clean up `user_profiles`, `user_progress`, `dialogue_attempts`, or `conversation_analyses`. Orphaned data remains. |
-| **`/chat-practice/analyze` accepts raw dict** | **Medium** | [`chat_practice.py:262`](app/api/v1/chat_practice.py:262) accepts `request: dict` with no Pydantic validation. Arbitrary data is passed to the LLM prompt. Should use a typed model. |
+| ~~**`/chat-practice/analyze` accepts raw dict**~~ | ~~**Medium**~~ | ✅ **Fixed** — [`chat_practice.py:262`](app/api/v1/chat_practice.py:262) now uses `AnalyzeTranscriptRequest` Pydantic model with validated `transcript` and `persona_name` fields. |
 | **No CSRF protection** | **Medium** | Cookie-based token storage ([`auth.py:211`](app/core/auth.py:211)) without CSRF tokens. State-changing POST endpoints are vulnerable if cookies are used. |
 | **No RLS for `conversation_analyses` / `user_feedback`** | **Medium** | These tables appear to lack RLS policies. Any authenticated Supabase client-side query can read all records. |
 | **Admin check queries DB on every request** | **Low** | [`admin.py:29-36`](app/api/v1/admin.py:29) queries `users` table on every admin endpoint. Should cache role in JWT claims or use a short-lived cache. |
 | **`limit` and `offset` have no upper bounds** | **Low** | Admin endpoints accept arbitrary `limit` values (e.g., [`admin.py:342`](app/api/v1/admin.py:342)), potentially causing expensive queries. |
 | **Hardcoded fallback URL** | **Low** | [`auth.py:544`](app/api/v1/auth.py:544) has a hardcoded Railway URL as fallback for password reset redirects. |
-| **Registration error leaks internal details** | **Low** | [`auth.py:293`](app/api/v1/auth.py:293) returns `f"Registration failed: {str(e)}"` for unrecognised errors. Should return a generic message. |
-| **Login/register error leaks connection details** | **Low** | [`auth.py:200`](app/api/v1/auth.py:200) returns `f"Database connection error: {str(e)}"`. Internal error details should not be exposed. |
+| ~~**Registration error leaks internal details**~~ | ~~**Low**~~ | ✅ **Fixed** — [`auth.py:293`](app/api/v1/auth.py:293) now returns generic `"Registration failed. Please try again later."`. Actual error logged server-side. |
+| ~~**Login/register error leaks connection details**~~ | ~~**Low**~~ | ✅ **Fixed** — [`auth.py:200`](app/api/v1/auth.py:200) now returns generic `"Service temporarily unavailable."`. Actual error logged server-side. |
 | **JWT audience verification disabled** | **Low** | [`auth.py:87`](app/core/auth.py:87) sets `verify_aud: False`. Acceptable for Supabase but worth documenting. |
 | **Supabase anon key exposed in templates** | **Low** | [`main.py:152`](app/main.py:152) passes `supabase_anon_key` to templates. Standard Supabase practice but requires strict RLS. |
 
@@ -101,9 +101,9 @@ However, several medium-priority issues remain, and new observations have emerge
 
 | Finding | Severity | Details |
 |---------|----------|---------|
-| **`conversation_analysis_service.py` still uses `os.getenv()` for OpenAI key** | **Low** | [`conversation_analysis_service.py:22`](app/services/conversation_analysis_service.py:22) reads `OPENAI_API_KEY` via `os.getenv()` directly, unlike `chat_service.py` which was fixed to use Settings. Inconsistent. |
-| **`analysis_persistence_service.py` uses `datetime.utcnow()`** | **Low** | [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) uses deprecated `datetime.utcnow()`. Rest of codebase uses `datetime.now(timezone.utc)`. |
-| **`test_connection()` references old table name** | **Low** | [`supabase.py:87`](app/core/supabase.py:87) queries `mi_module` table which doesn't exist (should be `learning_modules`). This function appears unused but is misleading. |
+| ~~**`conversation_analysis_service.py` still uses `os.getenv()` for OpenAI key**~~ | ~~**Low**~~ | ✅ **Fixed** — [`conversation_analysis_service.py:22`](app/services/conversation_analysis_service.py:22) now uses Settings class with `os.getenv()` fallback, consistent with `chat_service.py`. |
+| ~~**`analysis_persistence_service.py` uses `datetime.utcnow()`**~~ | ~~**Low**~~ | ✅ **Fixed** — [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) now uses `datetime.now(timezone.utc)`. |
+| ~~**`test_connection()` references old table name**~~ | ~~**Low**~~ | ✅ **Fixed** — [`supabase.py:87`](app/core/supabase.py:87) now queries `learning_modules` instead of `mi_module`. |
 | **Persona endpoints are unauthenticated** | **Low** | [`chat_practice.py:34`](app/api/v1/chat_practice.py:34) `list_personas()` and [`chat_practice.py:44`](app/api/v1/chat_practice.py:44) `get_persona_details()` have no auth dependency. Persona data is not sensitive, but it's inconsistent with the rest of the API. |
 
 ---
@@ -160,8 +160,8 @@ AI chat practice uses a separate scoring system:
 | **Technique quality classification is fragile** | **Medium** | [`get_technique_quality()`](app/api/v1/dialogue.py:61) uses keyword matching on `technique` and `feedback` strings. The keyword lists are hardcoded in the route handler, not in the scoring service. Default fallback is `'good'` (line 106), which means unrecognised techniques get generous scoring. |
 | **`calculate_max_points_available()` has fragile subtraction logic** | **Medium** | [`scoring_service.py:191`](app/services/scoring_service.py:191) subtracts `best_first_choice_points` from the recursive result, but `get_max_points_for_path()` already includes the first node's best choice. This double-counting/subtraction logic may produce incorrect results for edge-case dialogue tree shapes. |
 | **Max points quality detection differs from actual scoring** | **Medium** | [`calculate_max_points_for_choice()`](app/services/scoring_service.py:209) uses different keyword matching logic than [`get_technique_quality()`](app/api/v1/dialogue.py:61). For example, `calculate_max_points_for_choice()` checks for `'reflection'` to classify as excellent, while `get_technique_quality()` requires `'complex reflection'` for excellent. This means `max_points_available` may be calculated with different assumptions than actual scoring, leading to completion scores that don't accurately reflect performance. |
-| **No server-side validation of choice against current node** | **Medium** | [`dialogue.py:214`](app/api/v1/dialogue.py:214) finds the node from `choice_data.node_id` but doesn't verify it matches `progress.current_node_id`. A user could submit choices for nodes they haven't reached. |
-| **Profile total_points may still double-count on completion** | **Medium** | In [`dialogue.py:369`](app/api/v1/dialogue.py:369), when `is_module_complete` is true, `points_earned` has been reassigned to `total_points_earned` (line 338), which includes all previous per-choice points. But `profile.total_points` already includes those per-choice points from previous submissions. The profile update adds the full module total again. |
+| ~~**No server-side validation of choice against current node**~~ | ~~**Medium**~~ | ✅ **Fixed** — [`dialogue.py:214`](app/api/v1/dialogue.py:214) now validates `choice_data.node_id == progress.current_node_id` and returns 400 on mismatch. |
+| ~~**Profile total_points may still double-count on completion**~~ | ~~**Medium**~~ | ✅ **Fixed** — [`dialogue.py:369`](app/api/v1/dialogue.py:369) now uses `current_choice_points` (the per-choice amount) for the profile update instead of the reassigned `points_earned` total. |
 | **Chat sessions still in-memory** | **High** | [`chat_service.py:14`](app/services/chat_service.py:14) `SESSIONS` dict is lost on restart. Hourly cleanup now runs, but sessions are still not persisted to database. |
 
 ### Progress Tracking Gaps
@@ -300,7 +300,7 @@ Currently admin is binary (admin or not). For HR use:
 |-------|--------|---------|
 | No linter config | ⚠️ Unchanged | No `.flake8`, `pyproject.toml` (ruff/black), or `.pre-commit-config.yaml` |
 | Mixed string quotes | ⚠️ Unchanged | Single and double quotes used inconsistently |
-| `datetime.utcnow()` deprecated | ⚠️ Partially fixed | Most files use `datetime.now(timezone.utc)` but [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) still uses `utcnow()` |
+| `datetime.utcnow()` deprecated | ✅ Fixed | All files now use `datetime.now(timezone.utc)`. |
 
 ### Architecture Concerns
 
@@ -309,7 +309,7 @@ Currently admin is binary (admin or not). For HR use:
 | **Duplicate `get_user_profile()` helper** | Defined identically in [`dialogue.py:24`](app/api/v1/dialogue.py:24) and [`progress.py:17`](app/api/v1/progress.py:17). Should be extracted to a shared location. |
 | **Technique quality logic split across files** | [`get_technique_quality()`](app/api/v1/dialogue.py:61) is in the route handler, [`calculate_max_points_for_choice()`](app/services/scoring_service.py:196) has its own quality detection in the scoring service. These should be unified. |
 | **Two schema files with drift** | [`supabase_schema.sql`](supabase_schema.sql) references `app_user`/`mi_module` (old schema) vs [`supabase/migrations/`](supabase/migrations/) uses `users`/`learning_modules` (current). The old schema is confusing. |
-| **`test_connection()` references old table** | [`supabase.py:87`](app/core/supabase.py:87) queries `mi_module` which doesn't exist. |
+| ~~**`test_connection()` references old table**~~ | ✅ **Fixed** — [`supabase.py:87`](app/core/supabase.py:87) now queries `learning_modules`. |
 | **Legacy scoring method** | [`calculate_choice_points_legacy()`](app/services/scoring_service.py:82) is unused but maintained. |
 | **In-memory chat sessions** | [`SESSIONS` dict](app/services/chat_service.py:14) doesn't survive restarts. Should use Redis or database. |
 | **No database migrations runner** | Migrations are SQL files but there's no automated migration tool (like Alembic). |
@@ -324,7 +324,7 @@ Currently admin is binary (admin or not). For HR use:
 | Add linter + formatter | Low | Low |
 | Remove legacy schema files | Low | Trivial |
 | Remove legacy scoring method | Low | Trivial |
-| Fix `test_connection()` table reference | Low | Trivial |
+| ~~Fix `test_connection()` table reference~~ | ~~Low~~ | ✅ Fixed |
 
 ---
 
@@ -339,11 +339,11 @@ _No P0 issues remain._ All critical security issues from the initial review have
 | # | Issue | Category | Details |
 |---|-------|----------|---------|
 | 1 | **Persist chat sessions to database** | Reliability | [`SESSIONS` dict](app/services/chat_service.py:14) is lost on restart/redeployment. Use Supabase or Redis. |
-| 2 | **Fix profile total_points double-counting on completion** | Scoring | [`dialogue.py:369`](app/api/v1/dialogue.py:369) adds full module points to profile, but per-choice points were already added in previous submissions. |
+| 2 | ~~**Fix profile total_points double-counting on completion**~~ | Scoring | ✅ **Fixed** — Profile update now uses `current_choice_points` instead of the reassigned module total. |
 | 3 | **Unify technique quality classification** | Scoring | [`get_technique_quality()`](app/api/v1/dialogue.py:61) and [`calculate_max_points_for_choice()`](app/services/scoring_service.py:196) use different keyword matching logic, causing `max_points_available` to be calculated with different assumptions than actual scoring. |
-| 4 | **Validate choice submission against current node** | Security | [`dialogue.py:214`](app/api/v1/dialogue.py:214) doesn't verify `choice_data.node_id` matches `progress.current_node_id`. Users could submit choices for unreached nodes. |
+| 4 | ~~**Validate choice submission against current node**~~ | Security | ✅ **Fixed** — [`dialogue.py:214`](app/api/v1/dialogue.py:214) now validates node_id matches current_node_id, returns 400 on mismatch. |
 | 5 | **Add cascade cleanup for user deletion** | Data Integrity | [`admin.py:283`](app/api/v1/admin.py:283) leaves orphaned data in `user_profiles`, `user_progress`, `dialogue_attempts`, `conversation_analyses`. |
-| 6 | **Add Pydantic model for `/chat-practice/analyze`** | Security | [`chat_practice.py:262`](app/api/v1/chat_practice.py:262) accepts raw `dict`. Should validate input structure. |
+| 6 | ~~**Add Pydantic model for `/chat-practice/analyze`**~~ | Security | ✅ **Fixed** — [`chat_practice.py:262`](app/api/v1/chat_practice.py:262) now uses `AnalyzeTranscriptRequest` Pydantic model. |
 | 7 | **Implement proper token refresh** | Auth | Current refresh endpoint is a no-op. Implement Supabase refresh token flow or document that client should use Supabase client-side refresh. |
 
 ### P2 — Medium Priority (Plan for Next Sprint)
@@ -358,20 +358,20 @@ _No P0 issues remain._ All critical security issues from the initial review have
 | 13 | **Add dialogue API tests** | Testing | `submit_choice()` is the most complex endpoint with no test coverage. |
 | 14 | **Add admin API tests** | Testing | No tests for any admin endpoints. |
 | 15 | **Add time-on-task tracking** | Analytics | Timestamp node visits for learning analytics. |
-| 16 | **Fix auth error message leaks** | Security | [`auth.py:200`](app/api/v1/auth.py:200) and [`auth.py:293`](app/api/v1/auth.py:293) expose internal details. |
-| 17 | **Use Settings for OpenAI key in `conversation_analysis_service.py`** | Consistency | [`conversation_analysis_service.py:22`](app/services/conversation_analysis_service.py:22) still uses `os.getenv()`. |
+| 16 | ~~**Fix auth error message leaks**~~ | Security | ✅ **Fixed** — [`auth.py:200`](app/api/v1/auth.py:200) and [`auth.py:293`](app/api/v1/auth.py:293) now return generic messages; actual errors logged server-side. |
+| 17 | ~~**Use Settings for OpenAI key in `conversation_analysis_service.py`**~~ | Consistency | ✅ **Fixed** — [`conversation_analysis_service.py:22`](app/services/conversation_analysis_service.py:22) now uses Settings class. |
 
 ### P3 — Nice to Have
 
 | # | Issue | Category | Details |
 |---|-------|----------|---------|
 | 18 | Add linter and formatter (ruff/black + pre-commit) | Quality | No linting config exists. |
-| 19 | Replace remaining `datetime.utcnow()` | Quality | [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) |
+| 19 | ~~Replace remaining `datetime.utcnow()`~~ | Quality | ✅ **Fixed** — [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) now uses `datetime.now(timezone.utc)`. |
 | 20 | Extract duplicate `get_user_profile()` helper | Quality | Defined identically in `dialogue.py` and `progress.py`. |
 | 21 | Move `get_technique_quality()` to scoring service | Architecture | Currently in route handler, belongs in service layer. |
 | 22 | Remove legacy schema files | Cleanup | `supabase_schema.sql` and `docs/schema.sql` reference old table names. |
 | 23 | Remove `calculate_choice_points_legacy()` | Cleanup | Unused method in scoring service. |
-| 24 | Fix `test_connection()` table reference | Cleanup | [`supabase.py:87`](app/core/supabase.py:87) references `mi_module` instead of `learning_modules`. |
+| 24 | ~~Fix `test_connection()` table reference~~ | Cleanup | ✅ **Fixed** — [`supabase.py:87`](app/core/supabase.py:87) now references `learning_modules`. |
 | 25 | Remove dead `ACCESS_TOKEN_EXPIRE_MINUTES` config | Cleanup | [`config.py:58`](app/config.py:58) is never used. |
 | 26 | Add team/group model for HR analytics | Feature | Required for team-level reporting. |
 | 27 | Add PDF export endpoints | Feature | HR teams need formatted reports. |

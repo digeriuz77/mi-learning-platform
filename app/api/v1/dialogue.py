@@ -209,6 +209,14 @@ async def submit_choice(
             detail="Module not started"
         )
 
+    # Validate that the submitted node matches the user's current position
+    if choice_data.node_id != progress.get('current_node_id'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Choice submission does not match your current node. "
+                   "Please refresh and try again."
+        )
+
     # Find the current node
     dialogue_content = module.get('dialogue_content', {})
     node = find_dialogue_node(dialogue_content, choice_data.node_id)
@@ -255,6 +263,8 @@ async def submit_choice(
         evoked_change_talk=evoked_ct,
         technique_quality=technique_quality
     )
+    # Preserve the per-choice points before completion logic may reassign points_earned
+    current_choice_points = points_earned
 
     # Record attempt - use admin client to bypass RLS
     supabase_admin.table('dialogue_attempts').insert({
@@ -364,9 +374,13 @@ async def submit_choice(
     supabase_admin.table('user_progress').update(update_data).eq('id', progress['id']).execute()
 
     # Update user profile
+    # Only add the current choice's points to the profile total.
+    # On completion, `points_earned` was reassigned to the full module total
+    # (previous + current), but previous points were already added in earlier
+    # submissions.  Use the original per-choice points for the profile update.
     profile = await get_user_profile(current_user.user_id, supabase_admin)
     if profile:
-        new_total_points = profile.get('total_points', 0) + points_earned
+        new_total_points = profile.get('total_points', 0) + current_choice_points
         new_level = ScoringService.calculate_level(new_total_points)
 
         modules_completed = profile.get('modules_completed', 0)

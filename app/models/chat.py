@@ -124,6 +124,17 @@ class ChatEndResponse(BaseModel):
     transcript: List[Dict[str, str]]  # Full conversation history
 
 
+class AnalyzeTranscriptRequest(BaseModel):
+    """Request body for analyzing a conversation transcript."""
+
+    transcript: List[Dict[str, str]] = Field(
+        ..., min_length=1, description="List of message dicts with 'role' and 'content'"
+    )
+    persona_name: str = Field(
+        default="Client", min_length=1, max_length=200, description="Name of the persona"
+    )
+
+
 class ChatSessionStatus(BaseModel):
     """Current status of a chat session"""
 
