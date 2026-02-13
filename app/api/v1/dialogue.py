@@ -9,24 +9,13 @@ from typing import Optional
 
 from app.core.supabase import get_supabase, get_supabase_admin
 from app.core.auth import get_current_user, AuthContext
+from app.core.helpers import get_user_profile
 from app.api.v1.modules import get_user_module_progress
 from app.services.scoring_service import ScoringService
 from app.models.modules import NodeResponse, ChoiceSubmit, ChoiceFeedback
 from app.models.progress import UserProgress
 
 router = APIRouter()
-
-
-# =====================================================
-# Helper Functions
-# =====================================================
-
-async def get_user_profile(user_id: str, supabase_admin: Client):
-    """Get user profile from user_profiles table"""
-    response = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
-    if response.data:
-        return response.data[0]
-    return None
 
 
 async def get_module_by_id(module_id: str, supabase: Client) -> dict:
@@ -61,49 +50,14 @@ def get_node_number(dialogue_content: dict, node_id: str) -> int:
 def get_technique_quality(choice: dict) -> str:
     """
     Determine the quality of a technique choice.
-    
+
+    Delegates to ScoringService.get_technique_quality() which is the single
+    source of truth for technique quality classification.
+
     Returns:
-        'excellent': Best MI technique (complex reflection, affirmation + reflection)
-        'good': Solid MI technique (simple reflection, open question)
-        'acceptable': Basic MI technique (affirmation, boundary setting)
-        'poor': Non-MI technique (closed question, interpretation)
+        'excellent', 'good', 'acceptable', or 'poor'
     """
-    technique = choice.get('technique', '').lower()
-    feedback = choice.get('feedback', '').lower()
-    
-    # Non-MI techniques (poor quality)
-    non_mi_keywords = ['non-mi', 'righting reflex', 'educating', 'lecturing',
-                       'defending', 'challenging', 'interpretation', 'closed question',
-                       'non-impartial', 'colluding']
-    if any(keyword in technique for keyword in non_mi_keywords):
-        return 'poor'
-    
-    # Check feedback for quality indicators
-    if any(kw in feedback for kw in ['miss', 'stops the flow', 'surface level', 
-                                     'risk breaking', 'does not dig deeper']):
-        return 'acceptable'
-    
-    # Excellent techniques - complex combinations
-    excellent_keywords = ['complex reflection', 'reflection + open', 'reflection + affirmation',
-                          'summary', 'affirmation + reflection', 'double-sided reflection']
-    if any(keyword in technique for keyword in excellent_keywords):
-        return 'excellent'
-    
-    # Good techniques - core MI skills
-    good_keywords = ['reflection', 'open question', 'empathic', 'affirmation +']
-    if any(keyword in technique for keyword in good_keywords):
-        # But check if feedback suggests it's only acceptable
-        if 'but' in feedback or 'however' in feedback or 'miss' in feedback:
-            return 'acceptable'
-        return 'good'
-    
-    # Acceptable techniques - basic skills
-    acceptable_keywords = ['affirmation', 'boundary', 'acknowledgment', 'validat']
-    if any(keyword in technique for keyword in acceptable_keywords):
-        return 'acceptable'
-    
-    # Default to good if it doesn't match non-MI patterns
-    return 'good'
+    return ScoringService.get_technique_quality(choice)
 
 
 def is_correct_technique(choice: dict) -> bool:
