@@ -55,7 +55,7 @@ class Settings(BaseSettings):
 
     # JWT Settings
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    # Note: Token expiry is controlled by Supabase Auth, not this application.
 
     @field_validator("SUPABASE_URL", mode="before")
     @classmethod

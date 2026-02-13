@@ -25,6 +25,66 @@ class ScoringService:
     ACCEPTABLE_POINTS = 50  # Basic MI technique
     POOR_POINTS = 0         # Non-MI technique
 
+    # Keyword lists for technique quality classification
+    NON_MI_KEYWORDS = [
+        'non-mi', 'righting reflex', 'educating', 'lecturing',
+        'defending', 'challenging', 'interpretation', 'closed question',
+        'non-impartial', 'colluding'
+    ]
+    EXCELLENT_KEYWORDS = [
+        'complex reflection', 'reflection + open', 'reflection + affirmation',
+        'summary', 'affirmation + reflection', 'double-sided reflection'
+    ]
+    GOOD_KEYWORDS = ['reflection', 'open question', 'empathic', 'affirmation +']
+    ACCEPTABLE_KEYWORDS = ['affirmation', 'boundary', 'acknowledgment', 'validat']
+
+    @staticmethod
+    def get_technique_quality(choice: dict) -> str:
+        """
+        Determine the quality of a technique choice.
+
+        This is the single source of truth for technique quality classification,
+        used by both actual scoring and max_points_available calculation.
+
+        Args:
+            choice: Dictionary with 'technique' and 'feedback' keys
+
+        Returns:
+            'excellent': Best MI technique (complex reflection, affirmation + reflection)
+            'good': Solid MI technique (simple reflection, open question)
+            'acceptable': Basic MI technique (affirmation, boundary setting)
+            'poor': Non-MI technique (closed question, interpretation)
+        """
+        technique = choice.get('technique', '').lower()
+        feedback = choice.get('feedback', '').lower()
+
+        # Non-MI techniques (poor quality)
+        if any(keyword in technique for keyword in ScoringService.NON_MI_KEYWORDS):
+            return 'poor'
+
+        # Check feedback for quality indicators
+        if any(kw in feedback for kw in ['miss', 'stops the flow', 'surface level',
+                                         'risk breaking', 'does not dig deeper']):
+            return 'acceptable'
+
+        # Excellent techniques - complex combinations
+        if any(keyword in technique for keyword in ScoringService.EXCELLENT_KEYWORDS):
+            return 'excellent'
+
+        # Good techniques - core MI skills
+        if any(keyword in technique for keyword in ScoringService.GOOD_KEYWORDS):
+            # But check if feedback suggests it's only acceptable
+            if 'but' in feedback or 'however' in feedback or 'miss' in feedback:
+                return 'acceptable'
+            return 'good'
+
+        # Acceptable techniques - basic skills
+        if any(keyword in technique for keyword in ScoringService.ACCEPTABLE_KEYWORDS):
+            return 'acceptable'
+
+        # Default to good if it doesn't match non-MI patterns
+        return 'good'
+
     # Level thresholds
     LEVEL_THRESHOLDS = [
         0,      # Level 1
@@ -78,24 +138,7 @@ class ScoringService:
             
         return points
 
-    @staticmethod
-    def calculate_choice_points_legacy(
-        is_correct: bool,
-        is_first_attempt: bool,
-        evoked_change_talk: bool
-    ) -> int:
-        """
-        Legacy method for backward compatibility.
-        Calculate points earned for a dialogue choice.
-        """
-        points = 0
-        if is_correct:
-            points += ScoringService.CORRECT_TECHNIQUE_POINTS
-            if is_first_attempt:
-                points += ScoringService.FIRST_ATTEMPT_BONUS
-            if evoked_change_talk:
-                points += ScoringService.CHANGE_TALK_BONUS
-        return points
+
 
     @staticmethod
     def calculate_level(total_points: int) -> int:
@@ -196,38 +239,37 @@ class ScoringService:
     def calculate_max_points_for_choice(choice: dict) -> int:
         """
         Calculate the maximum points achievable for a single choice.
-        
+
+        Uses the unified get_technique_quality() method to ensure consistency
+        between max_points_available calculation and actual scoring.
+
         Args:
             choice: The choice dictionary
-            
+
         Returns:
             int: Maximum points for this choice
         """
-        technique = choice.get('technique', '').lower()
-        
-        # Determine quality from technique string
-        if 'excellent' in technique or ('reflection' in technique and 'partial' not in technique and 'incomplete' not in technique):
-            # Excellent choices are best responses
-            base_points = ScoringService.EXCELLENT_POINTS
-        elif 'good' in technique or 'simple reflection' in technique:
-            base_points = ScoringService.GOOD_POINTS
-        elif 'acceptable' in technique:
-            base_points = ScoringService.ACCEPTABLE_POINTS
-        else:
-            # Poor/non-MI choices get 0
-            base_points = ScoringService.POOR_POINTS
-        
+        quality = ScoringService.get_technique_quality(choice)
+
+        quality_points = {
+            'excellent': ScoringService.EXCELLENT_POINTS,
+            'good': ScoringService.GOOD_POINTS,
+            'acceptable': ScoringService.ACCEPTABLE_POINTS,
+            'poor': ScoringService.POOR_POINTS
+        }
+        base_points = quality_points.get(quality, ScoringService.GOOD_POINTS)
+
         # Add bonuses for best case scenario
         max_points = base_points
-        
-        # First attempt bonus (best case: first attempt)
-        if base_points > 0:
+
+        # First attempt bonus (best case: first attempt, only for good or excellent)
+        if quality in ['excellent', 'good']:
             max_points += ScoringService.FIRST_ATTEMPT_BONUS
-        
-        # Change talk bonus (best case: evoked change talk)
-        if base_points > 0:
+
+        # Change talk bonus (best case: evoked change talk, any non-poor)
+        if quality != 'poor':
             max_points += ScoringService.CHANGE_TALK_BONUS
-        
+
         return max_points
 
     @staticmethod

@@ -10,7 +10,7 @@ import io
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -121,8 +121,8 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
 @router.get("/users")
 async def get_users(
     search: Optional[str] = None,
-    limit: int = 20,
-    offset: int = 0,
+    limit: int = Query(default=20, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     admin: AuthContext = Depends(require_admin),
 ):
     """Get users list with pagination and optional search."""
@@ -280,6 +280,12 @@ async def perform_admin_action(
             return {"message": "User unbanned"}
 
         elif action == "delete_user":
+            # Clean up related data before deleting the user to avoid orphaned records
+            supabase.table("conversation_analyses").delete().eq("user_id", target_id).execute()
+            supabase.table("dialogue_attempts").delete().eq("user_id", target_id).execute()
+            supabase.table("user_progress").delete().eq("user_id", target_id).execute()
+            supabase.table("user_feedback").delete().eq("user_id", target_id).execute()
+            supabase.table("user_profiles").delete().eq("user_id", target_id).execute()
             supabase.table("users").delete().eq("id", target_id).execute()
             return {"message": "User deleted"}
 
@@ -339,7 +345,7 @@ async def get_practice_stats(
 
 @router.get("/practice/analyses")
 async def get_practice_analyses(
-    limit: int = 50, offset: int = 0, admin: AuthContext = Depends(require_admin)
+    limit: int = Query(default=50, ge=1, le=500), offset: int = Query(default=0, ge=0), admin: AuthContext = Depends(require_admin)
 ):
     """
     Get detailed practice analyses for review.
@@ -415,7 +421,7 @@ async def get_admin_feedback_stats(admin: AuthContext = Depends(require_admin)):
 
 @router.get("/feedback/recent")
 async def get_recent_feedback(
-    limit: int = 20, admin: AuthContext = Depends(require_admin)
+    limit: int = Query(default=20, ge=1, le=500), admin: AuthContext = Depends(require_admin)
 ):
     """
     Get recent user feedback submissions.
@@ -490,8 +496,8 @@ async def get_comprehensive_analytics(admin: AuthContext = Depends(require_admin
 @router.get("/analytics/users")
 async def get_users_with_analytics(
     search: Optional[str] = None,
-    limit: int = 50,
-    offset: int = 0,
+    limit: int = Query(default=50, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
     admin: AuthContext = Depends(require_admin),
 ):
     """
@@ -525,7 +531,7 @@ async def get_users_with_analytics(
 
 @router.get("/analytics/leaderboard")
 async def get_practice_analytics_leaderboard(
-    limit: int = 20, admin: AuthContext = Depends(require_admin)
+    limit: int = Query(default=20, ge=1, le=500), admin: AuthContext = Depends(require_admin)
 ):
     """
     Get practice leaderboard - top users by performance.

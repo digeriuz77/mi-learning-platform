@@ -9,17 +9,10 @@ from typing import List
 
 from app.core.supabase import get_supabase, get_supabase_admin
 from app.core.auth import get_current_user, AuthContext
+from app.core.helpers import get_user_profile
 from app.models.progress import UserProgress, ProgressListResponse
 
 router = APIRouter()
-
-
-async def get_user_profile(user_id: str, supabase_admin: Client):
-    """Get user profile from user_profiles table"""
-    response = supabase_admin.table('user_profiles').select('*').eq('user_id', user_id).execute()
-    if response.data:
-        return response.data[0]
-    return None
 
 
 # =====================================================

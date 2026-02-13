@@ -202,9 +202,12 @@ async def get_auth_context(
     if credentials and credentials.credentials:
         token = credentials.credentials
     
-    # Also check for token in query params (for WebSocket support)
+    # Only check query params for WebSocket upgrade requests (tokens in URLs
+    # appear in server logs, browser history, and referrer headers)
     if not token and request:
-        token = request.query_params.get("token")
+        is_websocket = request.headers.get("upgrade", "").lower() == "websocket"
+        if is_websocket:
+            token = request.query_params.get("token")
     
     # Check for token in cookies
     if not token and request:

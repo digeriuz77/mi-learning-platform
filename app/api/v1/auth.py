@@ -483,12 +483,16 @@ async def refresh_token(authorization: Optional[str] = Header(None)):
         # Try to validate the current token first
         payload = decode_jwt_token(token)
 
-        # If token is still valid, return it
-        # In a full implementation, you'd use the refresh token here
+        # NOTE: This endpoint does not perform actual token refresh.
+        # Supabase Auth manages token lifecycle (access + refresh tokens) on the
+        # client side via supabase-js. Server-side refresh is not supported because
+        # the backend only receives the access token, not the refresh token.
+        # When the access token expires, the client should use
+        # supabase.auth.refreshSession() or prompt the user to re-login.
         return TokenRefreshResponse(
             access_token=token,
             token_type="bearer",
-            expires_in=3600,  # This should come from token claims
+            expires_in=3600,  # Approximate; actual expiry is in the JWT claims
         )
 
     except AuthenticationError:
