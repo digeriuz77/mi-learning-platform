@@ -1,340 +1,256 @@
-# Comprehensive Code Review — MI Learning Platform
+# Comprehensive Code Review — MI Learning Platform (Post-PR #26)
 
 **Reviewer:** Kilo Code  
-**Date:** 2026-02-12  
-**Commit scope:** Full repository  
+**Date:** 2026-02-13  
+**Scope:** Full repository re-review after PR #26 fixes  
+**Previous review:** 2026-02-12 (pre-fix baseline)
 
 ---
 
 ## Table of Contents
 
-1. [Architecture Overview](#1-architecture-overview)
-2. [Scoring Mechanisms](#2-scoring-mechanisms)
-3. [Progress Tracking](#3-progress-tracking)
-4. [Security Review](#4-security-review)
-5. [Admin Dashboard Assessment](#5-admin-dashboard-assessment)
-6. [General Code Quality](#6-general-code-quality)
+1. [Executive Summary](#1-executive-summary)
+2. [Security](#2-security)
+3. [Scoring Mechanisms & Progress Tracking](#3-scoring-mechanisms--progress-tracking)
+4. [Admin Dashboard / HR Use Case](#4-admin-dashboard--hr-use-case)
+5. [Code Quality & Architecture](#5-code-quality--architecture)
+6. [Remaining Issues](#6-remaining-issues)
 7. [Recommendations](#7-recommendations)
 
 ---
 
-## 1. Architecture Overview
+## 1. Executive Summary
+
+### Application Purpose
+
+The MI Learning Platform is a **Motivational Interviewing (MI) training tool** for healthcare and social care professionals. It provides two learning modes:
+
+1. **Structured Dialogue Modules** — branching dialogue trees (12 modules) where users select practitioner responses and receive scored feedback based on MI technique quality.
+2. **AI Chat Practice** — free-form conversations with LLM-powered simulated client personas, analysed post-session using the MAPS framework.
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Backend framework | **FastAPI** (Python 3.11) |
+| Backend | **FastAPI** (Python 3.11) |
 | Database / Auth | **Supabase** (PostgreSQL + Supabase Auth) |
-| ORM / DB access | Supabase Python client (REST, no SQLAlchemy) |
-| AI / LLM | **OpenAI API** (Responses endpoint, `gpt-4.1-mini` default) |
-| Frontend | Server-rendered **Jinja2** templates + vanilla JS (`static/js/app.js`) |
+| AI / LLM | **OpenAI API** (Responses endpoint, `gpt-4.1-mini`) |
+| Frontend | Server-rendered **Jinja2** templates + vanilla JS |
 | Deployment | **Docker** → **Railway** |
-| Validation | **Pydantic v2** (`pydantic-settings`) |
-| Auth tokens | **python-jose** (JWT HS256) |
+| Rate Limiting | **slowapi** |
 
-### Folder Structure
+### Current Health: 🟡 Good — Significant Improvements, Some Issues Remain
 
-```
-app/
-├── main.py                  # FastAPI app, CORS, routers, templates
-├── config.py                # Pydantic Settings (env vars)
-├── api/v1/                  # Route handlers
-│   ├── admin.py             # Admin dashboard endpoints
-│   ├── auth.py              # Register / login / password reset
-│   ├── chat_practice.py     # AI chat practice sessions
-│   ├── dialogue.py          # Module dialogue node traversal & scoring
-│   ├── feedback.py          # User feedback collection
-│   ├── leaderboard.py       # Points-based leaderboard
-│   ├── modules.py           # Module listing, start, restart
-│   ├── progress.py          # User progress retrieval
-│   └── report_export.py     # HTML/JSON report export
-├── core/
-│   ├── auth.py              # JWT decode, AuthContext, dependencies
-│   └── supabase.py          # Supabase client singletons
-├── models/                  # Pydantic request/response models
-├── services/
-│   ├── scoring_service.py   # Points & level calculations
-│   ├── chat_service.py      # OpenAI chat session management
-│   ├── conversation_analysis_service.py  # AI-powered MI analysis
-│   ├── analysis_persistence_service.py   # Save analyses to DB
-│   └── personas.py          # Hardcoded persona definitions
-├── db/migrations/           # Legacy SQL migration (unused?)
-mi_modules/                  # JSON module content files
-supabase/migrations/         # Supabase SQL migrations (001–010)
-static/                      # CSS, JS, images
-templates/                   # Jinja2 HTML (index.html, admin.html)
-tests/                       # Pytest tests
-scripts/                     # Utility scripts (import, scoring fixes)
-```
+PR #26 addressed the most critical security issues from the initial review. The codebase is now in a substantially better state:
 
-### How the App Is Organised
+- ✅ **Demo user auth bypass removed** (was P0 Critical)
+- ✅ **CORS hardened** — defaults to empty list, credentials only with specific origins
+- ✅ **XSS in HTML reports fixed** — all user-controlled strings now escaped via `html.escape()`
+- ✅ **Global exception handler no longer leaks internals** — returns generic message
+- ✅ **Rate limiting added** via slowapi (60/min default)
+- ✅ **Evocation typo fixed** in report export
+- ✅ **Session ownership validation** added to chat practice
+- ✅ **Feedback stats auth fixed** — no longer references non-existent `auth.role`
+- ✅ **Module restart now resets** `nodes_visited` and `technique_quality_counts`
+- ✅ **`get_next_level_threshold()` fixed** — returns next level's threshold
+- ✅ **CSV export endpoints added** for users and progress
+- ✅ **Lifespan context manager** replaces deprecated `on_event("startup")`
+- ✅ **Automated session cleanup** runs hourly via background task
+- ✅ **Admin user list** now shows actual points/modules from profiles
+- ✅ **OpenAI key** now accessible via Settings class in `chat_service.py`
+- ✅ **Double-counting fix** in `submit_choice()` completion logic
 
-The platform is a **Motivational Interviewing (MI) training tool** with two main learning modes:
-
-1. **Structured Dialogue Modules** — branching dialogue trees where users pick practitioner responses and receive scored feedback.
-2. **AI Chat Practice** — free-form conversations with LLM-powered simulated clients, analysed post-session using the MAPS framework.
-
-Authentication is handled by Supabase Auth; the backend validates JWTs locally (fast path) with a Supabase API fallback. An admin dashboard provides user management and analytics. Data is stored in Supabase PostgreSQL with Row-Level Security (RLS) policies, though the backend frequently uses the **service-role key** to bypass RLS.
+However, several medium-priority issues remain, and new observations have emerged during this re-review.
 
 ---
 
-## 2. Scoring Mechanisms
+## 2. Security
 
-### Where Scores Are Calculated
+### Fixed Issues (from PR #26)
 
-| Location | What It Does |
-|----------|-------------|
-| [`ScoringService.calculate_choice_points()`](app/services/scoring_service.py:43) | Awards points per dialogue choice based on technique quality |
-| [`ScoringService.calculate_completion_score()`](app/services/scoring_service.py:233) | Computes module completion percentage (0–100) |
-| [`ScoringService.calculate_level()`](app/services/scoring_service.py:100) | Maps cumulative points → level (1–10) |
-| [`ScoringService.calculate_max_points_available()`](app/services/scoring_service.py:121) | Traverses dialogue tree for optimal-path max points |
-| [`ScoringService.calculate_max_points_for_choice()`](app/services/scoring_service.py:195) | Max points for a single choice (best-case bonuses) |
-| [`get_technique_quality()`](app/api/v1/dialogue.py:61) | Classifies choice quality via keyword matching |
-| [`evokes_change_talk()`](app/api/v1/dialogue.py:115) | Heuristic for whether a choice evokes change talk |
-| [`submit_choice()`](app/api/v1/dialogue.py:187) | Orchestrates scoring, progress update, profile update |
-| [`conversation_analysis_service.analyze_conversation()`](app/services/conversation_analysis_service.py:135) | LLM-based MAPS scoring (1–5 scale) for chat practice |
+| Original Finding | Severity | Status | Details |
+|-----------------|----------|--------|---------|
+| `get_current_user_legacy()` returns demo user | **Critical** | ✅ **Fixed** | Function removed. Comment at [`auth.py:348-350`](app/core/auth.py:348) documents removal. |
+| CORS `allow_origins=["*"]` with credentials | **High** | ✅ **Fixed** | [`config.py:54`](app/config.py:54) defaults to `[]`. [`main.py:100`](app/main.py:100) only enables credentials when specific origins are set. |
+| HTML report XSS injection | **High** | ✅ **Fixed** | [`report_export.py:43-47`](app/api/v1/report_export.py:43) adds `esc()` helper using `html.escape()`. All user-controlled strings are escaped. |
+| Global exception handler leaks internals | **High** | ✅ **Fixed** | [`main.py:113`](app/main.py:113) returns generic `"An internal server error occurred."` message. |
+| `get_feedback_stats()` broken auth check | **High** | ✅ **Fixed** | [`feedback.py:114-119`](app/api/v1/feedback.py:114) now queries DB for role instead of referencing non-existent `auth.role`. |
+| Chat session ownership not validated | **Medium** | ✅ **Fixed** | [`chat_service.py:156-168`](app/services/chat_service.py:156) adds `validate_session_owner()`. Called in [`chat_practice.py:110`](app/api/v1/chat_practice.py:110). |
+| Evocation typo in report | **Medium** | ✅ **Fixed** | [`report_export.py:61`](app/api/v1/report_export.py:61) now correctly reads `evocation_demonstrated`. |
 
-### Where Scores Are Stored
+### Remaining Security Concerns
 
-- **`user_progress`** table: `points_earned`, `completion_score`, `nodes_completed`, `nodes_visited`, `technique_quality_counts`
-- **`user_profiles`** table: `total_points`, `level`, `modules_completed`, `change_talk_evoked`
-- **`dialogue_attempts`** table: per-choice attempt records with `points_earned`
-- **`conversation_analyses`** table: AI analysis scores for chat practice
+| Finding | Severity | Details |
+|---------|----------|---------|
+| **Token accepted from query params** | **Medium** | [`auth.py:207`](app/core/auth.py:207) still checks `request.query_params.get("token")`. Tokens in URLs appear in server logs, browser history, and referrer headers. Should be limited to WebSocket upgrade requests only. |
+| **7-day token expiry config is dead code** | **Low** | [`config.py:58`](app/config.py:58) sets `ACCESS_TOKEN_EXPIRE_MINUTES = 10080` but this value is never used — Supabase controls token expiry. Misleading config. |
+| **Token refresh is a no-op** | **Medium** | [`auth.py:488-492`](app/api/v1/auth.py:488) returns the same token if valid. No actual refresh token flow. Users must re-login when tokens expire. |
+| **Admin delete lacks cascade cleanup** | **Medium** | [`admin.py:283`](app/api/v1/admin.py:283) deletes from `users` table but doesn't clean up `user_profiles`, `user_progress`, `dialogue_attempts`, or `conversation_analyses`. Orphaned data remains. |
+| **`/chat-practice/analyze` accepts raw dict** | **Medium** | [`chat_practice.py:262`](app/api/v1/chat_practice.py:262) accepts `request: dict` with no Pydantic validation. Arbitrary data is passed to the LLM prompt. Should use a typed model. |
+| **No CSRF protection** | **Medium** | Cookie-based token storage ([`auth.py:211`](app/core/auth.py:211)) without CSRF tokens. State-changing POST endpoints are vulnerable if cookies are used. |
+| **No RLS for `conversation_analyses` / `user_feedback`** | **Medium** | These tables appear to lack RLS policies. Any authenticated Supabase client-side query can read all records. |
+| **Admin check queries DB on every request** | **Low** | [`admin.py:29-36`](app/api/v1/admin.py:29) queries `users` table on every admin endpoint. Should cache role in JWT claims or use a short-lived cache. |
+| **`limit` and `offset` have no upper bounds** | **Low** | Admin endpoints accept arbitrary `limit` values (e.g., [`admin.py:342`](app/api/v1/admin.py:342)), potentially causing expensive queries. |
+| **Hardcoded fallback URL** | **Low** | [`auth.py:544`](app/api/v1/auth.py:544) has a hardcoded Railway URL as fallback for password reset redirects. |
+| **Registration error leaks internal details** | **Low** | [`auth.py:293`](app/api/v1/auth.py:293) returns `f"Registration failed: {str(e)}"` for unrecognised errors. Should return a generic message. |
+| **Login/register error leaks connection details** | **Low** | [`auth.py:200`](app/api/v1/auth.py:200) returns `f"Database connection error: {str(e)}"`. Internal error details should not be exposed. |
+| **JWT audience verification disabled** | **Low** | [`auth.py:87`](app/core/auth.py:87) sets `verify_aud: False`. Acceptable for Supabase but worth documenting. |
+| **Supabase anon key exposed in templates** | **Low** | [`main.py:152`](app/main.py:152) passes `supabase_anon_key` to templates. Standard Supabase practice but requires strict RLS. |
 
-### Where Scores Are Displayed
+### New Observations
 
-- [`get_user_stats()`](app/api/v1/progress.py:29) — returns all module progress with scores
-- [`get_leaderboard()`](app/api/v1/leaderboard.py:17) — ranked by `total_points`
-- [`get_dashboard_stats()`](app/api/v1/admin.py:50) — admin aggregate stats
-- Frontend `app.js` renders scores in the UI
-
-### Issues & Observations
-
-#### Hardcoded Magic Numbers
-
-| Constant | Value | Location |
-|----------|-------|----------|
-| `CORRECT_TECHNIQUE_POINTS` | 100 | [`scoring_service.py:17`](app/services/scoring_service.py:17) |
-| `FIRST_ATTEMPT_BONUS` | 50 | [`scoring_service.py:18`](app/services/scoring_service.py:18) |
-| `CHANGE_TALK_BONUS` | 50 | [`scoring_service.py:19`](app/services/scoring_service.py:19) |
-| `MODULE_COMPLETION_BONUS` | 200 | [`scoring_service.py:20`](app/services/scoring_service.py:20) |
-| `EXCELLENT_POINTS` | 150 | [`scoring_service.py:23`](app/services/scoring_service.py:23) |
-| `GOOD_POINTS` | 100 | [`scoring_service.py:24`](app/services/scoring_service.py:24) |
-| `ACCEPTABLE_POINTS` | 50 | [`scoring_service.py:25`](app/services/scoring_service.py:25) |
-| `POOR_POINTS` | 0 | [`scoring_service.py:26`](app/services/scoring_service.py:26) |
-| `LEVEL_THRESHOLDS` | [0, 500, …, 30000] | [`scoring_service.py:29`](app/services/scoring_service.py:29) |
-| `MAX_TURNS` | 20 | [`chat_service.py:25`](app/services/chat_service.py:25) |
-| `ModuleResponse.points` | 500 (default) | [`models/modules.py:44`](app/models/modules.py:44) |
-
-**Finding:** All scoring constants are class-level attributes in `ScoringService`, which is good for discoverability but they are not configurable at runtime or via environment variables. If scoring needs to be tuned per deployment or A/B tested, this requires code changes.
-
-#### Technique Quality Classification Is Fragile
-
-[`get_technique_quality()`](app/api/v1/dialogue.py:61) uses keyword matching on the `technique` and `feedback` strings from module JSON. This is brittle:
-
-- The keyword lists (`non_mi_keywords`, `excellent_keywords`, etc.) are hardcoded in the route handler, not in the scoring service.
-- A module author could inadvertently use wording that triggers the wrong classification.
-- The default fallback is `'good'` (line 106), which means unrecognised techniques get generous scoring.
-
-#### `calculate_max_points_available()` Has a Subtle Bug
-
-In [`scoring_service.py:191`](app/services/scoring_service.py:191), the method subtracts `best_first_choice_points` from the recursive result, but `get_max_points_for_path()` already includes the first node's best choice. This double-counting/subtraction logic is fragile and may produce incorrect results for certain dialogue tree shapes (e.g., single-node modules or modules where the start node has no choices).
-
-#### Completion Score Double-Counting on Module Complete
-
-In [`dialogue.py:337`](app/api/v1/dialogue.py:337), when a module completes, `points_earned` is reassigned to `total_points_earned` (which already includes the current choice's points). Then at line 345, the update adds `progress.get('points_earned', 0) + points_earned`, which could double-count the current choice's points since `points_earned` was overwritten.
-
-#### Legacy Methods Still Present
-
-[`calculate_choice_points_legacy()`](app/services/scoring_service.py:81) and [`CORRECT_TECHNIQUE_POINTS`](app/services/scoring_service.py:17) are kept for backward compatibility but the new quality-based system uses different constants (`EXCELLENT_POINTS`, etc.). Tests still reference the old constants, which could mask regressions.
+| Finding | Severity | Details |
+|---------|----------|---------|
+| **`conversation_analysis_service.py` still uses `os.getenv()` for OpenAI key** | **Low** | [`conversation_analysis_service.py:22`](app/services/conversation_analysis_service.py:22) reads `OPENAI_API_KEY` via `os.getenv()` directly, unlike `chat_service.py` which was fixed to use Settings. Inconsistent. |
+| **`analysis_persistence_service.py` uses `datetime.utcnow()`** | **Low** | [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) uses deprecated `datetime.utcnow()`. Rest of codebase uses `datetime.now(timezone.utc)`. |
+| **`test_connection()` references old table name** | **Low** | [`supabase.py:87`](app/core/supabase.py:87) queries `mi_module` table which doesn't exist (should be `learning_modules`). This function appears unused but is misleading. |
+| **Persona endpoints are unauthenticated** | **Low** | [`chat_practice.py:34`](app/api/v1/chat_practice.py:34) `list_personas()` and [`chat_practice.py:44`](app/api/v1/chat_practice.py:44) `get_persona_details()` have no auth dependency. Persona data is not sensitive, but it's inconsistent with the rest of the API. |
 
 ---
 
-## 3. Progress Tracking
+## 3. Scoring Mechanisms & Progress Tracking
 
-### How Progress Is Tracked
+### How Scoring Works
 
-1. **Module start** → creates a `user_progress` row with `status: 'in_progress'` and `current_node_id` set to the start node ([`modules.py:192`](app/api/v1/modules.py:192)).
-2. **Choice submission** → updates `nodes_completed`, `nodes_visited`, `technique_quality_counts`, `points_earned`, and `current_node_id` ([`dialogue.py:340`](app/api/v1/dialogue.py:340)).
-3. **Module completion** → sets `status: 'completed'`, calculates `completion_score`, sets `completed_at` ([`dialogue.py:348`](app/api/v1/dialogue.py:348)).
-4. **Profile aggregation** → `user_profiles.total_points`, `level`, `modules_completed` are updated on each choice submission.
+The platform uses a **quality-based scoring system** with four tiers:
 
-### Persistence
+| Quality | Base Points | First Attempt Bonus | Change Talk Bonus | Max Per Choice |
+|---------|------------|--------------------|--------------------|----------------|
+| Excellent | 150 | +50 | +50 | **250** |
+| Good | 100 | +50 | +50 | **200** |
+| Acceptable | 50 | — | +50 | **100** |
+| Poor | 0 | — | — | **0** |
 
-Progress is **persistent** in Supabase PostgreSQL. Chat practice sessions, however, are stored **in-memory only** ([`chat_service.py:14`](app/services/chat_service.py:14): `SESSIONS: Dict[str, Dict[str, Any]] = {}`). This means:
+- **Module Completion Bonus:** 200 points (added to `max_points_available` calculation only)
+- **Level System:** 10 levels with thresholds from 0 to 30,000 points
 
-- **Chat sessions are lost on server restart or redeployment.**
-- There is no way to resume a chat session after a crash.
-- The `cleanup_old_sessions()` function exists but is never called automatically.
+### Scoring Flow
 
-### Reset / Manipulation
+1. User submits a choice → [`submit_choice()`](app/api/v1/dialogue.py:187)
+2. [`get_technique_quality()`](app/api/v1/dialogue.py:61) classifies the choice via keyword matching on `technique` and `feedback` strings
+3. [`ScoringService.calculate_choice_points()`](app/services/scoring_service.py:43) computes points
+4. Points are added to `user_progress.points_earned` and `user_profiles.total_points`
+5. On module completion, [`calculate_completion_score()`](app/services/scoring_service.py:233) computes a 0-100 score
 
-- **Module restart** is supported via [`restart_module()`](app/api/v1/modules.py:225), which resets progress and deducts points from the profile.
-- **No rate limiting** on restarts — a user could repeatedly restart and replay modules to farm points (though points are deducted on restart, the net effect depends on scoring).
-- **No server-side validation** that `choice_id` corresponds to the current `node_id` in the user's progress. A user could potentially submit choices for nodes they haven't reached.
+### Completion Score Calculation
 
-### Gaps
+Two modes:
+- **Points-based** (preferred): `(points_earned / max_points_available) * 100` — used when `max_points_available` is set on the module
+- **Legacy fallback**: `(progress_score × 50) + (accuracy_score × 50)` — weighted combination of progress and technique quality
 
-| Gap | Severity |
-|-----|----------|
-| Chat practice sessions are in-memory only; lost on restart | **High** |
-| No `nodes_visited` reset on module restart (field reset is missing from restart update) | **Medium** |
-| No `technique_quality_counts` reset on module restart | **Medium** |
-| Partially completed modules are saved, but there's no "resume" UX guidance | **Low** |
-| No timestamp tracking for individual node visits (time-on-task) | **Medium** |
-| `dialogue_attempts` are never cleaned up on module restart | **Low** |
+### Progress Tracking Flow
 
----
+1. **Module start** → creates `user_progress` row with `status: 'in_progress'` ([`modules.py:196`](app/api/v1/modules.py:196))
+2. **Choice submission** → updates `nodes_completed`, `nodes_visited`, `technique_quality_counts`, `points_earned` ([`dialogue.py:348`](app/api/v1/dialogue.py:348))
+3. **Module completion** → sets `status: 'completed'`, calculates `completion_score`, sets `completed_at` ([`dialogue.py:356`](app/api/v1/dialogue.py:356))
+4. **Module restart** → resets all progress fields including `nodes_visited` and `technique_quality_counts`, deducts points from profile ([`modules.py:263`](app/api/v1/modules.py:263))
 
-## 4. Security Review
+### Chat Practice Scoring
 
-### Authentication
+AI chat practice uses a separate scoring system:
+- **MAPS Framework** (1-5 scale): Foundational Trust & Safety, Empathic Partnership & Autonomy, Empowerment & Clarity
+- **MI Spirit Assessment**: Partnership, Acceptance, Compassion, Evocation (boolean)
+- **Overall Score**: 1-5 scale computed by the LLM
+- Scores are stored in `conversation_analyses` table via [`save_conversation_analysis()`](app/services/analysis_persistence_service.py:18)
 
-| Finding | Severity | Details |
-|---------|----------|---------|
-| **Legacy auth returns demo user on failure** | **Critical** | [`get_current_user_legacy()`](app/core/auth.py:349) returns a hardcoded `demo-user-123` when auth fails. If any endpoint still uses this dependency, it bypasses authentication entirely. |
-| **Token accepted from query params and cookies** | **Medium** | [`get_auth_context()`](app/core/auth.py:206) checks `request.query_params.get("token")` and `request.cookies.get("access_token")`. Query param tokens appear in server logs and browser history. |
-| **JWT audience verification disabled** | **Low** | [`decode_jwt_token()`](app/core/auth.py:87) sets `verify_aud: False`. While Supabase tokens may not use standard `aud`, this weakens token validation. |
-| **7-day token expiry** | **Medium** | [`ACCESS_TOKEN_EXPIRE_MINUTES = 10080`](app/config.py:58) (7 days). Long-lived tokens increase the window for token theft. |
-| **Token refresh is a no-op** | **Medium** | [`refresh_token()`](app/api/v1/auth.py:450) just returns the same token if valid, and fails if expired. No actual refresh token flow is implemented. |
+### Remaining Scoring Issues
 
-### Authorisation
+| Issue | Severity | Details |
+|-------|----------|---------|
+| **Technique quality classification is fragile** | **Medium** | [`get_technique_quality()`](app/api/v1/dialogue.py:61) uses keyword matching on `technique` and `feedback` strings. The keyword lists are hardcoded in the route handler, not in the scoring service. Default fallback is `'good'` (line 106), which means unrecognised techniques get generous scoring. |
+| **`calculate_max_points_available()` has fragile subtraction logic** | **Medium** | [`scoring_service.py:191`](app/services/scoring_service.py:191) subtracts `best_first_choice_points` from the recursive result, but `get_max_points_for_path()` already includes the first node's best choice. This double-counting/subtraction logic may produce incorrect results for edge-case dialogue tree shapes. |
+| **Max points quality detection differs from actual scoring** | **Medium** | [`calculate_max_points_for_choice()`](app/services/scoring_service.py:209) uses different keyword matching logic than [`get_technique_quality()`](app/api/v1/dialogue.py:61). For example, `calculate_max_points_for_choice()` checks for `'reflection'` to classify as excellent, while `get_technique_quality()` requires `'complex reflection'` for excellent. This means `max_points_available` may be calculated with different assumptions than actual scoring, leading to completion scores that don't accurately reflect performance. |
+| **No server-side validation of choice against current node** | **Medium** | [`dialogue.py:214`](app/api/v1/dialogue.py:214) finds the node from `choice_data.node_id` but doesn't verify it matches `progress.current_node_id`. A user could submit choices for nodes they haven't reached. |
+| **Profile total_points may still double-count on completion** | **Medium** | In [`dialogue.py:369`](app/api/v1/dialogue.py:369), when `is_module_complete` is true, `points_earned` has been reassigned to `total_points_earned` (line 338), which includes all previous per-choice points. But `profile.total_points` already includes those per-choice points from previous submissions. The profile update adds the full module total again. |
+| **Chat sessions still in-memory** | **High** | [`chat_service.py:14`](app/services/chat_service.py:14) `SESSIONS` dict is lost on restart. Hourly cleanup now runs, but sessions are still not persisted to database. |
 
-| Finding | Severity | Details |
-|---------|----------|---------|
-| **Admin check queries DB on every request** | **Low** | [`require_admin()`](app/api/v1/admin.py:21) queries the `users` table on every admin endpoint call. Should cache or embed role in JWT claims. |
-| **Feedback stats endpoint has broken auth check** | **High** | [`get_feedback_stats()`](app/api/v1/feedback.py:106) checks `auth.role` but `AuthContext` has no `role` attribute — this will always raise an `AttributeError`, making the endpoint unusable. |
-| **No authorisation on chat practice endpoints** | **Medium** | Chat endpoints use `get_current_user` but don't verify the session belongs to the authenticated user. Any authenticated user can interact with any session by guessing the UUID. |
-| **Admin can delete users without cascade cleanup** | **Medium** | [`perform_admin_action()`](app/api/v1/admin.py:269) deletes from `users` table but doesn't clean up `user_profiles`, `user_progress`, `dialogue_attempts`, or `conversation_analyses`. |
+### Progress Tracking Gaps
 
-### Data Validation
-
-| Finding | Severity | Details |
-|---------|----------|---------|
-| **`/chat-practice/analyze` accepts raw dict** | **Medium** | [`analyze_transcript()`](app/api/v1/chat_practice.py:250) accepts `request: dict` with no Pydantic validation. Arbitrary data is passed to the LLM prompt. |
-| **No input sanitisation on search parameters** | **Medium** | [`get_users()`](app/api/v1/admin.py:134) passes `search` directly to `.ilike()`. While Supabase client likely parameterises this, the pattern is risky. |
-| **`limit` and `offset` have no upper bounds** | **Low** | Admin endpoints accept arbitrary `limit` values, potentially causing expensive queries. |
-
-### XSS / CSRF
-
-| Finding | Severity | Details |
-|---------|----------|---------|
-| **HTML report injection** | **High** | [`_generate_html_report()`](app/api/v1/report_export.py:31) interpolates user-controlled analysis data (strengths, summaries, suggestions) directly into HTML via f-strings with **no escaping**. An attacker could inject `<script>` tags via crafted analysis data. |
-| **No CSRF protection** | **Medium** | The app uses cookie-based token storage ([`auth.py:211`](app/core/auth.py:211)) but has no CSRF tokens. State-changing POST endpoints are vulnerable to CSRF if cookies are used. |
-| **Supabase anon key exposed in templates** | **Low** | [`main.py:117`](app/main.py:117) passes `supabase_anon_key` to templates. This is by design for Supabase client-side usage, but the anon key should be paired with strict RLS policies. |
-
-### Secrets Management
-
-| Finding | Severity | Details |
-|---------|----------|---------|
-| **Hardcoded fallback URL** | **Low** | [`auth.py:539`](app/api/v1/auth.py:539) has a hardcoded Railway URL as fallback for password reset redirects. |
-| **OpenAI key accessed via `os.getenv()` directly** | **Low** | [`chat_service.py:30`](app/services/chat_service.py:30) and [`conversation_analysis_service.py:22`](app/services/conversation_analysis_service.py:22) read `OPENAI_API_KEY` directly from env instead of through the Settings class. Inconsistent with the rest of the config. |
-| **Proxy env vars forcibly deleted** | **Low** | [`supabase.py:12`](app/core/supabase.py:12) deletes `HTTP_PROXY`/`HTTPS_PROXY` from `os.environ`. This is a workaround that could break other services in the same process. |
-
-### API Security
-
-| Finding | Severity | Details |
-|---------|----------|---------|
-| **CORS allows all origins by default** | **High** | [`CORS_ORIGINS` defaults to `["*"]`](app/config.py:54) and [`main.py:64`](app/main.py:64) applies it with `allow_credentials=True`. This is a dangerous combination — browsers will send cookies cross-origin. |
-| **Global exception handler leaks internal errors** | **High** | [`global_exception_handler()`](app/main.py:72) returns `str(exc)` and `type(exc).__name__` to the client. Stack traces and internal details could leak. |
-| **Error messages expose implementation details** | **Medium** | Multiple endpoints return `str(e)` in error responses (e.g., [`admin.py:115`](app/api/v1/admin.py:115), [`modules.py:213`](app/api/v1/modules.py:213)). |
-| **No rate limiting** | **Medium** | No rate limiting on login, registration, password reset, or API endpoints. Vulnerable to brute-force and abuse. |
-| **Health endpoint exposes config details** | **Low** | [`detailed_health_check()`](app/main.py:164) reveals whether keys are configured and partial Supabase URL. |
-
-### Supabase / Firestore Rules
-
-- RLS policies exist for `users`, `user_profiles`, `user_progress`, `dialogue_attempts`, `learning_modules`, and `user_score` ([`002_email_privacy_rls.sql`](supabase/migrations/002_email_privacy_rls.sql)).
-- However, the backend **bypasses RLS** on nearly every operation by using `get_supabase_admin()` (service role key). This means RLS is effectively a safety net only for direct Supabase client access from the frontend.
-- **No RLS policies found for `conversation_analyses` or `user_feedback` tables** — these may be accessible to any authenticated user via the Supabase client.
-
-### Client-Side Logic That Should Be Server-Side
-
-| Issue | Details |
-|-------|---------|
-| **Supabase client initialised in frontend** | [`config.js`](static/js/config.js) and templates expose the anon key. While this is standard Supabase practice, any client-side queries bypass backend validation. |
-| **PDF generation is client-side** | Reports are generated as HTML with a "Print" button. No server-side PDF generation exists. |
+| Gap | Severity | Status |
+|-----|----------|--------|
+| Chat practice sessions in-memory only | **High** | ⚠️ Cleanup added but not persisted |
+| No timestamp tracking for individual node visits | **Medium** | ⚠️ Unchanged |
+| `dialogue_attempts` not cleaned on restart | **Low** | ⚠️ Unchanged |
+| No "resume" UX guidance for partially completed modules | **Low** | ⚠️ Unchanged |
 
 ---
 
-## 5. Admin Dashboard Assessment
+## 4. Admin Dashboard / HR Use Case
 
-### Current Functionality
+### Current Capabilities (Post-PR #26)
 
-The admin dashboard ([`admin.py`](app/api/v1/admin.py)) provides:
+The admin dashboard has been significantly improved:
 
-- **Dashboard stats**: total users, new users (24h), modules completed, average progress
-- **User management**: list, search, promote/demote, ban/unban, delete
-- **Module stats**: per-module enrollment, completion, in-progress counts
-- **Practice analytics**: aggregate MI scores, per-user analytics, leaderboard
-- **Feedback**: aggregate stats, recent feedback list
-- **Comprehensive analytics**: via Supabase RPC functions
+| Feature | Status | Endpoint |
+|---------|--------|----------|
+| Dashboard stats (users, completions, avg progress) | ✅ Working | [`GET /admin/stats`](app/api/v1/admin.py:53) |
+| User management (list, search, promote, ban, delete) | ✅ Working | [`GET /admin/users`](app/api/v1/admin.py:121), [`POST /admin/action`](app/api/v1/admin.py:239) |
+| User list with actual points/modules | ✅ **Fixed in PR #26** | Now fetches from `user_profiles` |
+| Module stats (enrollment, completion, in-progress) | ✅ Working | [`GET /admin/modules/stats`](app/api/v1/admin.py:176) |
+| Practice analytics (aggregate MI scores) | ✅ Working | [`GET /admin/practice/stats`](app/api/v1/admin.py:296) |
+| Practice analyses list | ✅ Working | [`GET /admin/practice/analyses`](app/api/v1/admin.py:340) |
+| Per-user detailed analytics | ✅ Working | [`GET /admin/analytics/user/{id}`](app/api/v1/admin.py:553) |
+| Practice leaderboard | ✅ Working | [`GET /admin/analytics/leaderboard`](app/api/v1/admin.py:526) |
+| Comprehensive analytics (via RPC) | ✅ Working | [`GET /admin/analytics/comprehensive`](app/api/v1/admin.py:457) |
+| Feedback stats and recent feedback | ✅ Working | [`GET /admin/feedback/stats`](app/api/v1/admin.py:385) |
+| **CSV export — users** | ✅ **New in PR #26** | [`GET /admin/export/users`](app/api/v1/admin.py:619) |
+| **CSV export — progress** | ✅ **New in PR #26** | [`GET /admin/export/progress`](app/api/v1/admin.py:674) |
 
-### Current Gaps
+### What's Missing for HR Teams
 
-1. **No CSV/PDF export** — only HTML report export exists for individual analyses
-2. **No team/group concept** — users are flat; no organisational hierarchy
-3. **No time-on-task metrics** — no timestamps on individual node visits
-4. **No alerting** — no mechanism to flag stalled or underperforming users
-5. **No role-based dashboard views** — admin is binary (admin or not); no HR role
-6. **User list doesn't include actual points/modules** — hardcoded to 0 at [`admin.py:149-150`](app/api/v1/admin.py:149)
+#### 4.1 Team / Group Concept
 
-### Proposed Improvements for HR Team
+There is no team or organisational hierarchy. All users are flat. For an HR team wanting to track departmental performance:
 
-#### 5.1 Per-User and Team-Level Analytics
-
-```
-Proposed endpoints:
-  GET /api/v1/admin/analytics/user/{user_id}/timeline
-  GET /api/v1/admin/analytics/team/{team_id}/summary
-  GET /api/v1/admin/analytics/team/{team_id}/members
-```
-
-- Add a `teams` table with `team_id`, `name`, `manager_id`
+**Recommended:**
+- Add a `teams` table: `id`, `name`, `manager_user_id`, `created_at`
 - Add `team_id` FK to `users` table
-- Aggregate per-team: completion rates, average scores, points distribution
-- Per-user timeline: module completions over time, score trends, practice frequency
+- Add team-filtered endpoints:
+  - `GET /admin/analytics/team/{team_id}/summary`
+  - `GET /admin/analytics/team/{team_id}/members`
+  - `GET /admin/export/team/{team_id}?format=csv`
 
-#### 5.2 Exportable Reports (CSV/PDF)
+#### 4.2 Score Trends & Timeline Data
 
-```
-Proposed endpoints:
-  GET /api/v1/admin/export/users?format=csv
-  GET /api/v1/admin/export/team/{team_id}?format=pdf
-  GET /api/v1/admin/export/progress?format=csv&date_from=...&date_to=...
-```
+Currently, the admin can see a user's current state but not their journey:
 
-- Use `python-csv` for CSV generation (streaming response)
-- Use `weasyprint` or `reportlab` for server-side PDF generation
-- Include: user name, email, team, modules completed, scores, last active date
-- Support date range filtering
-
-#### 5.3 Completion Rates and Time-on-Task Metrics
-
+**Recommended:**
 - Add `node_visited_at` timestamp to `dialogue_attempts` or a new `node_visits` table
-- Calculate: average time per node, average time to complete module, time between sessions
+- Create per-user timeline endpoint: `GET /admin/analytics/user/{id}/timeline`
+- Track: module completions over time, score trends, practice frequency
 - Dashboard widgets: completion funnel (started → 50% → completed), dropout points
 
-#### 5.4 Leaderboards and Comparative Views
+#### 4.3 Comparative Analytics
 
-- Team leaderboards (average score, total completions)
-- Individual leaderboards within teams
-- Comparative charts: user vs team average vs platform average
+**Recommended:**
+- User vs team average vs platform average comparisons
 - Period-based leaderboards (weekly, monthly)
+- Score distribution histograms per module
+- Improvement tracking: first attempt vs latest attempt scores
 
-#### 5.5 Alerting for Stalled or Underperforming Users
+#### 4.4 Enhanced Export Capabilities
 
-```
-Proposed:
-  - Cron job / scheduled task checking for:
-    - Users with in_progress modules not updated in >7 days
-    - Users with completion scores below threshold
-    - Users who registered but never started a module
-  - Notification via email (Supabase Edge Functions) or webhook
-  - Admin dashboard "Attention Required" panel
-```
+The CSV exports added in PR #26 are a good start. Additional needs:
 
-#### 5.6 Role-Based Access
+**Recommended:**
+- **PDF reports** — server-side generation using `weasyprint` or `reportlab`
+- **Date range filtering** on exports: `GET /admin/export/progress?date_from=...&date_to=...`
+- **Practice analytics export** — CSV of conversation analyses with MAPS scores
+- **Scheduled reports** — weekly email digest to HR managers
+
+#### 4.5 Alerting for Stalled Users
+
+**Recommended:**
+- Cron job / scheduled task checking for:
+  - Users with `in_progress` modules not updated in >7 days
+  - Users who registered but never started a module
+  - Users with completion scores below a configurable threshold
+- Admin dashboard "Attention Required" panel
+- Optional email notifications via Supabase Edge Functions
+
+#### 4.6 Role-Based Access
+
+Currently admin is binary (admin or not). For HR use:
 
 | Role | Access |
 |------|--------|
@@ -342,109 +258,165 @@ Proposed:
 | **HR Manager** | Team members' progress, team analytics, exports (no user management) |
 | **Admin** | Full access: user management, all analytics, system config |
 
+**Recommended:**
 - Extend the `role` column: `user`, `hr_manager`, `admin`
 - Add `require_hr_or_admin()` dependency
 - HR managers see only their team's data (filter by `team_id`)
 
 ---
 
-## 6. General Code Quality
+## 5. Code Quality & Architecture
 
 ### Positive Aspects
 
 - **Well-structured FastAPI project** with clear separation of concerns (routes, services, models, core)
-- **Pydantic models** for request/response validation
-- **Comprehensive scoring tests** in [`test_scoring_service.py`](tests/test_scoring_service.py)
+- **Pydantic models** for request/response validation on most endpoints
+- **Comprehensive scoring tests** in [`test_scoring_service.py`](tests/test_scoring_service.py) (25 test cases)
+- **API endpoint tests** in [`test_api_auth.py`](tests/test_api_auth.py) and [`test_api_modules.py`](tests/test_api_modules.py)
 - **Good docstrings** throughout the codebase
-- **Graceful degradation** — app starts even if settings fail to load ([`main.py:23`](app/main.py:23))
+- **Proper lifespan management** — uses `asynccontextmanager` instead of deprecated `on_event`
+- **Rate limiting** implemented via slowapi
+- **Background task** for session cleanup
 - **RLS policies** defined for core tables
+- **Error handling improved** — generic messages to clients, detailed logging server-side
+
+### Test Coverage
+
+| Area | Coverage | Notes |
+|------|----------|-------|
+| Scoring Service | ✅ Good | 25 tests covering all scoring scenarios |
+| Auth API | ✅ Good | 10 tests covering register, login, logout, validation |
+| Modules API | ✅ Good | 7 tests covering list, detail, start, restart |
+| Dialogue API | ❌ Missing | No tests for `submit_choice()` — the most complex endpoint |
+| Chat Practice | ❌ Missing | No tests for chat session lifecycle |
+| Admin API | ❌ Missing | No tests for admin endpoints |
+| Progress API | ❌ Missing | No tests for progress retrieval |
+| Report Export | ❌ Missing | No tests for HTML report generation |
+| Feedback API | ❌ Missing | No tests for feedback submission |
 
 ### Linting & Consistency
 
-| Issue | Details |
-|-------|---------|
-| **No linter config** | No `.flake8`, `pyproject.toml` (ruff/black), or `.pre-commit-config.yaml` found |
-| **Mixed string quotes** | Single and double quotes used inconsistently |
-| **Inconsistent import style** | Some files use `from datetime import datetime`, others import the module |
-| **`datetime.utcnow()` deprecated** | Used in multiple files; should use `datetime.now(timezone.utc)` |
-| **Unused imports** | `Client` imported but not always used as type hint |
+| Issue | Status | Details |
+|-------|--------|---------|
+| No linter config | ⚠️ Unchanged | No `.flake8`, `pyproject.toml` (ruff/black), or `.pre-commit-config.yaml` |
+| Mixed string quotes | ⚠️ Unchanged | Single and double quotes used inconsistently |
+| `datetime.utcnow()` deprecated | ⚠️ Partially fixed | Most files use `datetime.now(timezone.utc)` but [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) still uses `utcnow()` |
 
-### Error Handling
+### Architecture Concerns
 
 | Issue | Details |
 |-------|---------|
-| **Bare `except Exception`** | Many endpoints catch all exceptions and return 500 with `str(e)`. Should catch specific exceptions. |
-| **Silent failures** | [`save_conversation_analysis()`](app/services/analysis_persistence_service.py:101) catches all exceptions and returns `None`. Callers may not know data wasn't saved. |
-| **Fallback response on OpenAI error** | [`chat_service.py:192`](app/services/chat_service.py:192) returns a canned response on API error. User doesn't know the AI failed. |
-
-### Accessibility
-
-- No accessibility audit of frontend templates was possible from backend code alone
-- HTML report ([`report_export.py`](app/api/v1/report_export.py)) uses semantic HTML but lacks ARIA attributes
-- Color-only score indicators (green/orange/red) may not be accessible to colorblind users
-
-### Tech Debt
-
-| Item | Details |
-|------|---------|
-| **Two schema files** | [`supabase_schema.sql`](supabase_schema.sql) (old `app_user`/`mi_module` schema) vs [`supabase/migrations/`](supabase/migrations/) (current `users`/`learning_modules` schema). The old schema is confusing and should be removed or clearly marked as deprecated. |
-| **Legacy auth function** | [`get_current_user_legacy()`](app/core/auth.py:349) returns demo user on auth failure. Should be removed. |
-| **Legacy scoring method** | [`calculate_choice_points_legacy()`](app/services/scoring_service.py:81) is unused but maintained. |
+| **Duplicate `get_user_profile()` helper** | Defined identically in [`dialogue.py:24`](app/api/v1/dialogue.py:24) and [`progress.py:17`](app/api/v1/progress.py:17). Should be extracted to a shared location. |
+| **Technique quality logic split across files** | [`get_technique_quality()`](app/api/v1/dialogue.py:61) is in the route handler, [`calculate_max_points_for_choice()`](app/services/scoring_service.py:196) has its own quality detection in the scoring service. These should be unified. |
+| **Two schema files with drift** | [`supabase_schema.sql`](supabase_schema.sql) references `app_user`/`mi_module` (old schema) vs [`supabase/migrations/`](supabase/migrations/) uses `users`/`learning_modules` (current). The old schema is confusing. |
+| **`test_connection()` references old table** | [`supabase.py:87`](app/core/supabase.py:87) queries `mi_module` which doesn't exist. |
+| **Legacy scoring method** | [`calculate_choice_points_legacy()`](app/services/scoring_service.py:82) is unused but maintained. |
 | **In-memory chat sessions** | [`SESSIONS` dict](app/services/chat_service.py:14) doesn't survive restarts. Should use Redis or database. |
-| **Duplicate helper functions** | [`get_user_profile()`](app/api/v1/dialogue.py:24) is defined identically in both `dialogue.py` and `progress.py`. |
-| **`on_event("startup")` deprecated** | [`main.py:206`](app/main.py:206) uses deprecated FastAPI lifecycle. Should use `lifespan` context manager. |
-| **Typo in report export** | [`report_export.py:52`](app/api/v1/report_export.py:52): `evocation_democation_demonstrated` should be `evocation_demonstrated`. This means the Evocation field in HTML reports is always `False`. |
-| **`get_next_level_threshold()` is wrong** | [`scoring_service.py:312`](app/services/scoring_service.py:312): Returns `LEVEL_THRESHOLDS[current_level - 1]` which is the *current* level's threshold, not the next level's. |
 | **No database migrations runner** | Migrations are SQL files but there's no automated migration tool (like Alembic). |
-| **`supabase_schema.sql` references `mi_module`** | But the actual app uses `learning_modules`. Schema drift. |
+
+### Tech Debt Summary
+
+| Item | Priority | Effort |
+|------|----------|--------|
+| Persist chat sessions to DB/Redis | High | Medium |
+| Unify technique quality classification | Medium | Low |
+| Extract duplicate helpers | Low | Low |
+| Add linter + formatter | Low | Low |
+| Remove legacy schema files | Low | Trivial |
+| Remove legacy scoring method | Low | Trivial |
+| Fix `test_connection()` table reference | Low | Trivial |
+
+---
+
+## 6. Remaining Issues
+
+### P0 — Critical (Fix Immediately)
+
+_No P0 issues remain._ All critical security issues from the initial review have been addressed in PR #26.
+
+### P1 — High Priority (Fix Soon)
+
+| # | Issue | Category | Details |
+|---|-------|----------|---------|
+| 1 | **Persist chat sessions to database** | Reliability | [`SESSIONS` dict](app/services/chat_service.py:14) is lost on restart/redeployment. Use Supabase or Redis. |
+| 2 | **Fix profile total_points double-counting on completion** | Scoring | [`dialogue.py:369`](app/api/v1/dialogue.py:369) adds full module points to profile, but per-choice points were already added in previous submissions. |
+| 3 | **Unify technique quality classification** | Scoring | [`get_technique_quality()`](app/api/v1/dialogue.py:61) and [`calculate_max_points_for_choice()`](app/services/scoring_service.py:196) use different keyword matching logic, causing `max_points_available` to be calculated with different assumptions than actual scoring. |
+| 4 | **Validate choice submission against current node** | Security | [`dialogue.py:214`](app/api/v1/dialogue.py:214) doesn't verify `choice_data.node_id` matches `progress.current_node_id`. Users could submit choices for unreached nodes. |
+| 5 | **Add cascade cleanup for user deletion** | Data Integrity | [`admin.py:283`](app/api/v1/admin.py:283) leaves orphaned data in `user_profiles`, `user_progress`, `dialogue_attempts`, `conversation_analyses`. |
+| 6 | **Add Pydantic model for `/chat-practice/analyze`** | Security | [`chat_practice.py:262`](app/api/v1/chat_practice.py:262) accepts raw `dict`. Should validate input structure. |
+| 7 | **Implement proper token refresh** | Auth | Current refresh endpoint is a no-op. Implement Supabase refresh token flow or document that client should use Supabase client-side refresh. |
+
+### P2 — Medium Priority (Plan for Next Sprint)
+
+| # | Issue | Category | Details |
+|---|-------|----------|---------|
+| 8 | **Add RLS policies for `conversation_analyses` and `user_feedback`** | Security | These tables lack RLS, meaning any authenticated Supabase client can read all records. |
+| 9 | **Restrict token from query params** | Security | [`auth.py:207`](app/core/auth.py:207) accepts tokens in URL query params. Limit to WebSocket only. |
+| 10 | **Add CSRF protection** | Security | Cookie-based auth without CSRF tokens is vulnerable. |
+| 11 | **Fix `calculate_max_points_available()` subtraction logic** | Scoring | [`scoring_service.py:191`](app/services/scoring_service.py:191) fragile double-counting/subtraction. |
+| 12 | **Add upper bounds on `limit`/`offset` params** | Security | Admin endpoints accept arbitrary values. Cap at reasonable maximum (e.g., 500). |
+| 13 | **Add dialogue API tests** | Testing | `submit_choice()` is the most complex endpoint with no test coverage. |
+| 14 | **Add admin API tests** | Testing | No tests for any admin endpoints. |
+| 15 | **Add time-on-task tracking** | Analytics | Timestamp node visits for learning analytics. |
+| 16 | **Fix auth error message leaks** | Security | [`auth.py:200`](app/api/v1/auth.py:200) and [`auth.py:293`](app/api/v1/auth.py:293) expose internal details. |
+| 17 | **Use Settings for OpenAI key in `conversation_analysis_service.py`** | Consistency | [`conversation_analysis_service.py:22`](app/services/conversation_analysis_service.py:22) still uses `os.getenv()`. |
+
+### P3 — Nice to Have
+
+| # | Issue | Category | Details |
+|---|-------|----------|---------|
+| 18 | Add linter and formatter (ruff/black + pre-commit) | Quality | No linting config exists. |
+| 19 | Replace remaining `datetime.utcnow()` | Quality | [`analysis_persistence_service.py:87`](app/services/analysis_persistence_service.py:87) |
+| 20 | Extract duplicate `get_user_profile()` helper | Quality | Defined identically in `dialogue.py` and `progress.py`. |
+| 21 | Move `get_technique_quality()` to scoring service | Architecture | Currently in route handler, belongs in service layer. |
+| 22 | Remove legacy schema files | Cleanup | `supabase_schema.sql` and `docs/schema.sql` reference old table names. |
+| 23 | Remove `calculate_choice_points_legacy()` | Cleanup | Unused method in scoring service. |
+| 24 | Fix `test_connection()` table reference | Cleanup | [`supabase.py:87`](app/core/supabase.py:87) references `mi_module` instead of `learning_modules`. |
+| 25 | Remove dead `ACCESS_TOKEN_EXPIRE_MINUTES` config | Cleanup | [`config.py:58`](app/config.py:58) is never used. |
+| 26 | Add team/group model for HR analytics | Feature | Required for team-level reporting. |
+| 27 | Add PDF export endpoints | Feature | HR teams need formatted reports. |
+| 28 | Add alerting for stalled users | Feature | Scheduled job to identify inactive users. |
+| 29 | Make scoring constants configurable | Feature | Allow tuning via environment variables or admin settings. |
 
 ---
 
 ## 7. Recommendations
 
-### P0 — Critical (Fix Immediately)
+### Immediate Next Steps (This Sprint)
 
-| # | Recommendation | Rationale |
-|---|---------------|-----------|
-| 1 | **Remove `get_current_user_legacy()` or ensure it's never used** | Returns a demo user on auth failure, completely bypassing authentication. Any endpoint using this dependency is unauthenticated. |
-| 2 | **Fix CORS configuration** | `allow_origins=["*"]` with `allow_credentials=True` is a security misconfiguration. Set specific origins in production. |
-| 3 | **Sanitise HTML report output** | [`_generate_html_report()`](app/api/v1/report_export.py:31) is vulnerable to XSS. Use `html.escape()` or a templating engine with auto-escaping. |
-| 4 | **Stop leaking exception details to clients** | Replace `str(exc)` in error responses with generic messages. Log the full error server-side. |
-| 5 | **Fix the `evocation_democation_demonstrated` typo** | [`report_export.py:52`](app/api/v1/report_export.py:52) — Evocation is always shown as not demonstrated in reports. |
+1. **Fix the profile total_points double-counting** (P1-2) — This is a data integrity issue that affects leaderboards and user-facing scores. When a module completes, the profile update should only add the current choice's points, not the full module total.
 
-### P1 — High Priority (Fix Soon)
+2. **Unify technique quality classification** (P1-3) — Move [`get_technique_quality()`](app/api/v1/dialogue.py:61) into `ScoringService` and have [`calculate_max_points_for_choice()`](app/services/scoring_service.py:196) use the same logic. This ensures `max_points_available` is consistent with actual scoring.
 
-| # | Recommendation | Rationale |
-|---|---------------|-----------|
-| 6 | **Persist chat sessions to database** | In-memory `SESSIONS` dict is lost on restart. Use Supabase or Redis. |
-| 7 | **Add rate limiting** | No rate limiting on login, registration, or API endpoints. Use `slowapi` or similar. |
-| 8 | **Fix `get_feedback_stats()` auth check** | [`feedback.py:115`](app/api/v1/feedback.py:115) references `auth.role` which doesn't exist on `AuthContext`. |
-| 9 | **Add RLS policies for `conversation_analyses` and `user_feedback`** | These tables appear to lack RLS, meaning any authenticated Supabase client can read all records. |
-| 10 | **Fix double-counting in `submit_choice()` completion logic** | [`dialogue.py:337-345`](app/api/v1/dialogue.py:337) may double-count points on module completion. The points values displayed on each module can be removed as they serve no purpose. |
-| 11 | **Reset `nodes_visited` and `technique_quality_counts` on module restart** | [`modules.py:267`](app/api/v1/modules.py:267) doesn't reset these fields, leading to stale data. |
-| 12 | **Validate session ownership in chat endpoints** | Any authenticated user can interact with any chat session by knowing the UUID. |
-| 13 | **Implement proper token refresh** | Current refresh endpoint is a no-op. Implement Supabase refresh token flow. |
-| 14 | **Fix `get_next_level_threshold()`** | Returns current level threshold instead of next level's. |
-| 15 | **Remove the % score about progress and change to completion** | remove the score and track if a user has completed the module or not only. |
+3. **Add node validation to `submit_choice()`** (P1-4) — Add a check that `choice_data.node_id == progress['current_node_id']` to prevent out-of-order submissions.
 
-### P2 — Nice to Have (Plan for Next Sprint)
+4. **Add Pydantic model for analyze endpoint** (P1-6) — Replace `request: dict` with a typed model that validates `transcript` and `persona_name` fields.
 
-| # | Recommendation | Rationale |
-|---|---------------|-----------|
-| 15 | **Add linter and formatter** | Configure `ruff` or `black` + `isort` with pre-commit hooks. |
-| 16 | **Replace `datetime.utcnow()` with `datetime.now(timezone.utc)`** | `utcnow()` is deprecated in Python 3.12+. |
-| 17 | **Move technique quality classification to scoring service** | [`get_technique_quality()`](app/api/v1/dialogue.py:61) belongs in `ScoringService`, not in the route handler. |
-| 18 | **Extract duplicate `get_user_profile()` helper** | Defined identically in `dialogue.py` and `progress.py`. Move to a shared location. |
-| 19 | **Add team/group model for HR analytics** | Required for team-level reporting and role-based access. |
-| 20 | **Add CSV export endpoints** | HR teams need exportable data for compliance and reporting. |
-| 21 | **Add time-on-task tracking** | Timestamp node visits for learning analytics. |
-| 22 | **Migrate to FastAPI `lifespan`** | Replace deprecated `on_event("startup")`. |
-| 23 | **Clean up legacy schema files** | Remove or clearly deprecate `supabase_schema.sql` and `docs/schema.sql`. |
-| 24 | **Add integration tests** | Current tests only cover scoring service. Need API endpoint tests with mocked Supabase. |
-| 25 | **Make scoring constants configurable** | Allow tuning via environment variables or admin settings. |
-| 26 | **Add OpenAI key to Settings class** | Currently read via `os.getenv()` directly, inconsistent with other config. |
-| 27 | **Add automated session cleanup** | `cleanup_old_sessions()` exists but is never called. Add a background task or cron. |
-| 28 | **Add alerting for stalled users** | Scheduled job to identify users who haven't progressed in N days. |
+### Short-Term (Next Sprint)
+
+5. **Persist chat sessions** (P1-1) — Store sessions in Supabase `chat_sessions` table. This is the highest-impact reliability improvement.
+
+6. **Add cascade delete** (P1-5) — Either use PostgreSQL `ON DELETE CASCADE` or clean up related tables in the admin action handler.
+
+7. **Add dialogue and admin API tests** (P2-13, P2-14) — These are the largest untested areas. Focus on `submit_choice()` first as it has the most complex logic.
+
+8. **Add RLS policies** (P2-8) — Protect `conversation_analyses` and `user_feedback` tables.
+
+### Medium-Term (HR Features)
+
+9. **Add team/group model** (P3-26) — Foundation for all HR analytics features.
+
+10. **Add role-based access** — Extend roles to include `hr_manager` with team-scoped access.
+
+11. **Add timeline/trend endpoints** — Per-user and per-team score trends over time.
+
+12. **Add PDF export** — Server-side PDF generation for formal reports.
+
+### Quality Improvements
+
+13. **Add linter** (P3-18) — Configure `ruff` with pre-commit hooks. Low effort, high impact on consistency.
+
+14. **Clean up legacy code** (P3-22, P3-23, P3-24, P3-25) — Remove dead code and old schema files.
 
 ---
 
