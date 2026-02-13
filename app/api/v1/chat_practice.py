@@ -76,13 +76,17 @@ async def start_chat_session(
     Sessions are limited to 20 turns, after which analysis is provided.
     """
     try:
-        result = await chat_service.start_session(request.persona_id)
+        # P1-12: Pass user_id for session ownership tracking
+        result = await chat_service.start_session(
+            request.persona_id,
+            user_id=auth.user_id if auth else None
+        )
         return ChatStartResponse(**result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to start session: {str(e)}"
+            status_code=500, detail="Failed to start session"
         )
 
 
@@ -101,13 +105,16 @@ async def send_message(
     After 20 turns, the session will automatically end and provide analysis.
     """
     try:
+        # P1-12: Validate session ownership before allowing message
+        if auth:
+            chat_service.validate_session_owner(request.session_id, auth.user_id)
         result = await chat_service.send_message(request.session_id, request.message)
         return ChatMessageResponse(**result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to process message: {str(e)}"
+            status_code=500, detail="Failed to process message"
         )
 
 
@@ -126,6 +133,9 @@ async def end_chat_session(
     - Specific suggestions for future practice
     """
     try:
+        # P1-12: Validate session ownership before ending
+        if auth:
+            chat_service.validate_session_owner(request.session_id, auth.user_id)
         # Get session data
         session_data = chat_service.end_session(request.session_id)
 
@@ -208,7 +218,7 @@ async def end_chat_session(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to end session: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to end session")
 
 
 @router.get("/session/{session_id}", response_model=ChatSessionStatus)
@@ -319,5 +329,5 @@ async def analyze_transcript(
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to analyze transcript: {str(e)}"
+            status_code=500, detail="Failed to analyze transcript"
         )

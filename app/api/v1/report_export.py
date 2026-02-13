@@ -5,9 +5,10 @@ Provides endpoints to export conversation analysis reports in various formats.
 Uses client-side PDF generation via styled HTML for maximum compatibility.
 """
 
+import html
 import logging
 from typing import Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -36,7 +37,14 @@ def _generate_html_report(
     """Generate a styled HTML report from analysis data."""
 
     if not generated_at:
-        generated_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+        generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    # SECURITY: Helper to sanitize user-controlled strings before HTML interpolation (XSS prevention)
+    def esc(value: Any) -> str:
+        """Escape a value for safe HTML rendering."""
+        if value is None:
+            return ""
+        return html.escape(str(value))
 
     # Extract analysis data
     overall_score = analysis.get("overall_score", 0)
@@ -49,7 +57,8 @@ def _generate_html_report(
         "Partnership": analysis.get("partnership_demonstrated", False),
         "Acceptance": analysis.get("acceptance_demonstrated", False),
         "Compassion": analysis.get("compassion_demonstrated", False),
-        "Evocation": analysis.get("evocation_democation_demonstrated", False),
+        # P0-5: Fixed typo - was "evocation_democation_demonstrated", should be "evocation_demonstrated"
+        "Evocation": analysis.get("evocation_demonstrated", False),
     }
 
     techniques_count = analysis.get("techniques_count", {})
@@ -70,38 +79,39 @@ def _generate_html_report(
         else:
             return "#e74c3c"  # Red
 
+    # SECURITY: All user-controlled strings are escaped via esc() to prevent XSS injection.
     # Build techniques list
     techniques_html = ""
     if techniques_count:
         for tech, count in techniques_count.items():
             if count > 0:
-                tech_name = tech.replace("_", " ").title()
-                techniques_html += f'<div class="technique-item"><span class="technique-name">{tech_name}:</span> <span class="technique-count">{count}</span></div>'
+                tech_name = esc(tech.replace("_", " ").title())
+                techniques_html += f'<div class="technique-item"><span class="technique-name">{tech_name}:</span> <span class="technique-count">{esc(count)}</span></div>'
 
     # Build strengths list
     strengths_html = ""
     if strengths:
         for strength in strengths:
-            strengths_html += f'<li class="strength-item">{strength}</li>'
+            strengths_html += f'<li class="strength-item">{esc(strength)}</li>'
 
     # Build areas for improvement list
     improvements_html = ""
     if areas_for_improvement:
         for area in areas_for_improvement:
-            improvements_html += f'<li class="improvement-item">{area}</li>'
+            improvements_html += f'<li class="improvement-item">{esc(area)}</li>'
 
     # Build suggestions list
     suggestions_html = ""
     if suggestions:
         for suggestion in suggestions:
-            suggestions_html += f'<li class="suggestion-item">{suggestion}</li>'
+            suggestions_html += f'<li class="suggestion-item">{esc(suggestion)}</li>'
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{title}</title>
+    <title>{esc(title)}</title>
     <style>
         @media print {{
             body {{ print-color-adjust: exact; -webkit-print-color-adjust: exact; }}
@@ -373,8 +383,8 @@ def _generate_html_report(
 <body>
     <div class="container">
         <div class="header">
-            <h1>{title}</h1>
-            <p class="subtitle">Generated: {generated_at}</p>
+            <h1>{esc(title)}</h1>
+            <p class="subtitle">Generated: {esc(generated_at)}</p>
         </div>
         
         <div class="no-print" style="text-align: center;">
@@ -407,14 +417,14 @@ def _generate_html_report(
         <div class="section">
             <h2>Conversation Summary</h2>
             <div class="transcript-summary">
-                <p>{transcript_summary or "No transcript summary available."}</p>
+                <p>{esc(transcript_summary) or "No transcript summary available."}</p>
             </div>
         </div>
         
         <div class="section">
             <h2>Performance Summary</h2>
             <div class="summary-box">
-                <p>{summary or "No summary available."}</p>
+                <p>{esc(summary) or "No summary available."}</p>
             </div>
         </div>
         
@@ -449,8 +459,8 @@ def _generate_html_report(
         
         <div class="section">
             <h2>Client Movement</h2>
-            <span class="client-movement movement-{client_movement}">
-                {client_movement.replace("_", " ").title()}
+            <span class="client-movement movement-{esc(client_movement)}">
+                {esc(client_movement.replace("_", " ").title())}
             </span>
             {'<p style="margin-top: 10px; color: #27ae60;">&#10004; Change talk was evoked</p>' if change_talk else ""}
         </div>
@@ -513,7 +523,7 @@ async def export_analysis_html(
     except Exception as e:
         logger.error(f"Failed to generate HTML report: {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate report: {str(e)}"
+            status_code=500, detail="Failed to generate report"
         )
 
 
@@ -547,7 +557,7 @@ async def export_analysis_by_id_html(
     except Exception as e:
         logger.error(f"Failed to generate HTML report: {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate report: {str(e)}"
+            status_code=500, detail="Failed to generate report"
         )
 
 
@@ -564,7 +574,7 @@ async def export_analysis_json(
         return JSONResponse(
             content={
                 "title": request.title,
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "analysis": request.analysis,
             }
         )
@@ -572,5 +582,5 @@ async def export_analysis_json(
     except Exception as e:
         logger.error(f"Failed to generate JSON report: {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate report: {str(e)}"
+            status_code=500, detail="Failed to generate report"
         )

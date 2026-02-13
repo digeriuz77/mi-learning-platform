@@ -21,6 +21,9 @@ supabase>=2.10.0  # Upgrade to newer version that supports httpx>=0.24.0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 
+# Rate Limiting
+slowapi>=0.1.9  # P1-7: Rate limiting for login, registration, and API endpoints
+
 # Utilities
 python-dotenv>=1.0.0
 python-multipart>=0.0.6  # Required for form data

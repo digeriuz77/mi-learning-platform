@@ -345,54 +345,6 @@ def create_auth_middleware():
     return auth_middleware
 
 
-# Legacy compatibility - for gradual migration
-def get_current_user_legacy(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    supabase: Client = Depends(get_supabase)
-) -> Optional[Dict[str, Any]]:
-    """
-    Legacy get_current_user that returns a dict for backward compatibility.
-    
-    DEPRECATED: Use get_current_user() which returns AuthContext instead.
-    
-    This function maintains backward compatibility with existing code that
-    expects a dict with 'id', 'email', and 'user_metadata' keys.
-    """
-    try:
-        # Synchronous token validation for legacy compatibility
-        # Do NOT use asyncio.run() as it crashes when called from async context
-        if not credentials or not credentials.credentials:
-            logger.warning("No credentials provided, returning demo user for legacy compatibility")
-            return {
-                'id': 'demo-user-123',
-                'email': 'demo@example.com',
-                'user_metadata': {'display_name': 'Demo User'}
-            }
-        
-        token = credentials.credentials
-        try:
-            payload = decode_jwt_token(token)
-            auth_context = extract_user_from_token(payload)
-            return {
-                'id': auth_context.user_id,
-                'email': auth_context.email,
-                'user_metadata': {
-                    'display_name': auth_context.display_name,
-                    **auth_context.user_metadata
-                }
-            }
-        except AuthenticationError as e:
-            logger.warning(f"Token validation failed: {e}, returning demo user for legacy compatibility")
-            return {
-                'id': 'demo-user-123',
-                'email': 'demo@example.com',
-                'user_metadata': {'display_name': 'Demo User'}
-            }
-    except HTTPException:
-        # Return demo user for backward compatibility during migration
-        logger.warning("Auth failed, returning demo user for legacy compatibility")
-        return {
-            'id': 'demo-user-123',
-            'email': 'demo@example.com',
-            'user_metadata': {'display_name': 'Demo User'}
-        }
+# SECURITY: get_current_user_legacy() was removed as it returned a hardcoded
+# demo user on auth failure, completely bypassing authentication.
+# All endpoints should use get_current_user() or get_auth_context() instead.

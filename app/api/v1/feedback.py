@@ -6,7 +6,7 @@ Stores user feedback after practice sessions in Supabase.
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -76,7 +76,7 @@ async def submit_feedback(
             "improvement_suggestions": feedback.improvement_suggestions,
             "user_email": feedback.user_email,
             "user_id": auth.user_id if auth else None,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Store in Supabase
@@ -98,7 +98,7 @@ async def submit_feedback(
     except Exception as e:
         logger.error(f"Failed to submit feedback: {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to submit feedback: {str(e)}"
+            status_code=500, detail="Failed to submit feedback"
         )
 
 
@@ -111,8 +111,11 @@ async def get_feedback_stats(auth: AuthContext = Depends(get_current_user)):
     Returns average helpfulness score and total feedback count.
     """
     try:
-        # Check admin role
-        if not auth or auth.role not in ["admin", "moderator"]:
+        # P1-8: Fixed - AuthContext has no 'role' attribute. Use admin check via DB query.
+        from app.core.supabase import get_supabase_admin as _get_admin
+        _admin_client = _get_admin()
+        _role_resp = _admin_client.table("users").select("role").eq("id", auth.user_id).maybe_single().execute()
+        if not _role_resp.data or _role_resp.data.get("role") not in ["admin", "moderator"]:
             raise HTTPException(status_code=403, detail="Admin access required")
 
         supabase = get_supabase()
@@ -145,5 +148,5 @@ async def get_feedback_stats(auth: AuthContext = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Failed to get feedback stats: {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve feedback statistics: {str(e)}"
+            status_code=500, detail="Failed to retrieve feedback statistics"
         )

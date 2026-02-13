@@ -5,7 +5,7 @@ Handles session management, LLM interaction, and conversation history.
 import os
 import uuid
 import httpx
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from .personas import get_persona, get_all_personas
 
@@ -26,10 +26,14 @@ MAX_TURNS = 20
 
 
 def _get_openai_key() -> str:
-    """Get OpenAI API key from environment."""
-    key = os.getenv("OPENAI_API_KEY")
+    """Get OpenAI API key from Settings (P2-26: consistent config access)."""
+    try:
+        from app.config import settings
+        key = settings.OPENAI_API_KEY
+    except Exception:
+        key = os.getenv("OPENAI_API_KEY")
     if not key:
-        raise ValueError("OPENAI_API_KEY environment variable is not set")
+        raise ValueError("OPENAI_API_KEY is not configured")
     return key
 
 
@@ -105,8 +109,13 @@ def _summarize_conversation(history: List[Dict[str, str]], max_messages: int = 6
     return recent_messages, summary
 
 
-async def start_session(persona_id: str) -> Dict[str, Any]:
-    """Start a new chat practice session."""
+async def start_session(persona_id: str, user_id: str = None) -> Dict[str, Any]:
+    """Start a new chat practice session.
+    
+    Args:
+        persona_id: ID of the persona to practice with
+        user_id: Authenticated user's ID (for session ownership validation)
+    """
     persona = get_persona(persona_id)
     if not persona:
         raise ValueError(f"Persona '{persona_id}' not found")
@@ -119,8 +128,10 @@ async def start_session(persona_id: str) -> Dict[str, Any]:
         "persona": persona,
         "history": [],
         "turn": 0,
-        "started_at": datetime.utcnow(),
-        "is_active": True
+        "started_at": datetime.now(timezone.utc),
+        "is_active": True,
+        # P1-12: Track session owner for ownership validation
+        "user_id": user_id,
     }
 
     # Add the opening message to history
@@ -140,6 +151,21 @@ async def start_session(persona_id: str) -> Dict[str, Any]:
         "max_turns": MAX_TURNS,
         "current_turn": 0
     }
+
+
+def validate_session_owner(session_id: str, user_id: str) -> bool:
+    """P1-12: Validate that the authenticated user owns the session.
+    
+    Returns True if the session belongs to the user or has no owner set.
+    Raises ValueError if session not found or user doesn't own it.
+    """
+    if session_id not in SESSIONS:
+        raise ValueError(f"Session '{session_id}' not found")
+    session = SESSIONS[session_id]
+    # Allow if no user_id was set (backward compatibility) or if it matches
+    if session.get("user_id") and session["user_id"] != user_id:
+        raise ValueError("You do not have access to this session")
+    return True
 
 
 async def send_message(session_id: str, user_message: str) -> Dict[str, Any]:
@@ -297,7 +323,7 @@ def end_session(session_id: str) -> Dict[str, Any]:
 
     session = SESSIONS[session_id]
     session["is_active"] = False
-    session["ended_at"] = datetime.utcnow()
+    session["ended_at"] = datetime.now(timezone.utc)
 
     return {
         "session_id": session_id,
@@ -311,7 +337,7 @@ def end_session(session_id: str) -> Dict[str, Any]:
 
 def cleanup_old_sessions(max_age_hours: int = 24):
     """Clean up sessions older than specified hours."""
-    cutoff = datetime.utcnow()
+    cutoff = datetime.now(timezone.utc)
     to_remove = []
 
     for session_id, session in SESSIONS.items():

@@ -5,10 +5,13 @@ Provides admin dashboard data and user management actions.
 All endpoints require admin role authentication.
 """
 
+import csv
+import io
 import logging
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from app.core.supabase import get_supabase_admin
@@ -112,7 +115,7 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
         raise
     except Exception as e:
         logger.error(f"Error loading dashboard stats: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/users")
@@ -136,8 +139,18 @@ async def get_users(
         query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
         response = query.execute()
 
+        # Fetch user profiles to get actual points and modules_completed
+        user_ids = [u.get("id") for u in response.data or []]
+        profiles_map = {}
+        if user_ids:
+            profiles_resp = supabase.table("user_profiles").select(
+                "user_id, total_points, modules_completed"
+            ).in_("user_id", user_ids).execute()
+            profiles_map = {p["user_id"]: p for p in (profiles_resp.data or [])}
+
         users = []
         for user in response.data or []:
+            profile = profiles_map.get(user.get("id"), {})
             users.append(
                 {
                     "id": user.get("id"),
@@ -146,8 +159,9 @@ async def get_users(
                     "role": user.get("role", "user"),
                     "is_active": user.get("is_active", True),
                     "created_at": user.get("created_at"),
-                    "modules_completed": 0,
-                    "total_points": 0,
+                    # Admin dashboard fix: fetch actual values instead of hardcoded 0
+                    "modules_completed": profile.get("modules_completed", 0),
+                    "total_points": profile.get("total_points", 0),
                 }
             )
 
@@ -156,7 +170,7 @@ async def get_users(
         raise
     except Exception as e:
         logger.error(f"Error loading users: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/modules/stats")
@@ -213,7 +227,7 @@ async def get_module_stats(admin: AuthContext = Depends(require_admin)):
         raise
     except Exception as e:
         logger.error(f"Error loading module stats: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 class AdminActionRequest(BaseModel):
@@ -276,7 +290,7 @@ async def perform_admin_action(
         raise
     except Exception as e:
         logger.error(f"Admin action error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/practice/stats")
@@ -320,7 +334,7 @@ async def get_practice_stats(
 
     except Exception as e:
         logger.error(f"Error loading practice stats: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/practice/analyses")
@@ -365,7 +379,7 @@ async def get_practice_analyses(
 
     except Exception as e:
         logger.error(f"Error loading practice analyses: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/feedback/stats")
@@ -396,7 +410,7 @@ async def get_admin_feedback_stats(admin: AuthContext = Depends(require_admin)):
 
     except Exception as e:
         logger.error(f"Error loading feedback stats: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/feedback/recent")
@@ -437,7 +451,7 @@ async def get_recent_feedback(
 
     except Exception as e:
         logger.error(f"Error loading recent feedback: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/analytics/comprehensive")
@@ -470,7 +484,7 @@ async def get_comprehensive_analytics(admin: AuthContext = Depends(require_admin
 
     except Exception as e:
         logger.error(f"Error loading comprehensive analytics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/analytics/users")
@@ -506,7 +520,7 @@ async def get_users_with_analytics(
 
     except Exception as e:
         logger.error(f"Error loading users with analytics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/analytics/leaderboard")
@@ -533,7 +547,7 @@ async def get_practice_analytics_leaderboard(
 
     except Exception as e:
         logger.error(f"Error loading practice leaderboard: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
 @router.get("/analytics/user/{user_id}")
@@ -594,4 +608,118 @@ async def get_user_detailed_analytics(
         raise
     except Exception as e:
         logger.error(f"Error loading user analytics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal error occurred")
+
+
+# =====================================================
+# P2-20: CSV Export Endpoints for HR Reporting
+# =====================================================
+
+
+@router.get("/export/users")
+async def export_users_csv(admin: AuthContext = Depends(require_admin)):
+    """
+    Export user data as CSV for HR reporting.
+
+    Returns a CSV file with user details, points, modules completed, and last active date.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        users_resp = supabase.table("users").select(
+            "id, email, display_name, role, is_active, created_at"
+        ).order("created_at", desc=True).execute()
+
+        profiles_resp = supabase.table("user_profiles").select(
+            "user_id, total_points, level, modules_completed, last_active_at"
+        ).execute()
+        profiles_map = {p["user_id"]: p for p in (profiles_resp.data or [])}
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "User ID", "Email", "Display Name", "Role", "Is Active",
+            "Total Points", "Level", "Modules Completed", "Created At", "Last Active"
+        ])
+
+        for user in users_resp.data or []:
+            profile = profiles_map.get(user.get("id"), {})
+            writer.writerow([
+                user.get("id", ""),
+                user.get("email", ""),
+                user.get("display_name", ""),
+                user.get("role", "user"),
+                user.get("is_active", True),
+                profile.get("total_points", 0),
+                profile.get("level", 1),
+                profile.get("modules_completed", 0),
+                user.get("created_at", ""),
+                profile.get("last_active_at", ""),
+            ])
+
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=users_export.csv"},
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting users CSV: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred")
+
+
+@router.get("/export/progress")
+async def export_progress_csv(admin: AuthContext = Depends(require_admin)):
+    """
+    Export user progress data as CSV for HR reporting.
+
+    Returns a CSV file with per-module progress for all users.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        progress_resp = supabase.table("user_progress").select(
+            "user_id, module_id, status, points_earned, completion_score, started_at, completed_at"
+        ).order("started_at", desc=True).execute()
+
+        users_resp = supabase.table("users").select("id, email, display_name").execute()
+        users_map = {u["id"]: u for u in (users_resp.data or [])}
+
+        modules_resp = supabase.table("learning_modules").select("id, title").execute()
+        modules_map = {m["id"]: m.get("title", "Unknown") for m in (modules_resp.data or [])}
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "User Email", "Display Name", "Module Title", "Status",
+            "Points Earned", "Completed", "Started At", "Completed At"
+        ])
+
+        for p in progress_resp.data or []:
+            user = users_map.get(p.get("user_id"), {})
+            writer.writerow([
+                user.get("email", ""),
+                user.get("display_name", ""),
+                modules_map.get(p.get("module_id"), "Unknown"),
+                p.get("status", ""),
+                p.get("points_earned", 0),
+                "Yes" if p.get("status") == "completed" else "No",
+                p.get("started_at", ""),
+                p.get("completed_at", ""),
+            ])
+
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=progress_export.csv"},
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error exporting progress CSV: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred")
