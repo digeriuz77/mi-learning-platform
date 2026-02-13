@@ -197,7 +197,7 @@ async def register(request: RegisterRequest):
         logger.error(f"Failed to get Supabase client: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database connection error: {str(e)}",
+            detail="Service temporarily unavailable. Please try again later.",
         )
 
     try:
@@ -207,7 +207,7 @@ async def register(request: RegisterRequest):
         logger.error(f"Failed to get Supabase admin client: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database admin connection error: {str(e)}",
+            detail="Service temporarily unavailable. Please try again later.",
         )
 
     try:
@@ -287,10 +287,10 @@ async def register(request: RegisterRequest):
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email address"
             )
         else:
-            logger.error(f"Registration error: {e}")
+            logger.error(f"Registration error: {e}", exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Registration failed: {str(e)}",
+                detail="Registration failed. Please try again later.",
             )
 
 
@@ -319,7 +319,7 @@ async def login(request: LoginRequest):
         logger.error(f"Failed to get Supabase client for login: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database connection error: {str(e)}",
+            detail="Service temporarily unavailable. Please try again later.",
         )
 
     try:

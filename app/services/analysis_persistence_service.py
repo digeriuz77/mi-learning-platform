@@ -7,7 +7,7 @@ and retrieving them for reporting and analytics.
 
 import logging
 from typing import Dict, Any, Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.supabase import get_supabase
 from app.models.chat import ConversationAnalysis
@@ -84,7 +84,7 @@ def save_conversation_analysis(
             # Transcript
             "transcript": transcript,
             "total_turns": total_turns,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
         # Insert into database

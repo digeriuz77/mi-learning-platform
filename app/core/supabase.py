@@ -84,7 +84,7 @@ async def test_connection() -> Dict[str, Any]:
         logger.info("Testing Supabase connection...")
 
         # Test 2: Try a simple table query
-        response = client.table('mi_module').select('count').execute()
+        response = client.table('learning_modules').select('count').execute()
 
         logger.info(f"Connection test successful. Modules count: {response.data}")
 

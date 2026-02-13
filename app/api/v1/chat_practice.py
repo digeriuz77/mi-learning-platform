@@ -19,6 +19,7 @@ from app.models.chat import (
     ConversationAnalysis,
     MITechniqueUsed,
     ChatSessionStatus,
+    AnalyzeTranscriptRequest,
 )
 from app.services.personas import get_persona_list, get_persona
 from app.services import chat_service
@@ -259,18 +260,15 @@ async def get_session_transcript(
 
 @router.post("/analyze")
 async def analyze_transcript(
-    request: dict, auth: Optional[AuthContext] = Depends(get_current_user)
+    request: AnalyzeTranscriptRequest, auth: Optional[AuthContext] = Depends(get_current_user)
 ):
     """
     Analyze a conversation transcript and return feedback.
     Used for demo sessions where no server-side session exists.
     """
     try:
-        transcript = request.get("transcript", [])
-        persona_name = request.get("persona_name", "Client")
-
-        if not transcript:
-            raise HTTPException(status_code=400, detail="Transcript is required")
+        transcript = request.transcript
+        persona_name = request.persona_name
 
         logger.info(
             f"[CHAT] Analyzing transcript for {persona_name}, {len(transcript)} messages"
