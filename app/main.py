@@ -105,8 +105,10 @@ app.add_middleware(
 # SECURITY: Add security headers to all responses
 # These headers protect against common attacks without breaking app functionality
 @app.middleware("http")
-async def add_security_headers(request: Request, response: Response):
+async def add_security_headers(request: Request, call_next):
     """Add security headers to protect against common web vulnerabilities."""
+    response = await call_next(request)
+
     # Prevent MIME type sniffing attacks
     response.headers["X-Content-Type-Options"] = "nosniff"
 
