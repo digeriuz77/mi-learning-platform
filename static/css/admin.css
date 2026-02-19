@@ -15,6 +15,22 @@
     font-weight: bold;
 }
 
+.return-to-app {
+    color: #e8f5e9;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.return-to-app:hover {
+    background: #3498db;
+}
+
 .nav-user {
     display: flex;
     align-items: center;
