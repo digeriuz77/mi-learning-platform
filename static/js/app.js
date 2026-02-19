@@ -988,8 +988,8 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
                             <span class="choice-letter">${String.fromCharCode(65 + index)}</span>
                             <div class="choice-content">
                                 <p class="choice-text">${choice.text}</p>
-                                <span class="choice-technique">${choice.technique}</span>
-                                ${state.hintsEnabled ? `<div class="technique-hint">
+                                ${state.hintsEnabled ? `<span class="choice-technique">${choice.technique}</span>
+                                <div class="technique-hint">
                                     <span class="hint-title">Technique Info:</span>
                                     <p class="hint-text">${getTechniqueHint(choice.technique)}</p>
                                 </div>` : ''}
@@ -1021,11 +1021,20 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
             document.querySelectorAll('.choice-card').forEach((card, index) => {
                 const choice = node.practitioner_choices[index];
                 const hintDiv = card.querySelector('.technique-hint');
+                const techniqueSpan = card.querySelector('.choice-technique');
                 
                 if (state.hintsEnabled) {
                     card.classList.add('hints-visible');
                     if (!hintDiv) {
                         const choiceContent = card.querySelector('.choice-content');
+                        // Add technique label if not present
+                        if (!techniqueSpan) {
+                            const techSpan = document.createElement('span');
+                            techSpan.className = 'choice-technique';
+                            techSpan.textContent = choice.technique;
+                            choiceContent.appendChild(techSpan);
+                        }
+                        // Add hint div
                         const newHintDiv = document.createElement('div');
                         newHintDiv.className = 'technique-hint';
                         newHintDiv.innerHTML = `
@@ -1036,8 +1045,14 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
                     }
                 } else {
                     card.classList.remove('hints-visible');
+                    // Remove hint div
                     if (hintDiv) {
                         hintDiv.remove();
+                    }
+                    // Remove technique label
+                    const techSpan = card.querySelector('.choice-technique');
+                    if (techSpan) {
+                        techSpan.remove();
                     }
                 }
             });

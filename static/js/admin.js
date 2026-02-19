@@ -767,6 +767,38 @@ async function recalculateModulePoints() {
     }
 }
 
+async function confirmResetAllProgress() {
+    // Double confirmation for destructive action
+    if (!confirm('Are you sure you want to reset progress for ALL users? This cannot be undone.')) {
+        return;
+    }
+    if (!confirm('FINAL WARNING: This will delete ALL user progress, points, and modules completed. Continue?')) {
+        return;
+    }
+
+    const resultEl = document.getElementById('resetAllResult');
+    resultEl.textContent = 'Resetting all progress...';
+    resultEl.style.color = '#666';
+
+    try {
+        const data = await adminRequest(`${ADMIN_API}/reset-progress`, {
+            method: 'POST',
+            body: JSON.stringify({})  // No user_id = reset all
+        });
+
+        resultEl.style.color = '#059669';
+        resultEl.textContent = `✓ ${data.message || 'All user progress has been reset.'}`;
+        showToast('All user progress has been reset', 'success');
+        
+        // Refresh dashboard stats
+        await loadDashboardStats();
+    } catch (error) {
+        resultEl.style.color = '#dc2626';
+        resultEl.textContent = '✗ Error: ' + (error.message || 'Failed to reset progress');
+        showToast('Failed to reset all progress', 'error');
+    }
+}
+
 // Make functions globally available
 window.showUserActions = showUserActions;
 window.closeModal = closeModal;
@@ -789,6 +821,7 @@ window.downloadUserAnalyticsCsv = downloadUserAnalyticsCsv;
 window.downloadPracticeAnalyticsCsv = downloadPracticeAnalyticsCsv;
 window.downloadModuleAnalyticsCsv = downloadModuleAnalyticsCsv;
 window.recalculateModulePoints = recalculateModulePoints;
+window.confirmResetAllProgress = confirmResetAllProgress;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);
