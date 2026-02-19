@@ -54,7 +54,7 @@ class ScoringService:
         "lecturing",
         "defending",
         "challenging",
-        "interpretation",
+        "directing interpretation",  # Practitioner tells patient what to think (non-MI)
         "closed question",
         "non-impartial",
         "colluding",
@@ -63,6 +63,10 @@ class ScoringService:
         "dismissive",
         "premature",
         "goal-focused",
+        "condescending",
+        "prescriptive",
+        "judgmental",
+        "overloading",
     ]
     EXCELLENT_KEYWORDS = [
         "complex reflection",
@@ -71,9 +75,18 @@ class ScoringService:
         "affirmation + reflection",
         "summary",
         "double-sided reflection",
+        "elicit-provide-elicit",  # Full EPE approach
     ]
-    GOOD_KEYWORDS = ["reflection", "open question", "empathic", "affirmation +"]
-    ACCEPTABLE_KEYWORDS = ["affirmation", "boundary", "acknowledgment", "validat", "apology"]
+    GOOD_KEYWORDS = [
+        "reflection",
+        "open question",
+        "empathic",
+        "affirmation +",
+        "inviting interpretation",  # Asking patient to interpret is good MI
+        "asking permission",  # Part of EPE
+        "elicit",  # Elicit phase of EPE
+    ]
+    ACCEPTABLE_KEYWORDS = ["affirmation", "boundary", "acknowledgment", "validat", "apology", "provide"]
 
     @staticmethod
     def get_technique_quality(choice: dict) -> str:
