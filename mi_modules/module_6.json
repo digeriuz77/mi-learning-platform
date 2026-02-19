@@ -366,6 +366,12 @@
             "technique": "Honoring their direction",
             "next_node_id": "node_5n",
             "feedback": "Perfect! This honors their request to stay with the change talk. When patients explicitly redirect you back to change talk, follow their lead."
+          },
+          {
+            "text": "I hear you, but I think the work stress might be connected. Can we explore both?",
+            "technique": "Not honoring their direction",
+            "next_node_id": "node_5n",
+            "feedback": "When patients explicitly ask to stay with a topic, honoring their direction builds trust. Pushing your agenda can feel disrespectful and create resistance."
           }
         ]
       },
@@ -440,6 +446,12 @@
             "technique": "Selective reflection of values-based change talk",
             "next_node_id": "node_5u",
             "feedback": "Excellent! This honors their autonomy and their personal standards. When patients assert their own values despite minimization, that's strong change talk."
+          },
+          {
+            "text": "What exactly do you mean by 'your own standards'?",
+            "technique": "Closed question (detail-focused)",
+            "next_node_id": "node_5u",
+            "feedback": "While asking about their standards could explore more, reflecting what they've already shared is more affirming. They just made a values statement - honor it before probing."
           }
         ]
       },
@@ -454,6 +466,12 @@
             "technique": "Selective reflection of values (amplified)",
             "next_node_id": "node_5v",
             "feedback": "Perfect! This reflects their deep values about the grandparent they want to be. Values-based change talk is particularly powerful and worth reflecting fully."
+          },
+          {
+            "text": "That's a lot of pressure to put on yourself. Are you sure that's realistic?",
+            "technique": "Questioning their values",
+            "next_node_id": "node_5v",
+            "feedback": "This questions their values rather than reflecting them. When patients share deep values, honor them - don't challenge whether they're realistic."
           }
         ]
       },
@@ -468,6 +486,12 @@
             "technique": "Linking reflection (values leading to need)",
             "next_node_id": "node_5w",
             "feedback": "Excellent! This linking reflection shows how their values are generating the sense of need to change. This validates the internal logic of their change talk."
+          },
+          {
+            "text": "So you've decided to quit then?",
+            "technique": "Jumping to commitment",
+            "next_node_id": "node_5w",
+            "feedback": "'Need' is strong preparatory change talk but jumping to commitment can feel like pressure. Let them continue to sit with the need before pushing for a decision."
           }
         ]
       },

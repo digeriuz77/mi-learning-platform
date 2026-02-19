@@ -738,8 +738,32 @@ async function downloadModuleAnalyticsCsv() {
         downloadCsvFile('module_analytics.csv', headers, rows);
         showToast('Module analytics CSV downloaded', 'success');
     } catch (error) {
-        console.error('Error downloading module analytics CSV:', error);
         showToast('Failed to download module analytics CSV', 'error');
+    }
+}
+
+// Recalculate module points
+async function recalculateModulePoints() {
+    const resultEl = document.getElementById('recalculateResult');
+    resultEl.textContent = 'Recalculating...';
+    resultEl.style.color = '#666';
+
+    try {
+        const data = await adminRequest(`${ADMIN_API}/modules/recalculate-points`, {
+            method: 'POST'
+        });
+
+        resultEl.style.color = '#059669';
+        if (data.updated > 0) {
+            resultEl.textContent = `✓ ${data.message}. Updated ${data.updated} modules.`;
+        } else {
+            resultEl.textContent = '✓ All modules already have correct max_points_available values.';
+        }
+        showToast('Module points recalculated successfully', 'success');
+    } catch (error) {
+        resultEl.style.color = '#dc2626';
+        resultEl.textContent = '✗ Error: ' + (error.message || 'Failed to recalculate');
+        showToast('Failed to recalculate module points', 'error');
     }
 }
 
@@ -764,6 +788,7 @@ window.nextAnalyticsPage = nextAnalyticsPage;
 window.downloadUserAnalyticsCsv = downloadUserAnalyticsCsv;
 window.downloadPracticeAnalyticsCsv = downloadPracticeAnalyticsCsv;
 window.downloadModuleAnalyticsCsv = downloadModuleAnalyticsCsv;
+window.recalculateModulePoints = recalculateModulePoints;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);

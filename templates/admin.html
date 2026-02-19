@@ -288,6 +288,13 @@
                 <h1>Admin Settings</h1>
 
                 <div class="settings-section">
+                    <h2>Module Points Recalculation</h2>
+                    <p>Recalculate max_points_available for all modules using the optimal path algorithm. This ensures each module shows the correct maximum achievable points based on its dialogue structure.</p>
+                    <button onclick="recalculateModulePoints()" class="btn btn-primary">Recalculate Module Points</button>
+                    <p id="recalculateResult" style="margin-top: 0.5rem; color: #666;"></p>
+                </div>
+
+                <div class="settings-section">
                     <h2>User Promotion</h2>
                     <p>Enter a user ID to promote them to admin:</p>
                     <div class="form-group">

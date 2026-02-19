@@ -234,7 +234,7 @@ quite what you hoped for. Either way, bring the conversation to a natural close.
     except Exception as e:
         # On API error, provide a fallback response
         response_text = f"*pauses* I'm sorry, I got a bit distracted. Could you say that again?"
-        print(f"OpenAI API error: {e}")
+        logger.warning(f"OpenAI API error in chat session: {type(e).__name__}")
 
     # Add assistant response to history
     session["history"].append({"role": "assistant", "content": response_text})

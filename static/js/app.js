@@ -1053,6 +1053,13 @@ function showFeedback(feedback, moduleId, dialogueContent) {
     const overlay = document.createElement('div');
     overlay.className = 'feedback-overlay';
 
+    // Reflection questions for module completion
+    const reflectionQuestions = [
+        "What technique did you find most effective in this conversation?",
+        "How might you apply these skills in your own practice?",
+        "What would you do differently next time?"
+    ];
+
     overlay.innerHTML = `
         <div class="feedback-modal ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}">
             <div class="feedback-header">
@@ -1102,13 +1109,31 @@ function showFeedback(feedback, moduleId, dialogueContent) {
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="reflection-section" style="margin-top: 1.5rem; padding: 1.25rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid var(--primary);">
+                        <h4 style="margin-bottom: 0.75rem; color: #0369a1; font-size: 1rem;">💡 Reflection Questions</h4>
+                        <ul style="margin: 0; padding-left: 1.25rem; color: #555;">
+                            ${reflectionQuestions.map(q => `<li style="margin-bottom: 0.5rem; font-size: 0.9rem;">${q}</li>`).join('')}
+                        </ul>
+                    </div>
                 ` : ''}
             </div>
 
             <div class="feedback-footer">
-                <button class="btn btn-primary btn-lg" style="width: 100%;">
-                    ${isComplete ? 'View Progress' : 'Continue'}
-                </button>
+                ${isComplete ? `
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button class="btn btn-primary btn-lg" id="nextModuleBtn" style="width: 100%;">
+                            Continue to Next Module
+                        </button>
+                        <button class="btn btn-outline" id="backToLibraryBtn" style="width: 100%;">
+                            Return to Module Library
+                        </button>
+                    </div>
+                ` : `
+                    <button class="btn btn-primary btn-lg" style="width: 100%;">
+                        Continue
+                    </button>
+                `}
             </div>
         </div>
     `;
@@ -1121,25 +1146,72 @@ function showFeedback(feedback, moduleId, dialogueContent) {
     // Animate in
     setTimeout(() => overlay.classList.add('show'), 10);
 
-    overlay.querySelector('button').addEventListener('click', () => {
+    // Handle button clicks
+    const nextModuleBtn = overlay.querySelector('#nextModuleBtn');
+    const backToLibraryBtn = overlay.querySelector('#backToLibraryBtn');
+    const continueBtn = overlay.querySelector('.feedback-footer .btn-primary:not(#nextModuleBtn)');
+
+    const closeModal = (callback) => {
         overlay.classList.remove('show');
         setTimeout(() => {
-            // Remove modal-open class and clean up
             document.body.classList.remove('modal-open');
-            document.body.removeChild(overlay);
-
-            if (isComplete) {
-                router.navigate('/progress');
-            } else if (feedback.next_node_id) {
-                showLoading();
-                dialogueAPI.getNode(moduleId, feedback.next_node_id).then(nodeData => {
-                    renderDialogueNode(moduleId, nodeData, dialogueContent);
-                });
-            } else {
-                router.navigate(`/modules/${moduleId}`);
+            if (document.body.contains(overlay)) {
+                document.body.removeChild(overlay);
             }
+            if (callback) callback();
         }, 300);
-    });
+    };
+
+    if (nextModuleBtn) {
+        nextModuleBtn.addEventListener('click', async () => {
+            closeModal(async () => {
+                showLoading();
+                try {
+                    // Get all modules to find the next one
+                    const data = await modulesAPI.list();
+                    const modules = data.modules;
+                    const currentIndex = modules.findIndex(m => m.id === moduleId);
+                    const nextModule = currentIndex >= 0 && currentIndex < modules.length - 1 
+                        ? modules[currentIndex + 1] 
+                        : null;
+                    
+                    if (nextModule) {
+                        showToast(`Starting ${nextModule.title}...`, 'info');
+                        router.navigate(`/modules/${nextModule.id}`);
+                    } else {
+                        showToast('You have completed all available modules!', 'success');
+                        router.navigate('/modules');
+                    }
+                } catch (error) {
+                    showToast(error.message, 'error');
+                    router.navigate('/modules');
+                }
+            });
+        });
+    }
+
+    if (backToLibraryBtn) {
+        backToLibraryBtn.addEventListener('click', () => {
+            closeModal(() => {
+                router.navigate('/modules');
+            });
+        });
+    }
+
+    if (continueBtn && !isComplete) {
+        continueBtn.addEventListener('click', () => {
+            closeModal(() => {
+                if (feedback.next_node_id) {
+                    showLoading();
+                    dialogueAPI.getNode(moduleId, feedback.next_node_id).then(nodeData => {
+                        renderDialogueNode(moduleId, nodeData, dialogueContent);
+                    });
+                } else {
+                    router.navigate(`/modules/${moduleId}`);
+                }
+            });
+        });
+    }
 }
 
 /**
@@ -2451,6 +2523,13 @@ const router = {
                 e.preventDefault();
                 const path = link.dataset.link;
                 this.navigate(path);
+            }
+            
+            // Handle navbar logo click (always goes home)
+            const navLogo = e.target.closest('#navbar-logo');
+            if (navLogo) {
+                e.preventDefault();
+                window.location.href = '/';
             }
         });
 

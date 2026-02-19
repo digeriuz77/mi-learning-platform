@@ -1,12 +1,22 @@
 #!/bin/bash
 # Import MI Learning Modules to Supabase via REST API
 # This script doesn't require Python dependencies - uses curl
+# 
+# USAGE: Set environment variables before running:
+#   export SUPABASE_URL="https://your-project.supabase.co"
+#   export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+#   ./import_modules_via_api.sh
 
 set -e
 
-# Supabase credentials
-SUPABASE_URL="https://czcfscusbofyefrawkxc.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y2ZzY3VzYm9meWVmcmF3a3hjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTY0MjAxMiwiZXhwIjoyMDg1MjE4MDEyfQ.HTfrn567UbRIfC7ufrSbcx6TiUHyt3iWf19HKQ6k12c"
+# Supabase credentials from environment
+if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+    echo "ERROR: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set as environment variables"
+    echo "Example:"
+    echo "  export SUPABASE_URL='https://your-project.supabase.co'"
+    echo "  export SUPABASE_SERVICE_ROLE_KEY='your-service-role-key'"
+    exit 1
+fi
 
 echo "============================================================"
 echo "MI Learning Platform - Module Import via REST API"
@@ -43,6 +53,7 @@ import_module() {
     local slug=$(echo "$title" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
 
     # Build the JSON payload for the module
+    # NOTE: max_points_available is calculated by calling the recalculate endpoint after import
     local payload=$(cat <<EOF
 {
   "module_number": $module_number,
@@ -52,7 +63,6 @@ import_module() {
   "technique_focus": "$technique_focus",
   "stage_of_change": "$stage_of_change",
   "description": "$description",
-  "points": 500,
   "dialogue_content": $(echo "$json_content" | sed 's/"/\\"/g'),
   "is_published": true,
   "display_order": $module_number
@@ -116,6 +126,12 @@ main() {
     echo "============================================================"
     echo "Import complete: $success_count/12 modules"
     echo "============================================================"
+    echo ""
+    echo "IMPORTANT: After import, recalculate max_points_available by calling:"
+    echo "  curl -X POST \"\${SUPABASE_URL}/api/v1/admin/modules/recalculate-points\" \\"
+    echo "    -H \"Authorization: Bearer \$ADMIN_TOKEN\""
+    echo ""
+    echo "Or use the admin dashboard to recalculate points."
 }
 
 # Run main

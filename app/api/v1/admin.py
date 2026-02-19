@@ -27,13 +27,7 @@ async def require_admin(
     """Dependency that verifies the current user has admin role."""
     try:
         supabase_admin = get_supabase_admin()
-        response = (
-            supabase_admin.table("users")
-            .select("role")
-            .eq("id", auth_context.user_id)
-            .maybe_single()
-            .execute()
-        )
+        response = supabase_admin.table("users").select("role").eq("id", auth_context.user_id).maybe_single().execute()
         if not response.data or response.data.get("role") != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -63,18 +57,11 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
 
         # New users in last 24 hours
         since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
-        new_users_resp = (
-            supabase.table("users").select("id", count="exact").gte("created_at", since).execute()
-        )
+        new_users_resp = supabase.table("users").select("id", count="exact").gte("created_at", since).execute()
         new_users_24h = new_users_resp.count or 0
 
         # Modules completed
-        completed_resp = (
-            supabase.table("user_progress")
-            .select("id", count="exact")
-            .eq("status", "completed")
-            .execute()
-        )
+        completed_resp = supabase.table("user_progress").select("id", count="exact").eq("status", "completed").execute()
         total_modules_completed = completed_resp.count or 0
 
         # Average progress - calculate properly based on nodes_visited vs total nodes per module
@@ -94,7 +81,7 @@ async def get_dashboard_stats(admin: AuthContext = Depends(require_admin)):
                     nodes_visited = row.get("nodes_visited", []) or []
                     nodes_completed = row.get("nodes_completed", []) or []
                     visited_count = len(nodes_visited) if nodes_visited else len(nodes_completed)
-                    
+
                     # Get total nodes from module
                     module_data = row.get("learning_modules")
                     if module_data:
@@ -129,9 +116,7 @@ async def get_users(
     try:
         supabase = get_supabase_admin()
 
-        query = supabase.table("users").select(
-            "id, email, display_name, role, is_active, created_at"
-        )
+        query = supabase.table("users").select("id, email, display_name, role, is_active, created_at")
 
         if search:
             query = query.ilike("email", f"%{search}%")
@@ -143,9 +128,12 @@ async def get_users(
         user_ids = [u.get("id") for u in response.data or []]
         profiles_map = {}
         if user_ids:
-            profiles_resp = supabase.table("user_profiles").select(
-                "user_id, total_points, modules_completed"
-            ).in_("user_id", user_ids).execute()
+            profiles_resp = (
+                supabase.table("user_profiles")
+                .select("user_id, total_points, modules_completed")
+                .in_("user_id", user_ids)
+                .execute()
+            )
             profiles_map = {p["user_id"]: p for p in (profiles_resp.data or [])}
 
         users = []
@@ -192,10 +180,7 @@ async def get_module_stats(admin: AuthContext = Depends(require_admin)):
             module_id = module["id"]
 
             total_resp = (
-                supabase.table("user_progress")
-                .select("id", count="exact")
-                .eq("module_id", module_id)
-                .execute()
+                supabase.table("user_progress").select("id", count="exact").eq("module_id", module_id).execute()
             )
             completed_resp = (
                 supabase.table("user_progress")
@@ -248,35 +233,25 @@ async def perform_admin_action(
         target_id = request.target_user_id
 
         if action == "promote_to_admin":
-            supabase.table("users").update({"role": "admin"}).eq(
-                "id", target_id
-            ).execute()
+            supabase.table("users").update({"role": "admin"}).eq("id", target_id).execute()
             return {"message": "User promoted to admin"}
 
         elif action == "demote_from_admin":
-            supabase.table("users").update({"role": "user"}).eq(
-                "id", target_id
-            ).execute()
+            supabase.table("users").update({"role": "user"}).eq("id", target_id).execute()
             return {"message": "User demoted from admin"}
 
         elif action == "update_user_role":
             if request.new_role not in ("user", "admin", "moderator"):
                 raise HTTPException(status_code=400, detail="Invalid role")
-            supabase.table("users").update({"role": request.new_role}).eq(
-                "id", target_id
-            ).execute()
+            supabase.table("users").update({"role": request.new_role}).eq("id", target_id).execute()
             return {"message": f"User role updated to {request.new_role}"}
 
         elif action == "ban_user":
-            supabase.table("users").update({"is_active": False}).eq(
-                "id", target_id
-            ).execute()
+            supabase.table("users").update({"is_active": False}).eq("id", target_id).execute()
             return {"message": "User banned"}
 
         elif action == "unban_user":
-            supabase.table("users").update({"is_active": True}).eq(
-                "id", target_id
-            ).execute()
+            supabase.table("users").update({"is_active": True}).eq("id", target_id).execute()
             return {"message": "User unbanned"}
 
         elif action == "delete_user":
@@ -318,9 +293,7 @@ async def get_practice_stats(
         supabase = get_supabase_admin()
 
         # Call the database function for analytics
-        result = supabase.rpc(
-            "get_practice_analytics", {"start_date": start_date, "end_date": end_date}
-        ).execute()
+        result = supabase.rpc("get_practice_analytics", {"start_date": start_date, "end_date": end_date}).execute()
 
         if result.data and len(result.data) > 0:
             return result.data[0]
@@ -345,7 +318,9 @@ async def get_practice_stats(
 
 @router.get("/practice/analyses")
 async def get_practice_analyses(
-    limit: int = Query(default=50, ge=1, le=500), offset: int = Query(default=0, ge=0), admin: AuthContext = Depends(require_admin)
+    limit: int = Query(default=50, ge=1, le=500),
+    offset: int = Query(default=0, ge=0),
+    admin: AuthContext = Depends(require_admin),
 ):
     """
     Get detailed practice analyses for review.
@@ -431,13 +406,7 @@ async def get_recent_feedback(
     try:
         supabase = get_supabase_admin()
 
-        result = (
-            supabase.table("user_feedback")
-            .select("*")
-            .order("created_at", desc=True)
-            .limit(limit)
-            .execute()
-        )
+        result = supabase.table("user_feedback").select("*").order("created_at", desc=True).limit(limit).execute()
 
         feedback_items = []
         for feedback in result.data or []:
@@ -542,9 +511,7 @@ async def get_practice_analytics_leaderboard(
         supabase = get_supabase_admin()
 
         # Call the database function for leaderboard
-        result = supabase.rpc(
-            "get_practice_leaderboard", {"limit_count": limit}
-        ).execute()
+        result = supabase.rpc("get_practice_leaderboard", {"limit_count": limit}).execute()
 
         if result.data:
             return {"leaderboard": result.data, "total": len(result.data)}
@@ -557,9 +524,7 @@ async def get_practice_analytics_leaderboard(
 
 
 @router.get("/analytics/user/{user_id}")
-async def get_user_detailed_analytics(
-    user_id: str, admin: AuthContext = Depends(require_admin)
-):
+async def get_user_detailed_analytics(user_id: str, admin: AuthContext = Depends(require_admin)):
     """
     Get detailed analytics for a specific user.
 
@@ -583,9 +548,7 @@ async def get_user_detailed_analytics(
         user = user_result.data
 
         # Get user analytics
-        analytics_result = supabase.rpc(
-            "get_user_practice_analytics", {"p_user_id": user_id}
-        ).execute()
+        analytics_result = supabase.rpc("get_user_practice_analytics", {"p_user_id": user_id}).execute()
 
         # Get recent analyses for this user
         analyses_result = (
@@ -632,36 +595,53 @@ async def export_users_csv(admin: AuthContext = Depends(require_admin)):
     try:
         supabase = get_supabase_admin()
 
-        users_resp = supabase.table("users").select(
-            "id, email, display_name, role, is_active, created_at"
-        ).order("created_at", desc=True).execute()
+        users_resp = (
+            supabase.table("users")
+            .select("id, email, display_name, role, is_active, created_at")
+            .order("created_at", desc=True)
+            .execute()
+        )
 
-        profiles_resp = supabase.table("user_profiles").select(
-            "user_id, total_points, level, modules_completed, last_active_at"
-        ).execute()
+        profiles_resp = (
+            supabase.table("user_profiles")
+            .select("user_id, total_points, level, modules_completed, last_active_at")
+            .execute()
+        )
         profiles_map = {p["user_id"]: p for p in (profiles_resp.data or [])}
 
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow([
-            "User ID", "Email", "Display Name", "Role", "Is Active",
-            "Total Points", "Level", "Modules Completed", "Created At", "Last Active"
-        ])
+        writer.writerow(
+            [
+                "User ID",
+                "Email",
+                "Display Name",
+                "Role",
+                "Is Active",
+                "Total Points",
+                "Level",
+                "Modules Completed",
+                "Created At",
+                "Last Active",
+            ]
+        )
 
         for user in users_resp.data or []:
             profile = profiles_map.get(user.get("id"), {})
-            writer.writerow([
-                user.get("id", ""),
-                user.get("email", ""),
-                user.get("display_name", ""),
-                user.get("role", "user"),
-                user.get("is_active", True),
-                profile.get("total_points", 0),
-                profile.get("level", 1),
-                profile.get("modules_completed", 0),
-                user.get("created_at", ""),
-                profile.get("last_active_at", ""),
-            ])
+            writer.writerow(
+                [
+                    user.get("id", ""),
+                    user.get("email", ""),
+                    user.get("display_name", ""),
+                    user.get("role", "user"),
+                    user.get("is_active", True),
+                    profile.get("total_points", 0),
+                    profile.get("level", 1),
+                    profile.get("modules_completed", 0),
+                    user.get("created_at", ""),
+                    profile.get("last_active_at", ""),
+                ]
+            )
 
         output.seek(0)
         return StreamingResponse(
@@ -687,9 +667,12 @@ async def export_progress_csv(admin: AuthContext = Depends(require_admin)):
     try:
         supabase = get_supabase_admin()
 
-        progress_resp = supabase.table("user_progress").select(
-            "user_id, module_id, status, points_earned, completion_score, started_at, completed_at"
-        ).order("started_at", desc=True).execute()
+        progress_resp = (
+            supabase.table("user_progress")
+            .select("user_id, module_id, status, points_earned, completion_score, started_at, completed_at")
+            .order("started_at", desc=True)
+            .execute()
+        )
 
         users_resp = supabase.table("users").select("id, email, display_name").execute()
         users_map = {u["id"]: u for u in (users_resp.data or [])}
@@ -699,23 +682,33 @@ async def export_progress_csv(admin: AuthContext = Depends(require_admin)):
 
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow([
-            "User Email", "Display Name", "Module Title", "Status",
-            "Points Earned", "Completed", "Started At", "Completed At"
-        ])
+        writer.writerow(
+            [
+                "User Email",
+                "Display Name",
+                "Module Title",
+                "Status",
+                "Points Earned",
+                "Completed",
+                "Started At",
+                "Completed At",
+            ]
+        )
 
         for p in progress_resp.data or []:
             user = users_map.get(p.get("user_id"), {})
-            writer.writerow([
-                user.get("email", ""),
-                user.get("display_name", ""),
-                modules_map.get(p.get("module_id"), "Unknown"),
-                p.get("status", ""),
-                p.get("points_earned", 0),
-                "Yes" if p.get("status") == "completed" else "No",
-                p.get("started_at", ""),
-                p.get("completed_at", ""),
-            ])
+            writer.writerow(
+                [
+                    user.get("email", ""),
+                    user.get("display_name", ""),
+                    modules_map.get(p.get("module_id"), "Unknown"),
+                    p.get("status", ""),
+                    p.get("points_earned", 0),
+                    "Yes" if p.get("status") == "completed" else "No",
+                    p.get("started_at", ""),
+                    p.get("completed_at", ""),
+                ]
+            )
 
         output.seek(0)
         return StreamingResponse(
@@ -728,4 +721,95 @@ async def export_progress_csv(admin: AuthContext = Depends(require_admin)):
         raise
     except Exception as e:
         logger.error(f"Error exporting progress CSV: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred")
+
+
+# =====================================================
+# Module Points Recalculation
+# =====================================================
+
+
+@router.post("/modules/recalculate-points")
+async def recalculate_module_points(admin: AuthContext = Depends(require_admin)):
+    """
+    Recalculate max_points_available for all modules using the correct path-based algorithm.
+
+    This fixes the issue where the SQL migration used a simplified calculation that
+    summed all nodes instead of finding the optimal path through the dialogue tree.
+
+    Returns a summary of modules updated with old and new max_points_available values.
+    """
+    from app.services.scoring_service import ScoringService
+
+    try:
+        supabase = get_supabase_admin()
+
+        # Get all modules
+        modules_resp = (
+            supabase.table("learning_modules").select("id, title, max_points_available, dialogue_content").execute()
+        )
+
+        if not modules_resp.data:
+            return {"message": "No modules found", "updated": 0, "modules": []}
+
+        updated_modules = []
+
+        for module in modules_resp.data:
+            module_id = module.get("id")
+            title = module.get("title", "Unknown")
+            old_max = module.get("max_points_available")
+            dialogue_content = module.get("dialogue_content", {})
+
+            # Calculate correct max points using the Python function
+            # that follows the dialogue tree path
+            new_max = ScoringService.calculate_max_points_available(dialogue_content)
+
+            # Only update if different
+            if old_max != new_max:
+                supabase.table("learning_modules").update({"max_points_available": new_max}).eq(
+                    "id", module_id
+                ).execute()
+
+                updated_modules.append(
+                    {
+                        "id": module_id,
+                        "title": title,
+                        "old_max_points": old_max,
+                        "new_max_points": new_max,
+                    }
+                )
+
+                logger.info(f"Updated module '{title}': {old_max} -> {new_max} max points")
+
+        # Update completion scores for all completed progress records
+        if updated_modules:
+            for module_info in updated_modules:
+                # Get all completed progress for this module
+                progress_resp = (
+                    supabase.table("user_progress")
+                    .select("id, points_earned")
+                    .eq("module_id", module_info["id"])
+                    .eq("status", "completed")
+                    .execute()
+                )
+
+                for progress in progress_resp.data or []:
+                    progress_id = progress.get("id")
+                    points_earned = progress.get("points_earned", 0)
+                    new_max = module_info["new_max_points"]
+
+                    if new_max > 0:
+                        new_score = min(100, int((points_earned / new_max) * 100))
+                        supabase.table("user_progress").update({"completion_score": new_score}).eq(
+                            "id", progress_id
+                        ).execute()
+
+        return {
+            "message": f"Updated {len(updated_modules)} modules with correct max_points_available",
+            "updated": len(updated_modules),
+            "modules": updated_modules,
+        }
+
+    except Exception as e:
+        logger.error(f"Error recalculating module points: {e}")
         raise HTTPException(status_code=500, detail="An internal error occurred")
