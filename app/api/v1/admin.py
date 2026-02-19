@@ -878,7 +878,7 @@ async def reset_user_progress(
             total_affected = 0
 
             # Get all users first (to count affected)
-            users_resp = supabase.table("users").select("id").execute()
+            users_resp = supabase_admin.table("users").select("id").execute()
 
             user_ids = [u.get("id") for u in users_resp.data or []]
 
