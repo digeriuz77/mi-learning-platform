@@ -773,12 +773,9 @@ async function renderModules() {
                                 ${module.max_points_available || module.points} pts
                             </span>
                         </div>
-                        ${module.user_score !== null ? `
+                        ${module.user_points_earned !== null && module.user_points_earned > 0 ? `
                             <div class="module-score">
-                                <div class="score-bar">
-                                    <div class="score-fill" style="width: ${module.user_score}%"></div>
-                                </div>
-                                <span class="score-text">${module.user_score}%</span>
+                                <span class="score-text">Points: ${module.user_points_earned} / ${module.max_points_available || '---'}</span>
                             </div>
                         ` : ''}
                     </div>
@@ -836,7 +833,7 @@ async function renderModuleDetail(moduleId) {
                             <span class="badge-icon">✓</span>
                             <div class="badge-content">
                                 <span class="badge-title">Module Completed</span>
-                                <span class="badge-stats">Score: ${module.user_score}% • Points: ${module.user_points_earned}</span>
+                                <span class="badge-stats">Points: ${module.user_points_earned || 0} / ${module.max_points_available || '---'}</span>
                             </div>
                         </div>
                         <div class="action-buttons">
@@ -1223,12 +1220,12 @@ function showFeedback(feedback, moduleId, dialogueContent) {
                         <h3>🎉 Module Complete!</h3>
                         <div class="summary-stats">
                             <div class="summary-stat">
-                                <span class="stat-label">Completion Score</span>
-                                <span class="stat-value">${feedback.completion_score}%</span>
+                                <span class="stat-label">Status</span>
+                                <span class="stat-value">${feedback.completion_score === 100 ? '✓ Complete' : 'In Progress'}</span>
                             </div>
                             <div class="summary-stat">
-                                <span class="stat-label">Total Points</span>
-                                <span class="stat-value">${feedback.total_points}</span>
+                                <span class="stat-label">Points</span>
+                                <span class="stat-value">${feedback.points_earned || 0} / ${feedback.max_points_available || '---'}</span>
                             </div>
                             <div class="summary-stat">
                                 <span class="stat-label">Level</span>

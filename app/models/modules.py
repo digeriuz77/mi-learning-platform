@@ -1,6 +1,7 @@
 """
 Module and dialogue models for request/response validation
 """
+
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
@@ -8,6 +9,7 @@ from datetime import datetime
 
 class PractitionerChoice(BaseModel):
     """A choice available to the practitioner"""
+
     text: str
     technique: str
     next_node_id: Optional[str] = None
@@ -19,6 +21,7 @@ class PractitionerChoice(BaseModel):
 
 class DialogueNode(BaseModel):
     """A single node in the dialogue tree"""
+
     id: str
     patient_statement: Optional[str] = None
     patient_context: Optional[str] = None
@@ -33,6 +36,7 @@ class DialogueNode(BaseModel):
 
 class ModuleResponse(BaseModel):
     """Learning module response"""
+
     id: str
     module_number: int
     title: str
@@ -56,12 +60,14 @@ class ModuleResponse(BaseModel):
 
 class ModuleListResponse(BaseModel):
     """List of modules response"""
+
     modules: List[ModuleResponse]
     total: int
 
 
 class NodeResponse(BaseModel):
     """Dialogue node response"""
+
     node: Dict[str, Any]  # Raw node data from database
     module_id: str
     progress_id: str
@@ -72,6 +78,7 @@ class NodeResponse(BaseModel):
 
 class ChoiceSubmit(BaseModel):
     """Submit a dialogue choice"""
+
     module_id: str
     node_id: str
     choice_id: str
@@ -81,6 +88,7 @@ class ChoiceSubmit(BaseModel):
 
 class ChoiceFeedback(BaseModel):
     """Feedback for a submitted choice"""
+
     is_correct: bool
     feedback_text: str
     points_earned: int
@@ -92,3 +100,4 @@ class ChoiceFeedback(BaseModel):
     level: Optional[int] = None
     technique_quality: Optional[str] = None  # 'excellent', 'good', 'acceptable', 'poor'
     progress_percentage: Optional[int] = None  # Progress through module (0-100)
+    max_points_available: Optional[int] = None  # Max points for the module

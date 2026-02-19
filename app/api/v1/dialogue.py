@@ -366,6 +366,7 @@ async def submit_choice(
             level=new_level,
             technique_quality=technique_quality,
             progress_percentage=progress_percentage,
+            max_points_available=max_points_available,
         )
 
     # Fallback if no profile (shouldn't happen)
@@ -378,4 +379,5 @@ async def submit_choice(
         is_module_complete=is_module_complete,
         technique_quality=technique_quality,
         progress_percentage=progress_percentage,
+        max_points_available=module.get("max_points_available") if module else None,
     )

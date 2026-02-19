@@ -2,10 +2,13 @@
 Scoring Service for calculating points and levels
 
 Implements the MI Learning Platform gamification logic:
-- Correct technique: 100 points
-- First attempt bonus: +50 points
-- Change talk evoked: +50 points
-- Module completion: +200 points
+- Excellent technique: 150 points
+- Good technique: 100 points
+- Acceptable technique: 50 points
+- Poor/Non-MI technique: 0 points
+
+NO bonuses - simple and clear scoring.
+Module completion is binary: COMPLETE or NOT COMPLETE.
 """
 
 from typing import Dict, Any, Optional
@@ -21,9 +24,6 @@ def _get_scoring_constants():
             "GOOD_POINTS": getattr(settings, "SCORING_GOOD_POINTS", 100),
             "ACCEPTABLE_POINTS": getattr(settings, "SCORING_ACCEPTABLE_POINTS", 50),
             "POOR_POINTS": getattr(settings, "SCORING_POOR_POINTS", 0),
-            "FIRST_ATTEMPT_BONUS": getattr(settings, "SCORING_FIRST_ATTEMPT_BONUS", 50),
-            "CHANGE_TALK_BONUS": getattr(settings, "SCORING_CHANGE_TALK_BONUS", 50),
-            "COMPLETION_BONUS": getattr(settings, "SCORING_COMPLETION_BONUS", 200),
         }
     except Exception:
         return {
@@ -31,9 +31,6 @@ def _get_scoring_constants():
             "GOOD_POINTS": 100,
             "ACCEPTABLE_POINTS": 50,
             "POOR_POINTS": 0,
-            "FIRST_ATTEMPT_BONUS": 50,
-            "CHANGE_TALK_BONUS": 50,
-            "COMPLETION_BONUS": 200,
         }
 
 
@@ -43,13 +40,7 @@ class ScoringService:
     # Load configurable constants
     _constants = _get_scoring_constants()
 
-    # Point values (from configurable constants)
-    CORRECT_TECHNIQUE_POINTS = 100
-    FIRST_ATTEMPT_BONUS = _constants["FIRST_ATTEMPT_BONUS"]
-    CHANGE_TALK_BONUS = _constants["CHANGE_TALK_BONUS"]
-    MODULE_COMPLETION_BONUS = _constants["COMPLETION_BONUS"]
-
-    # Quality-based point values
+    # Point values (from configurable constants) - NO BONUSES
     EXCELLENT_POINTS = _constants["EXCELLENT_POINTS"]  # Best MI technique
     GOOD_POINTS = _constants["GOOD_POINTS"]  # Solid MI technique
     ACCEPTABLE_POINTS = _constants["ACCEPTABLE_POINTS"]  # Basic MI technique
@@ -155,14 +146,14 @@ class ScoringService:
 
         Args:
             is_correct: Whether the technique was correct (deprecated, use technique_quality)
-            is_first_attempt: Whether this is the first attempt at this node
-            evoked_change_talk: Whether the choice evoked change talk
+            is_first_attempt: Whether this is the first attempt at this node (unused - no bonuses)
+            evoked_change_talk: Whether the choice evoked change talk (unused - no bonuses)
             technique_quality: Quality of technique ('excellent', 'good', 'acceptable', 'poor')
 
         Returns:
-            int: Points earned
+            int: Points earned (based solely on technique quality)
         """
-        # Base points based on technique quality
+        # Simple points based on technique quality - NO BONUSES
         quality_points = {
             "excellent": ScoringService.EXCELLENT_POINTS,
             "good": ScoringService.GOOD_POINTS,
@@ -170,17 +161,7 @@ class ScoringService:
             "poor": ScoringService.POOR_POINTS,
         }
 
-        points = quality_points.get(technique_quality, ScoringService.GOOD_POINTS)
-
-        # First attempt bonus only for good or excellent techniques
-        if is_first_attempt and technique_quality in ["excellent", "good"]:
-            points += ScoringService.FIRST_ATTEMPT_BONUS
-
-        # Change talk bonus for any non-poor technique
-        if evoked_change_talk and technique_quality != "poor":
-            points += ScoringService.CHANGE_TALK_BONUS
-
-        return points
+        return quality_points.get(technique_quality, ScoringService.GOOD_POINTS)
 
     @staticmethod
     def calculate_level(total_points: int) -> int:
@@ -241,8 +222,8 @@ class ScoringService:
 
             # Check if this is an ending node
             if node.get("is_ending", False):
-                # Add completion bonus for ending
-                return ScoringService.MODULE_COMPLETION_BONUS
+                # No completion bonus - module is complete or not
+                return 0
 
             # Find the best path through choices
             best_path_points = 0
@@ -276,7 +257,7 @@ class ScoringService:
             choice: The choice dictionary
 
         Returns:
-            int: Maximum points for this choice
+            int: Points for this choice (based solely on technique quality)
         """
         quality = ScoringService.get_technique_quality(choice)
 
@@ -286,20 +267,8 @@ class ScoringService:
             "acceptable": ScoringService.ACCEPTABLE_POINTS,
             "poor": ScoringService.POOR_POINTS,
         }
-        base_points = quality_points.get(quality, ScoringService.GOOD_POINTS)
 
-        # Add bonuses for best case scenario
-        max_points = base_points
-
-        # First attempt bonus (best case: first attempt, only for good or excellent)
-        if quality in ["excellent", "good"]:
-            max_points += ScoringService.FIRST_ATTEMPT_BONUS
-
-        # Change talk bonus (best case: evoked change talk, any non-poor)
-        if quality != "poor":
-            max_points += ScoringService.CHANGE_TALK_BONUS
-
-        return max_points
+        return quality_points.get(quality, ScoringService.GOOD_POINTS)
 
     @staticmethod
     def calculate_completion_score(
@@ -312,57 +281,34 @@ class ScoringService:
         max_points_available: int = None,
     ) -> int:
         """
-        Calculate module completion score (0-100).
+        Calculate module completion score.
 
-        Uses points-based scoring when max_points_available is provided,
-        falling back to the old formula for backward compatibility.
+        Returns 100 if module is complete (reached ending), 0 otherwise.
+        The actual points earned vs max points available should be shown separately.
 
         Args:
             total_nodes: Total nodes in module
-            nodes_completed: Number of nodes completed (correct on first attempt)
-            correct_choices: Number of correct technique choices (deprecated, use technique_quality_counts)
-            nodes_visited: Number of nodes visited (all nodes reached)
-            technique_quality_counts: Dict with counts of 'excellent', 'good', 'acceptable', 'poor' choices
-            points_earned: Total points earned in the module
-            max_points_available: Maximum points available in the module (calculated from dialogue)
+            nodes_completed: Number of nodes completed
+            correct_choices: Number of correct technique choices (unused)
+            nodes_visited: Number of nodes visited
+            technique_quality_counts: Dict with counts of technique qualities (unused)
+            points_earned: Total points earned (unused for binary completion)
+            max_points_available: Max points available (unused for binary completion)
 
         Returns:
-            int: Completion score (0-100)
+            int: 100 if complete, 0 if not complete
         """
-        # Use points-based scoring if max_points_available is provided
-        if max_points_available is not None and max_points_available > 0:
-            score = int((points_earned / max_points_available) * 100)
-            return min(max(score, 0), 100)  # Clamp between 0 and 100
+        # Binary completion: if we visited all nodes and reached an ending
+        # A module is complete when the user has made choices through to an ending
+        # This is indicated by nodes_completed > 0 and all nodes visited
+        if nodes_visited and total_nodes and nodes_visited >= total_nodes:
+            return 100
 
-        # Fall back to old formula for backward compatibility
-        if total_nodes == 0:
-            return 0
+        # Alternative: if nodes_completed matches or exceeds expected, module is done
+        if nodes_completed and total_nodes and nodes_completed >= total_nodes:
+            return 100
 
-        # Use nodes_visited for progress if available, otherwise fall back to nodes_completed
-        visited = nodes_visited if nodes_visited is not None else nodes_completed
-
-        # Progress score: how far through the module (0-50 points)
-        progress_score = (visited / total_nodes) * 50
-
-        # Accuracy score: based on technique quality (0-50 points)
-        if technique_quality_counts and visited > 0:
-            # Weight technique quality: excellent=1.0, good=0.8, acceptable=0.5, poor=0
-            quality_weights = {"excellent": 1.0, "good": 0.8, "acceptable": 0.5, "poor": 0.0}
-
-            weighted_score = 0.0
-            for quality, count in technique_quality_counts.items():
-                weight = quality_weights.get(quality, 0.5)
-                weighted_score += count * weight
-
-            # Normalize to 0-50 scale
-            accuracy_score = (weighted_score / visited) * 50
-        elif visited > 0:
-            # Fallback: use correct_choices ratio
-            accuracy_score = (correct_choices / visited) * 50
-        else:
-            accuracy_score = 0
-
-        return int(progress_score + accuracy_score)
+        return 0
 
     @staticmethod
     def get_next_level_threshold(current_level: int) -> int:
