@@ -19,9 +19,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # Configure logging first
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Import settings with error handling
@@ -55,6 +53,7 @@ try:
 except Exception as e:
     logger.error(f"Failed to load routers: {e}")
     ROUTERS_LOADED = False
+
 
 # Lifespan context manager (replaces deprecated @app.on_event("startup"))
 @asynccontextmanager
@@ -103,15 +102,39 @@ app.add_middleware(
 )
 
 
+# SECURITY: Add security headers to all responses
+# These headers protect against common attacks without breaking app functionality
+@app.middleware("http")
+async def add_security_headers(request: Request, response: Response):
+    """Add security headers to protect against common web vulnerabilities."""
+    # Prevent MIME type sniffing attacks
+    response.headers["X-Content-Type-Options"] = "nosniff"
+
+    # Prevent clickjacking attacks
+    response.headers["X-Frame-Options"] = "DENY"
+
+    # Enable XSS filter in browsers (legacy but still useful)
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+
+    # Control referrer information
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+    # Permissions Policy (formerly Feature Policy)
+    # Only allow features the app actually needs
+    response.headers["Permissions-Policy"] = (
+        "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+    )
+
+    return response
+
+
 # SECURITY: Global exception handler - do not leak internal error details to clients.
 # Full error is logged server-side for debugging.
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Catch all exceptions - log details server-side, return generic message to client."""
     logger.error(f"Error on {request.url.path}: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500, content={"error": "An internal server error occurred."}
-    )
+    return JSONResponse(status_code=500, content={"error": "An internal server error occurred."})
 
 
 # Include API routers
@@ -120,9 +143,7 @@ if ROUTERS_LOADED:
     app.include_router(modules.router, prefix="/api/v1/modules", tags=["Modules"])
     app.include_router(dialogue.router, prefix="/api/v1/dialogue", tags=["Dialogue"])
     app.include_router(progress.router, prefix="/api/v1/progress", tags=["Progress"])
-    app.include_router(
-        leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"]
-    )
+    app.include_router(leaderboard.router, prefix="/api/v1/leaderboard", tags=["Leaderboard"])
     app.include_router(chat_practice.router, prefix="/api/v1", tags=["Chat Practice"])
     app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
     app.include_router(feedback.router, prefix="/api/v1", tags=["Feedback"])
@@ -200,7 +221,7 @@ async def health_check():
 @app.get("/health/detailed")
 async def detailed_health_check():
     """Detailed health check including Supabase connectivity.
-    
+
     SECURITY: Does not expose config details or internal error messages.
     """
     from app.core.supabase import get_supabase
@@ -239,6 +260,7 @@ async def _periodic_session_cleanup():
         try:
             await asyncio.sleep(3600)  # Run every hour
             from app.services.chat_service import cleanup_old_sessions
+
             removed = cleanup_old_sessions(max_age_hours=24)
             if removed:
                 logger.info(f"Cleaned up {removed} old chat sessions")

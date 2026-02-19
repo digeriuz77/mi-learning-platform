@@ -221,6 +221,12 @@
             "technique": "Simple reflection",
             "next_node_id": "node_end_good",
             "feedback": "Excellent! By consistently reflecting without judgment, you've repaired the relationship and created an opening for future conversations."
+          },
+          {
+            "text": "I understand. So what do you want to do about your smoking?",
+            "technique": "Jumping to action (premature)",
+            "next_node_id": "node_end_good",
+            "feedback": "While this seems reasonable, jumping to action right after they express relief at not being judged can feel like pressure. A simple reflection honors their feeling first."
           }
         ]
       },
