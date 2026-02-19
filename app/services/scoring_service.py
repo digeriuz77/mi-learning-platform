@@ -67,17 +67,22 @@ class ScoringService:
         "closed question",
         "non-impartial",
         "colluding",
+        "cheerleading",
+        "false reassurance",
+        "dismissive",
+        "premature",
+        "goal-focused",
     ]
     EXCELLENT_KEYWORDS = [
         "complex reflection",
         "reflection + open",
         "reflection + affirmation",
-        "summary",
         "affirmation + reflection",
+        "summary",
         "double-sided reflection",
     ]
     GOOD_KEYWORDS = ["reflection", "open question", "empathic", "affirmation +"]
-    ACCEPTABLE_KEYWORDS = ["affirmation", "boundary", "acknowledgment", "validat"]
+    ACCEPTABLE_KEYWORDS = ["affirmation", "boundary", "acknowledgment", "validat", "apology"]
 
     @staticmethod
     def get_technique_quality(choice: dict) -> str:

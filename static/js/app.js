@@ -12,7 +12,8 @@ const state = {
     token: localStorage.getItem('access_token'),
     currentModule: null,
     currentNode: null,
-    progressId: null
+    progressId: null,
+    hintsEnabled: localStorage.getItem('hints_enabled') !== 'false'
 };
 
 // =====================================================
@@ -974,14 +975,24 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
             </div>
 
             <div class="choices-section">
-                <h3 class="choices-title">How would you respond?</h3>
+                <div class="choices-header">
+                    <h3 class="choices-title">How would you respond?</h3>
+                    <button id="hintsToggle" class="hint-toggle ${state.hintsEnabled ? 'active' : ''}" title="Toggle technique hints">
+                        <span class="hint-icon">${state.hintsEnabled ? '💡' : '💡'}</span>
+                        <span class="hint-label">Hints ${state.hintsEnabled ? 'ON' : 'OFF'}</span>
+                    </button>
+                </div>
                 <div class="choices-grid">
                     ${node.practitioner_choices.map((choice, index) => `
-                        <button class="choice-card" data-choice="${index}">
+                        <button class="choice-card ${state.hintsEnabled ? 'hints-visible' : ''}" data-choice="${index}">
                             <span class="choice-letter">${String.fromCharCode(65 + index)}</span>
                             <div class="choice-content">
                                 <p class="choice-text">${choice.text}</p>
                                 <span class="choice-technique">${choice.technique}</span>
+                                ${state.hintsEnabled ? `<div class="technique-hint">
+                                    <span class="hint-title">Technique Info:</span>
+                                    <p class="hint-text">${getTechniqueHint(choice.technique)}</p>
+                                </div>` : ''}
                             </div>
                         </button>
                     `).join('')}
@@ -990,6 +1001,49 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
         </div>
     `;
 
+    // Add hints toggle handler
+    const hintsToggle = document.getElementById('hintsToggle');
+    if (hintsToggle) {
+        hintsToggle.addEventListener('click', () => {
+            state.hintsEnabled = !state.hintsEnabled;
+            localStorage.setItem('hints_enabled', state.hintsEnabled);
+            
+            // Update toggle button appearance
+            hintsToggle.classList.toggle('active', state.hintsEnabled);
+            hintsToggle.querySelector('.hint-icon').textContent = state.hintsEnabled ? '💡' : '💡';
+            hintsToggle.querySelector('.hint-label').textContent = state.hintsEnabled ? 'Hints ON' : 'Hints OFF';
+            
+            // Re-render choices with/without hints
+            const choicesSection = document.querySelector('.choices-section');
+            const choicesContainer = document.querySelector('.choices-grid');
+            
+            // Update all choice cards
+            document.querySelectorAll('.choice-card').forEach((card, index) => {
+                const choice = node.practitioner_choices[index];
+                const hintDiv = card.querySelector('.technique-hint');
+                
+                if (state.hintsEnabled) {
+                    card.classList.add('hints-visible');
+                    if (!hintDiv) {
+                        const choiceContent = card.querySelector('.choice-content');
+                        const newHintDiv = document.createElement('div');
+                        newHintDiv.className = 'technique-hint';
+                        newHintDiv.innerHTML = `
+                            <span class="hint-title">Technique Info:</span>
+                            <p class="hint-text">${getTechniqueHint(choice.technique)}</p>
+                        `;
+                        choiceContent.appendChild(newHintDiv);
+                    }
+                } else {
+                    card.classList.remove('hints-visible');
+                    if (hintDiv) {
+                        hintDiv.remove();
+                    }
+                }
+            });
+        });
+    }
+    
     // Add click handlers for choices
     document.querySelectorAll('.choice-card').forEach(card => {
         card.addEventListener('click', async () => {
@@ -1038,6 +1092,64 @@ function getQualityDisplay(quality) {
         'poor': { label: 'Not recommended', icon: '✗', class: 'quality-poor' }
     };
     return qualityMap[quality] || qualityMap['good'];
+}
+
+/**
+ * Get detailed technique hint for a given technique
+ */
+function getTechniqueHint(technique) {
+    const techniqueLower = technique.toLowerCase();
+    
+    // Technique hints based on MI skills
+    const hints = {
+        // Simple Reflections
+        'simple reflection': 'A basic reflection repeats or rephrases what the patient said. It shows you are listening and builds trust.',
+        'simple reflection (complete)': 'Captures the patient\'s full perspective without judgment. This creates space for them to continue exploring.',
+        'simple reflection (partial)': 'Reflects only part of what the patient said. A more complete reflection would acknowledge their full view.',
+        'simple reflection (specific)': 'Reflects a specific detail the patient mentioned. Specificity strengthens reflections.',
+        'simple reflection (literal)': 'A word-for-word reflection of what they said. Accurate but may miss underlying meaning.',
+        
+        // Open Questions
+        'open question': 'Questions that invite elaboration rather than yes/no answers. They encourage patients to explore thoughts.',
+        
+        // Affirmations
+        'genuine affirmation (specific)': 'Recognizes a specific action or quality demonstrated. More powerful than generic praise.',
+        'affirmation': 'Recognizes and amplifies patient strengths, efforts, or values without being overly enthusiastic.',
+        'affirmation (recognizing qualities)': 'Affirms specific qualities the patient is demonstrating. Builds self-efficacy.',
+        'affirmation (awareness)': 'Affirms patient\'s self-awareness and internal shifts. Honors their capacity for growth.',
+        'affirmation (values-based thinking)': 'Affirms that they\'re using their deepest values to guide thinking. Sustainable motivation.',
+        'acknowledgment': 'Validates or confirms what patient said without adding interpretation. Shows respect.',
+        
+        // Complex/Combined Techniques
+        'complex reflection': 'Combines reflection with deeper meaning or emotion. Shows understanding at multiple levels.',
+        'reflection + affirmation': 'Combines understanding with recognition of strengths. Very effective MI skill.',
+        'double-sided reflection': 'Reflects both sides of a patient\'s ambivalence. Helps them explore both perspectives.',
+        'reflection + open': 'Reflection followed by an open question to encourage continued exploration.',
+        
+        // Summary
+        'summary': 'Pulls together key themes from the conversation. Validates the patient\'s experience.',
+        
+        // Non-MI Techniques (for context)
+        'righting reflex': 'The urge to correct or educate patients. Increases resistance.',
+        'lecturing': 'Telling patients what they should think or do. Violates autonomy and creates resistance.',
+        'closed question': 'Questions with yes/no answers that limit exploration.',
+        'cheerleading': 'Overly enthusiastic praise that focuses on your feelings rather than their action. Can feel patronizing.',
+        'false reassurance': 'Promising outcomes you can\'t guarantee. Dismisses legitimate concerns.',
+        
+        // Recovery/Misc
+        'apology': 'Acknowledges an error and repairs the relationship. Important when missteps occur.',
+        'boundary setting': 'Respecting limits in the therapeutic relationship. Honors both parties\' needs.',
+    };
+    
+    // Find matching hint (partial matches allowed)
+    for (const [key, value] of Object.entries(hints)) {
+        if (techniqueLower.includes(key)) {
+            return value;
+        }
+    }
+    
+    // Default hint for unknown techniques
+    return `This ${technique} is a Motivational Interviewing technique. Consider how it aligns with OARS skills (Open questions, Affirmations, Reflections, Summaries).`;
 }
 
 /**
