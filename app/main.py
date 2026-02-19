@@ -218,6 +218,12 @@ async def health_check():
     return {"status": "healthy"}
 
 
+@app.get("/favicon.ico")
+async def favicon():
+    """Return an empty favicon response to avoid 500 errors in logs."""
+    return Response(status_code=204)
+
+
 @app.get("/health/detailed")
 async def detailed_health_check():
     """Detailed health check including Supabase connectivity.
