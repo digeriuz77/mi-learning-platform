@@ -256,12 +256,6 @@ async def detailed_health_check():
     return health
 
 
-@app.get("/favicon.ico")
-async def favicon():
-    """Return an empty favicon response to avoid 404s in logs."""
-    return Response(status_code=204)
-
-
 async def _periodic_session_cleanup():
     """Background task to clean up old chat sessions periodically (P2-27)."""
     while True:
