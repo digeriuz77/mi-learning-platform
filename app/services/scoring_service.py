@@ -287,27 +287,23 @@ class ScoringService:
         The actual points earned vs max points available should be shown separately.
 
         Args:
-            total_nodes: Total nodes in module
-            nodes_completed: Number of nodes completed
+            total_nodes: Total nodes in module (unused for binary completion)
+            nodes_completed: Number of nodes completed (unused for binary completion)
             correct_choices: Number of correct technique choices (unused)
-            nodes_visited: Number of nodes visited
+            nodes_visited: Number of nodes visited (unused for binary completion)
             technique_quality_counts: Dict with counts of technique qualities (unused)
-            points_earned: Total points earned (unused for binary completion)
-            max_points_available: Max points available (unused for binary completion)
+            points_earned: Total points earned
+            max_points_available: Max points available
 
         Returns:
-            int: 100 if complete, 0 if not complete
+            int: 100 if points_earned > 0 (user made choices), 0 otherwise
         """
-        # Binary completion: if we visited all nodes and reached an ending
-        # A module is complete when the user has made choices through to an ending
-        # This is indicated by nodes_completed > 0 and all nodes visited
-        if nodes_visited and total_nodes and nodes_visited >= total_nodes:
+        # Binary completion: if user earned points, they participated
+        # The frontend should show "Complete" when they reach an ending node
+        # This is determined by is_module_complete flag in dialogue.py
+        # For now, return 100 if any points were earned (meaning user made choices)
+        if points_earned and points_earned > 0:
             return 100
-
-        # Alternative: if nodes_completed matches or exceeds expected, module is done
-        if nodes_completed and total_nodes and nodes_completed >= total_nodes:
-            return 100
-
         return 0
 
     @staticmethod
