@@ -285,11 +285,11 @@ async def submit_choice(
     progress_status = progress["status"]
     completion_score = progress.get("completion_score", 0)
 
+    # Get max_points_available from module (used for both complete and in-progress)
+    max_points_available = module.get("max_points_available")
+
     if is_module_complete:
         progress_status = "completed"
-
-        # Get max_points_available from module
-        max_points_available = module.get("max_points_available")
 
         # Calculate completion score based on points earned vs max available
         # Note: Completion bonus is NOT added to points_earned for scoring
