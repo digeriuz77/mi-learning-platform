@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 interface AdminActionRequest {
-    action: 'promote_to_admin' | 'demote_from_admin' | 'ban_user' | 'unban_user' | 'delete_user' | 'update_user_role'
-    targetUserId: string
+    action: 'promote_to_admin' | 'demote_from_admin' | 'ban_user' | 'unban_user' | 'delete_user' | 'update_user_role' | 'reset_user_progress' | 'reset_all_progress'
+    targetUserId?: string
     newRole?: string
 }
 
@@ -29,24 +29,31 @@ serve(async (req: Request) => {
 
     // Check if the caller is an admin
     const { data: profile, error: profileError } = await supabaseClient
-        .from('profiles')
+        .from('user_profiles')
         .select('role')
-        .eq('id', currentUser.id)
+        .eq('user_id', currentUser.id)
         .single()
 
     if (profileError || profile?.role !== 'admin') {
         return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), { status: 403 })
     }
 
-    // 3. Parse the request body
+// 3. Parse the request body
     const { action, targetUserId, newRole }: AdminActionRequest = await req.json()
 
-    if (!action || !targetUserId) {
-        return new Response(JSON.stringify({ error: 'Missing required parameters' }), { status: 400 })
+    // Actions that don't require targetUserId
+    const noTargetRequired = ['reset_all_progress'];
+    
+    if (!action) {
+        return new Response(JSON.stringify({ error: 'Missing action parameter' }), { status: 400 })
+    }
+    
+    if (!noTargetRequired.includes(action) && !targetUserId) {
+        return new Response(JSON.stringify({ error: 'Missing target user ID' }), { status: 400 })
     }
 
     // Prevent self-modification
-    if (targetUserId === currentUser.id) {
+    if (targetUserId && targetUserId === currentUser.id) {
         return new Response(JSON.stringify({ error: 'Cannot perform this action on yourself' }), { status: 400 })
     }
 
@@ -57,81 +64,159 @@ serve(async (req: Request) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 5. Perform the requested action
-        switch (action) {
-            case 'promote_to_admin': {
-                const { error: updateError } = await supabaseAdmin
-                    .from('profiles')
-                    .update({ role: 'admin', updated_at: new Date().toISOString() })
-                    .eq('id', targetUserId)
+// 5. Perform the requested action
+    switch (action) {
+        case 'promote_to_admin': {
+            const { error: updateError } = await supabaseAdmin
+                .from('user_profiles')
+                .update({ role: 'admin', updated_at: new Date().toISOString() })
+                .eq('user_id', targetUserId!)
 
-                if (updateError) throw updateError
-                return new Response(JSON.stringify({ message: 'User promoted to admin' }), { status: 200 })
+            if (updateError) throw updateError
+            return new Response(JSON.stringify({ message: 'User promoted to admin' }), { status: 200 })
+        }
+
+        case 'demote_from_admin': {
+            // Ensure at least one admin remains
+            const { count } = await supabaseAdmin
+                .from('user_profiles')
+                .select('user_id', { count: 'exact', head: true })
+                .eq('role', 'admin')
+
+            if (count <= 1) {
+                return new Response(JSON.stringify({ error: 'Cannot demote the last admin' }), { status: 400 })
             }
 
-            case 'demote_from_admin': {
-                // Ensure at least one admin remains
-                const { count } = await supabaseAdmin
-                    .from('profiles')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('role', 'admin')
+            const { error: updateError } = await supabaseAdmin
+                .from('user_profiles')
+                .update({ role: 'user', updated_at: new Date().toISOString() })
+                .eq('user_id', targetUserId!)
 
-                if (count <= 1) {
-                    return new Response(JSON.stringify({ error: 'Cannot demote the last admin' }), { status: 400 })
-                }
+            if (updateError) throw updateError
+            return new Response(JSON.stringify({ message: 'Admin demoted to user' }), { status: 200 })
+        }
 
-                const { error: updateError } = await supabaseAdmin
-                    .from('profiles')
-                    .update({ role: 'user', updated_at: new Date().toISOString() })
-                    .eq('id', targetUserId)
+        case 'ban_user': {
+            // Note: user_profiles doesn't have is_active column, skipping ban feature
+            return new Response(JSON.stringify({ message: 'Ban feature not implemented for user_profiles table' }), { status: 200 })
+        }
 
-                if (updateError) throw updateError
-                return new Response(JSON.stringify({ message: 'Admin demoted to user' }), { status: 200 })
+        case 'unban_user': {
+            // Note: user_profiles doesn't have is_active column, skipping unban feature
+            return new Response(JSON.stringify({ message: 'Unban feature not implemented for user_profiles table' }), { status: 200 })
+        }
+
+        case 'delete_user': {
+            // Delete the user from auth.users (this will cascade to profiles due to FK)
+            const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId!)
+            if (deleteError) throw deleteError
+            return new Response(JSON.stringify({ message: 'User deleted permanently' }), { status: 200 })
+        }
+
+        case 'update_user_role': {
+            if (!newRole || !['user', 'admin', 'moderator'].includes(newRole)) {
+                return new Response(JSON.stringify({ error: 'Invalid role' }), { status: 400 })
             }
 
-            case 'ban_user': {
-                // Update the profile to mark as inactive
-                const { error: updateError } = await supabaseAdmin
-                    .from('profiles')
-                    .update({ is_active: false, updated_at: new Date().toISOString() })
-                    .eq('id', targetUserId)
+            const { error: updateError } = await supabaseAdmin
+                .from('user_profiles')
+                .update({ role: newRole, updated_at: new Date().toISOString() })
+                .eq('user_id', targetUserId!)
 
-                if (updateError) throw updateError
-                return new Response(JSON.stringify({ message: 'User banned' }), { status: 200 })
+            if (updateError) throw updateError
+            return new Response(JSON.stringify({ message: `User role updated to ${newRole}` }), { status: 200 })
+        }
+
+        case 'reset_user_progress': {
+            const targetId = targetUserId
+            if (!targetId) {
+                return new Response(JSON.stringify({ error: 'Missing target user ID' }), { status: 400 })
             }
 
-            case 'unban_user': {
-                const { error: updateError } = await supabaseAdmin
-                    .from('profiles')
-                    .update({ is_active: true, updated_at: new Date().toISOString() })
-                    .eq('id', targetUserId)
+            // Delete user's progress records
+            const { error: deleteProgressError } = await supabaseAdmin
+                .from('user_progress')
+                .delete()
+                .eq('user_id', targetId)
 
-                if (updateError) throw updateError
-                return new Response(JSON.stringify({ message: 'User unbanned' }), { status: 200 })
+            if (deleteProgressError) throw deleteProgressError
+
+            // Delete user's dialogue attempts
+            const { error: deleteAttemptsError } = await supabaseAdmin
+                .from('dialogue_attempts')
+                .delete()
+                .eq('user_id', targetId)
+
+            if (deleteAttemptsError) throw deleteAttemptsError
+
+            // Reset user's profile stats (use user_id for lookup)
+            const { error: resetProfileError } = await supabaseAdmin
+                .from('user_profiles')
+                .update({
+                    total_points: 0,
+                    level: 1,
+                    modules_completed: 0,
+                    change_talk_evoked: 0,
+                    reflections_offered: 0,
+                    technique_mastery: {},
+                    updated_at: new Date().toISOString()
+                })
+                .eq('user_id', targetId)
+
+            if (resetProfileError) throw resetProfileError
+
+            return new Response(JSON.stringify({ message: 'User progress reset successfully' }), { status: 200 })
+        }
+
+        case 'reset_all_progress': {
+            // Get all user IDs from user_profiles
+            const { data: allUsers, error: usersError } = await supabaseAdmin
+                .from('user_profiles')
+                .select('user_id')
+
+            if (usersError) throw usersError
+
+            if (!allUsers || allUsers.length === 0) {
+                return new Response(JSON.stringify({ message: 'No users to reset' }), { status: 200 })
             }
 
-            case 'delete_user': {
-                // Delete the user from auth.users (this will cascade to profiles due to FK)
-                const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(targetUserId)
-                if (deleteError) throw deleteError
-                return new Response(JSON.stringify({ message: 'User deleted permanently' }), { status: 200 })
-            }
+            const userIds = allUsers.map(u => u.user_id)
 
-            case 'update_user_role': {
-                if (!newRole || !['user', 'admin', 'moderator'].includes(newRole)) {
-                    return new Response(JSON.stringify({ error: 'Invalid role' }), { status: 400 })
-                }
+            // Delete all progress records
+            const { error: deleteProgressError } = await supabaseAdmin
+                .from('user_progress')
+                .delete()
+                .in('user_id', userIds)
 
-                const { error: updateError } = await supabaseAdmin
-                    .from('profiles')
-                    .update({ role: newRole, updated_at: new Date().toISOString() })
-                    .eq('id', targetUserId)
+            if (deleteProgressError) throw deleteProgressError
 
-                if (updateError) throw updateError
-                return new Response(JSON.stringify({ message: `User role updated to ${newRole}` }), { status: 200 })
-            }
+            // Delete all dialogue attempts
+            const { error: deleteAttemptsError } = await supabaseAdmin
+                .from('dialogue_attempts')
+                .delete()
+                .in('user_id', userIds)
 
-            default:
+            if (deleteAttemptsError) throw deleteAttemptsError
+
+            // Reset all profiles
+            const { error: resetProfilesError } = await supabaseAdmin
+                .from('user_profiles')
+                .update({
+                    total_points: 0,
+                    level: 1,
+                    modules_completed: 0,
+                    change_talk_evoked: 0,
+                    reflections_offered: 0,
+                    technique_mastery: {},
+                    updated_at: new Date().toISOString()
+                })
+
+            if (resetProfilesError) throw resetProfilesError
+
+            return new Response(JSON.stringify({ message: `Reset progress for ${userIds.length} users` }), { status: 200 })
+        }
+
+        default:
                 return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400 })
         }
     } catch (error: any) {
