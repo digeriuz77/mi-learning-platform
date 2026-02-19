@@ -222,6 +222,14 @@ class ResetProgressRequest(BaseModel):
     reset_type: str = "progress"  # 'progress' or 'all'
 
 
+class AdminActionRequest(BaseModel):
+    """Request to perform an admin action."""
+
+    action: str
+    target_user_id: Optional[str] = None
+    new_role: Optional[str] = None
+
+
 @router.post("/action")
 async def perform_admin_action(
     request: AdminActionRequest,
@@ -815,13 +823,14 @@ async def recalculate_module_points(admin: AuthContext = Depends(require_admin))
         logger.error(f"Error recalculating module points: {e}")
         raise HTTPException(status_code=500, detail="An internal error occurred")
 
+
 @router.post("/reset-progress")
 async def reset_user_progress(
     request: ResetProgressRequest,
     admin: AuthContext = Depends(require_admin),
 ) -> dict:
     """Reset user or all users progress.
-    
+
     Resets progress records for individual users or all users, deducting earned points.
     This is useful for:
     - Admin to reset a stuck user
@@ -829,74 +838,24 @@ async def reset_user_progress(
     """
     try:
         supabase_admin = get_supabase_admin()
-        
+
         if request.user_id:
             # Reset specific user
             # Deduct points and reset their progress
             progress_resp = (
-                supabase_admin.table("user_profiles")
-                    .select("total_points")
-                    .eq("id", request.user_id)
-                    .single()
+                supabase_admin.table("user_profiles").select("total_points").eq("id", request.user_id).single()
             )
-            
+
             if progress_resp.data:
                 old_points = progress_resp.data.get("total_points", 0)
-                
+
                 # Reset progress records
                 supabase_admin.table("user_progress").delete().eq("user_id", request.user_id).execute()
-                
+
                 # Insert clean progress record
-                supabase_admin.table("user_progress").insert({
-                    "user_id": request.user_id,
-                    "module_id": None,
-                    "status": None,
-                    "current_node_id": None,
-                    "nodes_completed": [],
-                    "points_earned": 0,
-                    "technique_quality_counts": {},
-                    "techniques_demonstrated": {},
-                    "completed_at": None
-                }).execute()
-                
-                total_affected += 1
-            
-            return {
-                    "message": f"Progress reset for user {request.user_id}. Deducted {old_points} points.",
-                    "points_deducted": old_points
-                }
-        else:
-            # Reset ALL users progress
-            total_affected = 0
-            
-            # Get all users first (to count affected)
-            users_resp = (
-                supabase.table("users")
-                    .select("id")
-                    .execute()
-            )
-            
-            user_ids = [u.get("id") for u in users_resp.data or []]
-            
-            # For each user: reset their progress
-            for user_id in user_ids:
-                # Get current points to deduct
-                user_profile_resp = (
-                    supabase_admin.table("user_profiles")
-                    .select("total_points")
-                    .eq("id", user_id)
-                    .single()
-                )
-                
-                if user_profile_resp.data:
-                    old_points = user_profile_resp.data.get("total_points", 0)
-                    
-                    # Reset progress records
-                    supabase_admin.table("user_progress").delete().eq("user_id", user_id).execute()
-                    
-                    # Insert clean progress record
-                    supabase_admin.table("user_progress").insert({
-                        "user_id": user_id,
+                supabase_admin.table("user_progress").insert(
+                    {
+                        "user_id": request.user_id,
                         "module_id": None,
                         "status": None,
                         "current_node_id": None,
@@ -904,17 +863,57 @@ async def reset_user_progress(
                         "points_earned": 0,
                         "technique_quality_counts": {},
                         "techniques_demonstrated": {},
-                        "completed_at": None
-                    }).execute()
-                    
-                    total_affected += 1
-            
+                        "completed_at": None,
+                    }
+                ).execute()
+
+                total_affected += 1
+
             return {
-                "message": f"Reset progress for {len(user_ids)} user(s).",
-                "total_affected": total_affected
+                "message": f"Progress reset for user {request.user_id}. Deducted {old_points} points.",
+                "points_deducted": old_points,
             }
-            
+        else:
+            # Reset ALL users progress
+            total_affected = 0
+
+            # Get all users first (to count affected)
+            users_resp = supabase.table("users").select("id").execute()
+
+            user_ids = [u.get("id") for u in users_resp.data or []]
+
+            # For each user: reset their progress
+            for user_id in user_ids:
+                # Get current points to deduct
+                user_profile_resp = (
+                    supabase_admin.table("user_profiles").select("total_points").eq("id", user_id).single()
+                )
+
+                if user_profile_resp.data:
+                    old_points = user_profile_resp.data.get("total_points", 0)
+
+                    # Reset progress records
+                    supabase_admin.table("user_progress").delete().eq("user_id", user_id).execute()
+
+                    # Insert clean progress record
+                    supabase_admin.table("user_progress").insert(
+                        {
+                            "user_id": user_id,
+                            "module_id": None,
+                            "status": None,
+                            "current_node_id": None,
+                            "nodes_completed": [],
+                            "points_earned": 0,
+                            "technique_quality_counts": {},
+                            "techniques_demonstrated": {},
+                            "completed_at": None,
+                        }
+                    ).execute()
+
+                    total_affected += 1
+
+            return {"message": f"Reset progress for {len(user_ids)} user(s).", "total_affected": total_affected}
+
     except HTTPException as e:
         logger.error(f"Error resetting user progress: {e}")
         raise HTTPException(status_code=500, detail="An internal error occurred")
-
