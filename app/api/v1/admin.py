@@ -814,6 +814,7 @@ async def recalculate_module_points(admin: AuthContext = Depends(require_admin))
     except Exception as e:
         logger.error(f"Error recalculating module points: {e}")
         raise HTTPException(status_code=500, detail="An internal error occurred")
+
 @router.post("/reset-progress")
 async def reset_user_progress(
     request: ResetProgressRequest,
@@ -909,26 +910,11 @@ async def reset_user_progress(
                     total_affected += 1
             
             return {
-                    "message": f"Reset progress for {len(user_ids)} user(s). Total {sum(old_points for old_points in user_profiles_resp.data if user_profiles_resp.data else 0)} points deducted.",
-                    "total_affected": total_affected,
-                    "points_deducted": sum(old_points for old_points in user_profiles_resp.data if user_profiles_resp.data else 0)
+                "message": f"Reset progress for {len(user_ids)} user(s).",
+                "total_affected": total_affected
             }
             
     except HTTPException as e:
         logger.error(f"Error resetting user progress: {e}")
         raise HTTPException(status_code=500, detail="An internal error occurred")
 
-@router.post("/action")
-async def perform_admin_action(
-    request: AdminActionRequest,
-    admin: AuthContext = Depends(require_admin),
-) -> dict:
-    """Perform an admin action on a user.\"\""
-
-    try:
-        supabase_admin = get_supabase_admin()
-        action = request.action
-        target_id = request.target_user_id
-        new_role = request.new_role
-        except HTTPException:
-        raise HTTPException(status_code=500, detail="An internal error occurred\")
