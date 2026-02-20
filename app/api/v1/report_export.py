@@ -46,35 +46,48 @@ def _generate_html_report(
             return ""
         return html.escape(str(value))
 
-    # Extract analysis data
-    overall_score = analysis.get("overall_score", 0)
-    foundational = analysis.get("foundational_trust_safety", 0)
-    empathy = analysis.get("empathic_partnership_autonomy", 0)
-    empowerment = analysis.get("empowerment_clarity", 0)
-    mi_spirit = analysis.get("mi_spirit_score", 0)
+    # Extract analysis data with safe defaults - ensure all are floats
+    def to_float(value, default=0.0):
+        """Safely convert a value to float."""
+        if value is None:
+            return default
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return default
+
+    overall_score = to_float(analysis.get("overall_score"))
+    foundational = to_float(analysis.get("foundational_trust_safety"))
+    empathy = to_float(analysis.get("empathic_partnership_autonomy"))
+    empowerment = to_float(analysis.get("empowerment_clarity"))
+    mi_spirit = to_float(analysis.get("mi_spirit_score"))
 
     mi_spirit_components = {
-        "Partnership": analysis.get("partnership_demonstrated", False),
-        "Acceptance": analysis.get("acceptance_demonstrated", False),
-        "Compassion": analysis.get("compassion_demonstrated", False),
+        "Partnership": bool(analysis.get("partnership_demonstrated")),
+        "Acceptance": bool(analysis.get("acceptance_demonstrated")),
+        "Compassion": bool(analysis.get("compassion_demonstrated")),
         # P0-5: Fixed typo - was "evocation_democation_demonstrated", should be "evocation_demonstrated"
-        "Evocation": analysis.get("evocation_demonstrated", False),
+        "Evocation": bool(analysis.get("evocation_demonstrated")),
     }
 
-    techniques_count = analysis.get("techniques_count", {})
-    strengths = analysis.get("strengths", [])
-    areas_for_improvement = analysis.get("areas_for_improvement", [])
-    transcript_summary = analysis.get("transcript_summary", "")
-    summary = analysis.get("summary", "")
-    suggestions = analysis.get("suggestions_for_next_time", [])
-    client_movement = analysis.get("client_movement", "stable")
-    change_talk = analysis.get("change_talk_evoked", False)
+    techniques_count = analysis.get("techniques_count") or {}
+    strengths = analysis.get("strengths") or []
+    areas_for_improvement = analysis.get("areas_for_improvement") or []
+    transcript_summary = analysis.get("transcript_summary") or ""
+    summary = analysis.get("summary") or ""
+    suggestions = analysis.get("suggestions_for_next_time") or []
+    client_movement = analysis.get("client_movement") or "stable"
+    change_talk = bool(analysis.get("change_talk_evoked"))
 
     # Calculate color based on score
     def score_color(score):
-        if score >= 4:
+        try:
+            score_val = float(score) if score is not None else 0
+        except (ValueError, TypeError):
+            score_val = 0
+        if score_val >= 4:
             return "#27ae60"  # Green
-        elif score >= 3:
+        elif score_val >= 3:
             return "#f39c12"  # Orange
         else:
             return "#e74c3c"  # Red

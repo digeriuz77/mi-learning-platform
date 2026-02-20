@@ -9,7 +9,7 @@ import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
 
-from app.core.supabase import get_supabase
+from app.core.supabase import get_supabase, get_supabase_admin
 from app.models.chat import ConversationAnalysis
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,8 @@ def save_conversation_analysis(
         The ID of the saved analysis, or None if failed
     """
     try:
-        supabase = get_supabase()
+        # Use admin client to bypass RLS for inserts
+        supabase = get_supabase_admin()
 
         # Prepare data for insertion
         analysis_data = {
