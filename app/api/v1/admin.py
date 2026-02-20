@@ -857,6 +857,121 @@ async def export_progress_csv(admin: AuthContext = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
+@router.get("/export/practice-analytics")
+async def export_practice_analytics_csv(admin: AuthContext = Depends(require_admin)):
+    """
+    Export practice analytics as CSV.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        # Get user profiles with practice analytics
+        profiles_result = (
+            supabase.table("user_profiles")
+            .select(
+                "user_id, display_name, practice_sessions_count, avg_overall_score, "
+                "avg_trust_safety, avg_empathy_partnership, avg_empowerment_clarity, "
+                "avg_mi_spirit, last_practice_at"
+            )
+            .execute()
+        )
+
+        profiles = profiles_result.data or []
+
+        # Get user emails
+        user_ids = [p.get("user_id") for p in profiles if p.get("user_id")]
+        users_map = {}
+        if user_ids:
+            users_result = supabase.table("users").select("id, email, display_name").in_("id", user_ids).execute()
+            for u in users_result.data or []:
+                users_map[u.get("id")] = u
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(
+            [
+                "Email",
+                "Display Name",
+                "Sessions",
+                "Avg Score",
+                "Trust & Safety",
+                "Empathy & Partnership",
+                "Empowerment",
+                "MI Spirit",
+                "Last Practice",
+            ]
+        )
+
+        for p in profiles:
+            user = users_map.get(p.get("user_id"), {})
+            writer.writerow(
+                [
+                    user.get("email", "Anonymous"),
+                    user.get("display_name") or p.get("display_name", ""),
+                    p.get("practice_sessions_count", 0),
+                    p.get("avg_overall_score", ""),
+                    p.get("avg_trust_safety", ""),
+                    p.get("avg_empathy_partnership", ""),
+                    p.get("avg_empowerment_clarity", ""),
+                    p.get("avg_mi_spirit", ""),
+                    p.get("last_practice_at", ""),
+                ]
+            )
+
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=practice_analytics_export.csv"},
+        )
+
+    except Exception as e:
+        logger.error(f"Error exporting practice analytics CSV: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred")
+
+
+@router.get("/export/module-analytics")
+async def export_module_analytics_csv(admin: AuthContext = Depends(require_admin)):
+    """
+    Export module analytics as CSV.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        # Get all modules
+        modules_resp = supabase.table("learning_modules").select("id, title, display_order").execute()
+        modules = modules_resp.data or []
+
+        # Get all progress
+        progress_resp = supabase.table("user_progress").select("module_id, status").execute()
+        progress = progress_resp.data or []
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Module", "Total Enrolled", "Completed", "In Progress", "Completion Rate %"])
+
+        for m in modules:
+            module_id = m.get("id")
+            module_progress = [p for p in progress if p.get("module_id") == module_id]
+            total = len(module_progress)
+            completed = len([p for p in module_progress if p.get("status") == "completed"])
+            in_progress = len([p for p in module_progress if p.get("status") == "in_progress"])
+            rate = (completed / total * 100) if total > 0 else 0
+
+            writer.writerow([m.get("title", "Unknown"), total, completed, in_progress, f"{rate:.1f}%"])
+
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=module_analytics_export.csv"},
+        )
+
+    except Exception as e:
+        logger.error(f"Error exporting module analytics CSV: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred")
+
+
 # =====================================================
 # Practice History - Individual Session Records
 # =====================================================

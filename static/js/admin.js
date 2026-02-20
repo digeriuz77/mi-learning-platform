@@ -934,6 +934,10 @@ window.nextAnalyticsPage = nextAnalyticsPage;
 window.downloadUserAnalyticsCsv = downloadUserAnalyticsCsv;
 window.downloadPracticeAnalyticsCsv = downloadPracticeAnalyticsCsv;
 window.downloadModuleAnalyticsCsv = downloadModuleAnalyticsCsv;
+window.downloadPracticeHistoryCsv = downloadPracticeHistoryCsv;
+window.refreshPracticeHistory = refreshPracticeHistory;
+window.previousPracticeHistoryPage = previousPracticeHistoryPage;
+window.nextPracticeHistoryPage = nextPracticeHistoryPage;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);
