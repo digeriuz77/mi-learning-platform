@@ -823,7 +823,6 @@ window.downloadUserAnalyticsCsv = downloadUserAnalyticsCsv;
 window.downloadPracticeAnalyticsCsv = downloadPracticeAnalyticsCsv;
 window.downloadModuleAnalyticsCsv = downloadModuleAnalyticsCsv;
 window.recalculateModulePoints = recalculateModulePoints;
-window.confirmResetAllProgress = confirmResetAllProgress;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);
