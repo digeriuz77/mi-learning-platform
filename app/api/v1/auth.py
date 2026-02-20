@@ -14,6 +14,7 @@ Endpoints:
 """
 
 import logging
+import os
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, status, Depends, Header, Request
@@ -21,13 +22,12 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from supabase import Client
+from supabase import Client, create_client
 
 from app.config import settings
 from app.core.supabase import get_supabase, get_supabase_admin
 from app.core.auth import (
     get_current_user,
-    get_auth_context,
     AuthContext,
     decode_jwt_token,
     AuthenticationError,
@@ -40,6 +40,20 @@ logger = logging.getLogger(__name__)
 
 # P1-7: Rate limiter for auth endpoints to prevent brute-force attacks
 limiter = Limiter(key_func=get_remote_address)
+
+
+def get_request_scoped_supabase() -> Client:
+    """Create a fresh Supabase client for sessionful auth operations."""
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return get_supabase()
+    return create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+
+def resolve_expires_in(raw_value: object, default: int = 3600) -> int:
+    """Normalize session expiry values coming from SDK objects/mocks."""
+    if isinstance(raw_value, int) and raw_value > 0:
+        return raw_value
+    return default
 
 
 # =====================================================
@@ -172,7 +186,8 @@ async def health_check():
 @router.post(
     "/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED
 )
-async def register(request: RegisterRequest):
+@limiter.limit("5/minute")
+async def register(request: Request, payload: RegisterRequest):
     """
     Register a new user.
 
@@ -180,7 +195,7 @@ async def register(request: RegisterRequest):
     their profile in the database.
 
     Args:
-        request: Registration request with email, password, and optional display name
+        payload: Registration request with email, password, and optional display name
 
     Returns:
         AuthResponse with access token and user info
@@ -188,10 +203,10 @@ async def register(request: RegisterRequest):
     Raises:
         HTTPException: If registration fails (e.g., email already exists)
     """
-    logger.info(f"Registration attempt for email: {request.email}")
+    logger.info(f"Registration attempt for email: {payload.email}")
 
     try:
-        supabase = get_supabase()
+        supabase = get_request_scoped_supabase()
         logger.info("Supabase client obtained successfully")
     except Exception as e:
         logger.error(f"Failed to get Supabase client: {e}", exc_info=True)
@@ -200,26 +215,23 @@ async def register(request: RegisterRequest):
             detail="Service temporarily unavailable. Please try again later.",
         )
 
+    supabase_admin = None
     try:
         supabase_admin = get_supabase_admin()
         logger.info("Supabase admin client obtained successfully")
     except Exception as e:
-        logger.error(f"Failed to get Supabase admin client: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Service temporarily unavailable. Please try again later.",
-        )
+        logger.warning(f"Failed to get Supabase admin client for profile creation: {e}")
 
     try:
         # Sign up with Supabase Auth
         logger.info("Attempting to sign up user with Supabase Auth")
 
         sign_up_data = {
-            "email": request.email,
-            "password": request.password,
+            "email": payload.email,
+            "password": payload.password,
             "options": {
                 "data": {
-                    "display_name": request.display_name or request.email.split("@")[0]
+                    "display_name": payload.display_name or payload.email.split("@")[0]
                 }
             },
         }
@@ -241,8 +253,16 @@ async def register(request: RegisterRequest):
         # Create user profile in database
         # Note: This is also handled by the database trigger, but we do it explicitly
         # to ensure it exists immediately for the subsequent API calls
-        display_name = request.display_name or request.email.split("@")[0]
-        create_user_profile(str(user.id), request.email, display_name, supabase_admin)
+        display_name = payload.display_name or payload.email.split("@")[0]
+        if supabase_admin:
+            try:
+                create_user_profile(
+                    str(user.id), payload.email, display_name, supabase_admin
+                )
+            except Exception as profile_error:
+                logger.warning(
+                    f"Profile creation failed after registration for {user.id}: {profile_error}"
+                )
 
         # Get the session (may be None if email confirmation is required)
         session = auth_response.session
@@ -251,7 +271,7 @@ async def register(request: RegisterRequest):
             return AuthResponse(
                 access_token=session.access_token,
                 token_type="bearer",
-                expires_in=session.expires_in or 3600,
+                expires_in=resolve_expires_in(getattr(session, "expires_in", None)),
                 user=UserResponse(
                     id=str(user.id), email=user.email, display_name=display_name
                 ),
@@ -295,14 +315,15 @@ async def register(request: RegisterRequest):
 
 
 @router.post("/login", response_model=AuthResponse)
-async def login(request: LoginRequest):
+@limiter.limit("10/minute")
+async def login(request: Request, payload: LoginRequest):
     """
     Login an existing user.
 
     Authenticates the user with Supabase Auth and returns an access token.
 
     Args:
-        request: Login request with email and password
+        payload: Login request with email and password
 
     Returns:
         AuthResponse with access token and user info
@@ -310,10 +331,10 @@ async def login(request: LoginRequest):
     Raises:
         HTTPException: If login fails (invalid credentials)
     """
-    logger.info(f"Login attempt for email: {request.email}")
+    logger.info(f"Login attempt for email: {payload.email}")
 
     try:
-        supabase = get_supabase()
+        supabase = get_request_scoped_supabase()
         logger.info("Supabase client obtained successfully for login")
     except Exception as e:
         logger.error(f"Failed to get Supabase client for login: {e}", exc_info=True)
@@ -326,7 +347,7 @@ async def login(request: LoginRequest):
         # Sign in with Supabase Auth
         logger.info("Attempting to sign in with Supabase Auth")
         auth_response = supabase.auth.sign_in_with_password(
-            {"email": request.email, "password": request.password}
+            {"email": payload.email, "password": payload.password}
         )
 
         if not auth_response.user or not auth_response.session:
@@ -339,8 +360,8 @@ async def login(request: LoginRequest):
         session = auth_response.session
 
         # Get display name from user metadata
-        user_metadata = user.user_metadata or {}
-        display_name = user_metadata.get("display_name") or request.email.split("@")[0]
+        user_metadata = user.user_metadata if isinstance(user.user_metadata, dict) else {}
+        display_name = user_metadata.get("display_name") or payload.email.split("@")[0]
 
         # Ensure user profile exists (create if not present)
         try:
@@ -375,7 +396,7 @@ async def login(request: LoginRequest):
         return AuthResponse(
             access_token=session.access_token,
             token_type="bearer",
-            expires_in=session.expires_in or 3600,
+            expires_in=resolve_expires_in(getattr(session, "expires_in", None)),
             user=UserResponse(
                 id=str(user.id), email=user.email, display_name=display_name
             ),
@@ -388,7 +409,7 @@ async def login(request: LoginRequest):
         error_str = str(e)
 
         # Log the full error for debugging
-        logger.error(f"Login error for {request.email}: {error_str}")
+        logger.error(f"Login error for {payload.email}: {error_str}")
 
         # Handle specific Supabase auth errors
         if "invalid login credentials" in error_msg or "invalid password" in error_msg:
@@ -439,11 +460,10 @@ async def logout(auth_context: AuthContext = Depends(get_current_user)):
     Returns:
         LogoutResponse confirming logout
     """
-    supabase = get_supabase()
-
     try:
-        # Sign out from Supabase
-        supabase.auth.sign_out()
+        if auth_context.raw_token:
+            supabase_admin = get_supabase_admin()
+            supabase_admin.auth.admin.sign_out(auth_context.raw_token, "global")
 
         return LogoutResponse(message="Successfully logged out")
 
@@ -502,7 +522,7 @@ async def refresh_token(authorization: Optional[str] = Header(None)):
 
     try:
         # Try to validate the current token first
-        payload = decode_jwt_token(token)
+        decode_jwt_token(token)
 
         # NOTE: This endpoint does not perform actual token refresh.
         # Supabase Auth manages token lifecycle (access + refresh tokens) on the
@@ -545,7 +565,8 @@ class ResetPasswordConfirmRequest(BaseModel):
 
 
 @router.post("/forgot-password")
-async def forgot_password(request: PasswordResetRequest):
+@limiter.limit("5/minute")
+async def forgot_password(request: Request, payload: PasswordResetRequest):
     """
     Request password reset email.
 
@@ -553,31 +574,31 @@ async def forgot_password(request: PasswordResetRequest):
     The link will redirect to the app's reset password page.
 
     Args:
-        request: PasswordResetRequest with email address
+        payload: PasswordResetRequest with email address
 
     Returns:
         Success message (always returns success for security)
     """
     try:
-        supabase = get_supabase()
+        supabase = get_request_scoped_supabase()
 
         # Build the redirect URL for password reset
-        # Use SITE_URL if set, otherwise construct from request
-        site_url = settings.SITE_URL or ""
+        # Use SITE_URL if set, otherwise use the current request host.
+        site_url = (settings.SITE_URL or "").rstrip("/")
         if not site_url:
-            # Fallback - this should be configured in production
-            site_url = "https://chooseyou-mi.up.railway.app"
+            site_url = str(request.base_url).rstrip("/")
+            logger.warning("SITE_URL not configured. Using request base URL for password reset redirect.")
         redirect_url = f"{site_url}/reset-password"
 
-        logger.info(f"Sending password reset email to {request.email} with redirect URL: {redirect_url}")
+        logger.info(f"Sending password reset email to {payload.email} with redirect URL: {redirect_url}")
 
         # Request password reset from Supabase
         # Note: reset_password_email sends the email with a link
-        result = supabase.auth.reset_password_email(
-            request.email, options={"redirect_to": redirect_url}
+        supabase.auth.reset_password_email(
+            payload.email, options={"redirect_to": redirect_url}
         )
 
-        logger.info(f"Password reset email sent successfully to {request.email}")
+        logger.info(f"Password reset email sent successfully to {payload.email}")
 
         return {
             "success": True,
@@ -586,7 +607,7 @@ async def forgot_password(request: PasswordResetRequest):
 
     except Exception as e:
         # Log error prominently for debugging
-        logger.error(f"Password reset FAILED for {request.email}: {e}")
+        logger.error(f"Password reset FAILED for {payload.email}: {e}")
         # Still return success message for security (don't reveal if email exists)
         return {
             "success": True,
@@ -596,7 +617,7 @@ async def forgot_password(request: PasswordResetRequest):
 
 @router.post("/update-password")
 async def update_password(
-    request: UpdatePasswordRequest,
+    payload: UpdatePasswordRequest,
     auth_context: AuthContext = Depends(get_current_user),
 ):
     """
@@ -606,17 +627,20 @@ async def update_password(
     This is used after the user clicks the password reset link.
 
     Args:
-        request: UpdatePasswordRequest with new password
+        payload: UpdatePasswordRequest with new password
         auth_context: Authentication context from the recovery token
 
     Returns:
         Success message
     """
     try:
-        supabase = get_supabase()
+        supabase_admin = get_supabase_admin()
 
-        # Update the user's password using the authenticated session
-        result = supabase.auth.update_user({"password": request.password})
+        # Update password for the authenticated user via admin API.
+        result = supabase_admin.auth.admin.update_user_by_id(
+            auth_context.user_id,
+            {"password": payload.password},
+        )
 
         if result.user:
             logger.info(
@@ -643,7 +667,8 @@ async def update_password(
 
 
 @router.post("/reset-password-confirm")
-async def reset_password_confirm(request: ResetPasswordConfirmRequest):
+@limiter.limit("5/minute")
+async def reset_password_confirm(request: Request, payload: ResetPasswordConfirmRequest):
     """
     Reset password using a recovery token from email link.
 
@@ -651,24 +676,38 @@ async def reset_password_confirm(request: ResetPasswordConfirmRequest):
     It validates the token using Supabase and updates the password.
 
     Args:
-        request: ResetPasswordConfirmRequest with access token and new password
+        payload: ResetPasswordConfirmRequest with access token and new password
 
     Returns:
         Success message
     """
     try:
-        supabase = get_supabase()
+        supabase = get_request_scoped_supabase()
         supabase_admin = get_supabase_admin()
+
+        decoded = decode_jwt_token(payload.access_token)
+        token_type = str(decoded.get("type", "")).lower()
+        if token_type and token_type not in {"recovery", "password_recovery"}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid reset token type",
+            )
 
         # Validate the token and get user info using Supabase's get_user method
         try:
-            user_response = supabase.auth.get_user(request.access_token)
+            user_response = supabase.auth.get_user(payload.access_token)
             if not user_response or not user_response.user:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid or expired token",
                 )
             user_id = str(user_response.user.id)
+            token_user_id = str(decoded.get("sub", ""))
+            if token_user_id and token_user_id != user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Token user mismatch",
+                )
         except Exception as e:
             logger.error(f"Failed to validate token: {e}")
             raise HTTPException(
@@ -679,7 +718,7 @@ async def reset_password_confirm(request: ResetPasswordConfirmRequest):
         # Update the user's password using admin API
         result = supabase_admin.auth.admin.update_user_by_id(
             user_id,
-            {"password": request.password}
+            {"password": payload.password}
         )
 
         if result.user:

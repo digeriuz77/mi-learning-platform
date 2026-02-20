@@ -94,6 +94,8 @@ const authAPI = {
         state.token = null;
         state.user = null;
         localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('auth_flow_type');
     },
 
     async getProfile() {
@@ -118,12 +120,16 @@ const authAPI = {
     async updatePassword(password) {
         // Get the access token from localStorage for password reset
         const accessToken = localStorage.getItem('access_token');
-        if (accessToken) {
+        const authFlowType = localStorage.getItem('auth_flow_type');
+        if (accessToken && authFlowType === 'recovery') {
             // Use the reset-password-confirm endpoint that accepts the token directly
-            return apiRequest('/auth/reset-password-confirm', {
+            const result = await apiRequest('/auth/reset-password-confirm', {
                 method: 'POST',
                 body: JSON.stringify({ access_token: accessToken, password })
             });
+            localStorage.removeItem('auth_flow_type');
+            localStorage.removeItem('refresh_token');
+            return result;
         }
         // Fallback to the original endpoint
         return apiRequest('/auth/update-password', {
@@ -2555,7 +2561,9 @@ const router = {
     /**
      * Navigate to a route
      */
-    navigate(path) {
+    navigate(path, options = {}) {
+        const { updateHistory = true, replaceHistory = false } = options;
+
         // Match route
         let matchedRoute = null;
         let params = {};
@@ -2587,7 +2595,14 @@ const router = {
 
         if (matchedRoute) {
             // Update URL without reloading
-            window.history.pushState({}, '', path === '/' ? '/' : '#' + path);
+            if (updateHistory) {
+                const url = path === '/' ? '/' : '#' + path;
+                if (replaceHistory) {
+                    window.history.replaceState({}, '', url);
+                } else {
+                    window.history.pushState({}, '', url);
+                }
+            }
 
             // Reset scroll to top - fixes issue where page scrolls to bottom
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2629,14 +2644,15 @@ const router = {
 
         // Handle back/forward buttons
         window.addEventListener('popstate', () => {
-            const hash = window.location.hash.slice(1) || '/';
-            this.navigate(hash);
+            const hashPath = window.location.hash.slice(1);
+            const path = hashPath || window.location.pathname || '/';
+            this.navigate(path, { updateHistory: false });
         });
 
         // Load initial route (use provided path or read from hash, default to /)
-        const hash = window.location.hash.slice(1) || '/';
-        const path = initialPath || hash;
-        this.navigate(path);
+        const hashPath = window.location.hash.slice(1);
+        const path = hashPath || initialPath || '/';
+        this.navigate(path, { updateHistory: false });
 
         // Render initial nav
         renderNav();
@@ -2666,6 +2682,9 @@ async function initApp() {
         if (refreshToken) {
             localStorage.setItem('refresh_token', refreshToken);
         }
+        if (type) {
+            localStorage.setItem('auth_flow_type', type);
+        }
 
         // For password reset, navigate to /reset-password if type is recovery
         if (type === 'recovery') {
@@ -2690,6 +2709,8 @@ async function initApp() {
                 state.token = null;
                 state.user = null;
                 localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('auth_flow_type');
             }
         } catch (e) {
             // If verify fails, try to get profile directly
@@ -2701,6 +2722,8 @@ async function initApp() {
                 state.token = null;
                 state.user = null;
                 localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                localStorage.removeItem('auth_flow_type');
             }
         }
     }
