@@ -97,7 +97,12 @@ def _generate_html_report(
     techniques_html = ""
     if techniques_count:
         for tech, count in techniques_count.items():
-            if count > 0:
+            # Safely convert count to int, default to 0 if not a valid number
+            try:
+                count_val = int(count) if count is not None else 0
+            except (ValueError, TypeError):
+                count_val = 0
+            if count_val > 0:
                 tech_name = esc(tech.replace("_", " ").title())
                 techniques_html += f'<div class="technique-item"><span class="technique-name">{tech_name}:</span> <span class="technique-count">{esc(count)}</span></div>'
 
@@ -517,9 +522,7 @@ def _generate_html_report(
 
 
 @router.post("/report/html", response_class=HTMLResponse)
-async def export_analysis_html(
-    request: ExportRequest, auth: Optional[AuthContext] = Depends(get_current_user)
-):
+async def export_analysis_html(request: ExportRequest, auth: Optional[AuthContext] = Depends(get_current_user)):
     """
     Export analysis report as styled HTML.
 
@@ -527,23 +530,23 @@ async def export_analysis_html(
     Includes a print button for easy PDF generation.
     """
     try:
-        html_content = _generate_html_report(
-            analysis=request.analysis, title=request.title
+        logger.info(
+            f"Export request received. Analysis keys: {list(request.analysis.keys()) if request.analysis else 'None'}"
         )
+        # Ensure title has a default value
+        title = request.title or "MI Practice Analysis Report"
+        html_content = _generate_html_report(analysis=request.analysis, title=title)
 
         return HTMLResponse(content=html_content)
 
     except Exception as e:
         logger.error(f"Failed to generate HTML report: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail="Failed to generate report"
-        )
+        # Return a more helpful error message
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
 
 
 @router.get("/report/{analysis_id}/html")
-async def export_analysis_by_id_html(
-    analysis_id: str, auth: AuthContext = Depends(get_current_user)
-):
+async def export_analysis_by_id_html(analysis_id: str, auth: AuthContext = Depends(get_current_user)):
     """
     Export a saved analysis report as styled HTML.
 
@@ -569,15 +572,11 @@ async def export_analysis_by_id_html(
         raise
     except Exception as e:
         logger.error(f"Failed to generate HTML report: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail="Failed to generate report"
-        )
+        raise HTTPException(status_code=500, detail="Failed to generate report")
 
 
 @router.post("/report/json")
-async def export_analysis_json(
-    request: ExportRequest, auth: Optional[AuthContext] = Depends(get_current_user)
-):
+async def export_analysis_json(request: ExportRequest, auth: Optional[AuthContext] = Depends(get_current_user)):
     """
     Export analysis report as JSON.
 
@@ -594,6 +593,4 @@ async def export_analysis_json(
 
     except Exception as e:
         logger.error(f"Failed to generate JSON report: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail="Failed to generate report"
-        )
+        raise HTTPException(status_code=500, detail="Failed to generate report")

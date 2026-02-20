@@ -13,7 +13,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
 from app.core.auth import get_current_user, AuthContext
-from app.core.supabase import get_supabase
+from app.core.supabase import get_supabase, get_supabase_admin
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/feedback", tags=["Feedback"])
@@ -24,16 +24,10 @@ class FeedbackSubmission(BaseModel):
 
     session_id: str = Field(..., description="ID of the practice session")
     conversation_id: Optional[str] = Field(None, description="Optional conversation ID")
-    persona_practiced: Optional[str] = Field(
-        None, description="Name of persona practiced with"
-    )
+    persona_practiced: Optional[str] = Field(None, description="Name of persona practiced with")
     helpfulness_score: int = Field(..., ge=0, le=10, description="Rating from 0-10")
-    what_was_helpful: Optional[str] = Field(
-        None, description="What the user found helpful"
-    )
-    improvement_suggestions: Optional[str] = Field(
-        None, description="Suggestions for improvement"
-    )
+    what_was_helpful: Optional[str] = Field(None, description="What the user found helpful")
+    improvement_suggestions: Optional[str] = Field(None, description="Suggestions for improvement")
     user_email: Optional[str] = Field(None, description="Optional user email")
 
 
@@ -59,11 +53,10 @@ async def submit_feedback(
     try:
         # Validate score
         if not 0 <= feedback.helpfulness_score <= 10:
-            raise HTTPException(
-                status_code=400, detail="Helpfulness score must be between 0 and 10"
-            )
+            raise HTTPException(status_code=400, detail="Helpfulness score must be between 0 and 10")
 
-        supabase = get_supabase()
+        # Use admin client to bypass RLS for inserts
+        supabase = get_supabase_admin()
 
         # Prepare data for insertion
         feedback_data = {
@@ -97,9 +90,7 @@ async def submit_feedback(
         raise
     except Exception as e:
         logger.error(f"Failed to submit feedback: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail="Failed to submit feedback"
-        )
+        raise HTTPException(status_code=500, detail="Failed to submit feedback")
 
 
 @router.get("/stats")
@@ -113,6 +104,7 @@ async def get_feedback_stats(auth: AuthContext = Depends(get_current_user)):
     try:
         # P1-8: Fixed - AuthContext has no 'role' attribute. Use admin check via DB query.
         from app.core.supabase import get_supabase_admin as _get_admin
+
         _admin_client = _get_admin()
         _role_resp = _admin_client.table("users").select("role").eq("id", auth.user_id).maybe_single().execute()
         if not _role_resp.data or _role_resp.data.get("role") not in ["admin", "moderator"]:
@@ -127,9 +119,7 @@ async def get_feedback_stats(auth: AuthContext = Depends(get_current_user)):
             return {"total_feedback": 0, "average_score": 0.0, "score_distribution": {}}
 
         # Calculate stats
-        scores = [
-            f["helpfulness_score"] for f in result.data if "helpfulness_score" in f
-        ]
+        scores = [f["helpfulness_score"] for f in result.data if "helpfulness_score" in f]
         avg_score = sum(scores) / len(scores) if scores else 0.0
 
         # Score distribution
@@ -147,6 +137,4 @@ async def get_feedback_stats(auth: AuthContext = Depends(get_current_user)):
         raise
     except Exception as e:
         logger.error(f"Failed to get feedback stats: {e}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail="Failed to retrieve feedback statistics"
-        )
+        raise HTTPException(status_code=500, detail="Failed to retrieve feedback statistics")

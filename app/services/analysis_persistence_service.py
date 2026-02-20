@@ -89,7 +89,20 @@ def save_conversation_analysis(
         }
 
         # Insert into database
-        result = supabase.table("conversation_analyses").insert(analysis_data).execute()
+        try:
+            result = supabase.table("conversation_analyses").insert(analysis_data).execute()
+        except Exception as db_error:
+            logger.error(f"Database error during analysis insert: {db_error}", exc_info=True)
+            # Try to insert without the conversation_id if it causes issues
+            if "conversation_id" in analysis_data:
+                del analysis_data["conversation_id"]
+                try:
+                    result = supabase.table("conversation_analyses").insert(analysis_data).execute()
+                except Exception as retry_error:
+                    logger.error(f"Retry also failed: {retry_error}")
+                    return None
+            else:
+                return None
 
         if result.data and len(result.data) > 0:
             analysis_id = result.data[0]["id"]
@@ -104,9 +117,7 @@ def save_conversation_analysis(
         return None
 
 
-def get_analysis_by_id(
-    analysis_id: str, user_id: Optional[str] = None
-) -> Optional[Dict[str, Any]]:
+def get_analysis_by_id(analysis_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Retrieve a specific analysis by ID.
 
@@ -120,9 +131,7 @@ def get_analysis_by_id(
     try:
         supabase = get_supabase()
 
-        query = (
-            supabase.table("conversation_analyses").select("*").eq("id", analysis_id)
-        )
+        query = supabase.table("conversation_analyses").select("*").eq("id", analysis_id)
 
         if user_id:
             query = query.eq("user_id", user_id)
