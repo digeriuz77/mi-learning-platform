@@ -545,7 +545,7 @@ async def forgot_password(request: PasswordResetRequest):
         site_url = settings.SITE_URL or ""
         if not site_url:
             # Fallback - this should be configured in production
-            site_url = "https://mi-learning-platform-production.up.railway.app"
+            site_url = "https://chooseyou-mi.up.railway.app"
         redirect_url = f"{site_url}/reset-password"
 
         logger.info(f"Sending password reset email to {request.email} with redirect URL: {redirect_url}")
