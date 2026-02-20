@@ -410,10 +410,7 @@ async function renderHome() {
                 </div>
 
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value">${stats.total_points}</div>
-                        <div class="stat-label">Total Points</div>
-                    </div>
+
                     <div class="stat-card">
                         <div class="stat-value">${stats.level}</div>
                         <div class="stat-label">Level</div>
@@ -1415,7 +1412,7 @@ async function renderLeaderboard() {
                             <div class="podium-place place-${index + 1}">
                                 <div class="podium-rank">${index + 1}</div>
                                 <div class="podium-user">${entry.display_name}</div>
-                                <div class="podium-points">${entry.total_points} pts</div>
+                                <div class="podium-points">${entry.modules_completed} Modules</div>
                                 <div class="podium-level">Level ${entry.level}</div>
                             </div>
                         `).join('')}
@@ -1427,7 +1424,7 @@ async function renderLeaderboard() {
                                 <span class="item-rank">${entry.rank}</span>
                                 <span class="item-name">${entry.display_name}</span>
                                 <span class="item-level">Level ${entry.level}</span>
-                                <span class="item-points">${entry.total_points} pts</span>
+                                <span class="item-points">${entry.modules_completed} Modules</span>
                             </div>
                         `).join('')}
                     </div>
@@ -1440,7 +1437,7 @@ async function renderLeaderboard() {
                             <span class="rank-number">#${data.current_user.rank}</span>
                             <div class="rank-info">
                                 <span class="rank-name">${data.current_user.display_name}</span>
-                                <span class="rank-stats">Level ${data.current_user.level} • ${data.current_user.total_points} points</span>
+                                <span class="rank-stats">Level ${data.current_user.level} • ${data.current_user.modules_completed} Modules Completed</span>
                             </div>
                         </div>
                     </div>

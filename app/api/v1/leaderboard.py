@@ -26,10 +26,10 @@ async def get_leaderboard(
     """
     supabase_admin = get_supabase_admin()
 
-    # Get top users
+    # Get top users by modules completed
     response = supabase_admin.table('user_profiles') \
         .select('*') \
-        .order('total_points', desc=True) \
+        .order('modules_completed', desc=True) \
         .order('created_at', desc=False) \
         .limit(limit) \
         .execute()
@@ -60,11 +60,11 @@ async def get_leaderboard(
             .execute()
 
         if user_profile_response.data:
-            # Get user's rank by counting users with more points
-            user_points = user_profile_response.data[0].get('total_points', 0)
+            # Get user's rank by counting users with more completed modules
+            user_modules = user_profile_response.data[0].get('modules_completed', 0)
             rank_response = supabase_admin.table('user_profiles') \
                 .select('id') \
-                .gt('total_points', user_points) \
+                .gt('modules_completed', user_modules) \
                 .execute()
 
             user_rank = len(rank_response.data) + 1

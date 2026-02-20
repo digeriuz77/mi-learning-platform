@@ -136,7 +136,7 @@ async function loadUsers(searchEmail = null) {
 // Render users table
 function renderUsersTable() {
     if (users.length === 0) {
-        elements.usersTableBody.innerHTML = '<tr><td colspan="8" class="loading">No users found</td></tr>';
+        elements.usersTableBody.innerHTML = '<tr><td colspan="7" class="loading">No users found</td></tr>';
         return;
     }
 
@@ -147,7 +147,6 @@ function renderUsersTable() {
             <td><span class="badge badge-${user.role || 'user'}">${user.role || 'user'}</span></td>
             <td><span class="badge badge-${user.is_active ? 'active' : 'banned'}">${user.is_active ? 'Active' : 'Banned'}</span></td>
             <td>${user.modules_completed || 0}</td>
-            <td>${user.total_points || 0}</td>
             <td>${formatDate(user.created_at)}</td>
             <td>
                 <button onclick="showUserActions('${user.id}', '${escapeHtml(user.email || '')}', '${user.role}', ${user.is_active})" class="btn btn-sm btn-primary">Actions</button>
@@ -774,32 +773,6 @@ async function downloadModuleAnalyticsCsv() {
     }
 }
 
-// Recalculate module points
-async function recalculateModulePoints() {
-    const resultEl = document.getElementById('recalculateResult');
-    resultEl.textContent = 'Recalculating...';
-    resultEl.style.color = '#666';
-
-    try {
-        const data = await adminRequest(`${ADMIN_API}/modules/recalculate-points`, {
-            method: 'POST'
-        });
-
-        resultEl.style.color = '#059669';
-        if (data.updated > 0) {
-            resultEl.textContent = `✓ ${data.message}. Updated ${data.updated} modules.`;
-        } else {
-            resultEl.textContent = '✓ All modules already have correct max_points_available values.';
-        }
-        showToast('Module points recalculated successfully', 'success');
-    } catch (error) {
-        resultEl.style.color = '#dc2626';
-        resultEl.textContent = '✗ Error: ' + (error.message || 'Failed to recalculate');
-        showToast('Failed to recalculate module points', 'error');
-    }
-}
-
-
 
 // Make functions globally available
 window.showUserActions = showUserActions;
@@ -822,7 +795,6 @@ window.nextAnalyticsPage = nextAnalyticsPage;
 window.downloadUserAnalyticsCsv = downloadUserAnalyticsCsv;
 window.downloadPracticeAnalyticsCsv = downloadPracticeAnalyticsCsv;
 window.downloadModuleAnalyticsCsv = downloadModuleAnalyticsCsv;
-window.recalculateModulePoints = recalculateModulePoints;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);
