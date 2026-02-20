@@ -440,26 +440,57 @@ async def get_comprehensive_analytics(admin: AuthContext = Depends(require_admin
     Get comprehensive practice analytics.
 
     Returns aggregate statistics across all practice sessions.
+    Note: Queries database directly instead of using RPC to avoid auth.uid() issues
+    with service role key.
     """
     try:
         supabase = get_supabase_admin()
 
-        # Call the database function for comprehensive analytics
-        result = supabase.rpc("get_comprehensive_practice_analytics").execute()
+        # Query conversation_analyses table directly for aggregate stats
+        result = supabase.table("conversation_analyses").select(
+            "overall_score, foundational_trust_safety, empathic_partnership_autonomy, "
+            "empowerment_clarity, mi_spirit_score, change_talk_evoked, total_turns, user_id"
+        ).execute()
 
-        if result.data:
-            return result.data
+        data = result.data or []
+
+        if not data:
+            return {
+                "total_sessions": 0,
+                "total_users": 0,
+                "avg_overall_score": 0.0,
+                "avg_trust_safety": 0.0,
+                "avg_empathy": 0.0,
+                "avg_empowerment": 0.0,
+                "avg_mi_spirit": 0.0,
+                "sessions_with_change_talk": 0,
+                "avg_turns": 0.0,
+            }
+
+        # Calculate aggregates in Python
+        total_sessions = len(data)
+        unique_users = set(row.get("user_id") for row in data if row.get("user_id"))
+        total_users = len(unique_users)
+
+        avg_overall = sum(row.get("overall_score", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        avg_trust = sum(row.get("foundational_trust_safety", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        avg_empathy = sum(row.get("empathic_partnership_autonomy", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        avg_empowerment = sum(row.get("empowerment_clarity", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        avg_mi_spirit = sum(row.get("mi_spirit_score", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        avg_turns = sum(row.get("total_turns", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+
+        change_talk_count = sum(1 for row in data if row.get("change_talk_evoked"))
 
         return {
-            "total_sessions": 0,
-            "total_users": 0,
-            "avg_overall_score": 0.0,
-            "avg_trust_safety": 0.0,
-            "avg_empathy": 0.0,
-            "avg_empowerment": 0.0,
-            "avg_mi_spirit": 0.0,
-            "sessions_with_change_talk": 0,
-            "avg_turns": 0.0,
+            "total_sessions": total_sessions,
+            "total_users": total_users,
+            "avg_overall_score": round(avg_overall, 2),
+            "avg_trust_safety": round(avg_trust, 2),
+            "avg_empathy": round(avg_empathy, 2),
+            "avg_empowerment": round(avg_empowerment, 2),
+            "avg_mi_spirit": round(avg_mi_spirit, 2),
+            "sessions_with_change_talk": change_talk_count,
+            "avg_turns": round(avg_turns, 1),
         }
 
     except Exception as e:
@@ -478,25 +509,65 @@ async def get_users_with_analytics(
     Get all users with their practice analytics.
 
     Returns users with practice session counts and average scores.
+    Note: Queries database directly instead of using RPC to avoid auth.uid() issues
+    with service role key.
     """
     try:
         supabase = get_supabase_admin()
 
-        # Call the database function for users with analytics
-        result = supabase.rpc(
-            "get_all_users_with_practice_analytics",
-            {"search_email": search, "limit_count": limit, "offset_count": offset},
-        ).execute()
+        # Get users from auth.users (via public.users which mirrors it)
+        query = supabase.table("users").select("id, email, display_name, role, is_active, created_at")
+        
+        if search:
+            query = query.ilike("email", f"%{search}%")
+        
+        query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
+        users_result = query.execute()
 
-        if result.data:
-            return {
-                "users": result.data,
-                "total": len(result.data),
-                "limit": limit,
-                "offset": offset,
-            }
+        users = users_result.data or []
+        user_ids = [u.get("id") for u in users]
 
-        return {"users": [], "total": 0, "limit": limit, "offset": offset}
+        # Get user profiles with practice analytics
+        profiles_map = {}
+        if user_ids:
+            profiles_result = supabase.table("user_profiles").select(
+                "user_id, total_points, modules_completed, level, "
+                "practice_sessions_count, avg_overall_score, avg_trust_safety, "
+                "avg_empathy_partnership, avg_empowerment_clarity, avg_mi_spirit, last_practice_at"
+            ).in_("user_id", user_ids).execute()
+            
+            for p in (profiles_result.data or []):
+                profiles_map[p.get("user_id")] = p
+
+        # Combine user data with profile analytics
+        result_users = []
+        for user in users:
+            profile = profiles_map.get(user.get("id"), {})
+            result_users.append({
+                "id": user.get("id"),
+                "email": user.get("email"),
+                "display_name": user.get("display_name"),
+                "created_at": user.get("created_at"),
+                "role": user.get("role", "user"),
+                "is_active": user.get("is_active", True),
+                "modules_completed": profile.get("modules_completed", 0),
+                "total_points": profile.get("total_points", 0),
+                "level": profile.get("level", 1),
+                "practice_sessions_count": profile.get("practice_sessions_count", 0),
+                "avg_overall_score": profile.get("avg_overall_score"),
+                "avg_trust_safety": profile.get("avg_trust_safety"),
+                "avg_empathy_partnership": profile.get("avg_empathy_partnership"),
+                "avg_empowerment_clarity": profile.get("avg_empowerment_clarity"),
+                "avg_mi_spirit": profile.get("avg_mi_spirit"),
+                "last_practice_at": profile.get("last_practice_at"),
+            })
+
+        return {
+            "users": result_users,
+            "total": len(result_users),
+            "limit": limit,
+            "offset": offset,
+        }
 
     except Exception as e:
         logger.error(f"Error loading users with analytics: {e}")
@@ -511,17 +582,43 @@ async def get_practice_analytics_leaderboard(
     Get practice leaderboard - top users by performance.
 
     Returns top users sorted by average overall score.
+    Note: Queries database directly instead of using RPC to avoid auth.uid() issues
+    with service role key.
     """
     try:
         supabase = get_supabase_admin()
 
-        # Call the database function for leaderboard
-        result = supabase.rpc("get_practice_leaderboard", {"limit_count": limit}).execute()
+        # Query user_profiles with practice sessions, joined with users for display_name
+        profiles_result = supabase.table("user_profiles").select(
+            "user_id, display_name, practice_sessions_count, avg_overall_score, "
+            "avg_trust_safety, avg_empathy_partnership, avg_empowerment_clarity, avg_mi_spirit"
+        ).gt("practice_sessions_count", 0).order("avg_overall_score", desc=True).limit(limit).execute()
 
-        if result.data:
-            return {"leaderboard": result.data, "total": len(result.data)}
+        profiles = profiles_result.data or []
+        
+        # Get display names from users table for any missing names
+        user_ids = [p.get("user_id") for p in profiles if p.get("user_id")]
+        users_map = {}
+        if user_ids:
+            users_result = supabase.table("users").select("id, display_name").in_("id", user_ids).execute()
+            for u in (users_result.data or []):
+                users_map[u.get("id")] = u.get("display_name")
 
-        return {"leaderboard": [], "total": 0}
+        # Build leaderboard with display names
+        leaderboard = []
+        for p in profiles:
+            leaderboard.append({
+                "user_id": p.get("user_id"),
+                "display_name": p.get("display_name") or users_map.get(p.get("user_id"), "Anonymous"),
+                "practice_sessions_count": p.get("practice_sessions_count", 0),
+                "avg_overall_score": p.get("avg_overall_score"),
+                "avg_trust_safety": p.get("avg_trust_safety"),
+                "avg_empathy_partnership": p.get("avg_empathy_partnership"),
+                "avg_empowerment_clarity": p.get("avg_empowerment_clarity"),
+                "avg_mi_spirit": p.get("avg_mi_spirit"),
+            })
+
+        return {"leaderboard": leaderboard, "total": len(leaderboard)}
 
     except Exception as e:
         logger.error(f"Error loading practice leaderboard: {e}")

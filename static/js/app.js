@@ -2388,8 +2388,8 @@ function exportAnalysisToHTML(analysis, transcript) {
         title: `MI Practice Analysis - ${chatState.personaName || 'Session'}`
     };
 
-    // Open a new window with the styled report
-    const exportWindow = window.open('', '_blank');
+    // Show loading state
+    showToast('Generating report...', 'info');
 
     fetch(`${API_BASE}/export/report/html`, {
         method: 'POST',
@@ -2399,15 +2399,25 @@ function exportAnalysisToHTML(analysis, transcript) {
         },
         body: JSON.stringify(exportData)
     })
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            return response.text();
+        })
         .then(html => {
+            // Open a new window with the styled report only after successful response
+            const exportWindow = window.open('', '_blank');
+            if (!exportWindow) {
+                showToast('Popup blocked. Please allow popups for this site.', 'error');
+                return;
+            }
             exportWindow.document.write(html);
             exportWindow.document.close();
             showToast('Report opened in new window. Use Print to save as PDF.', 'success');
         })
         .catch(error => {
-            exportWindow.close();
-            showToast('Failed to generate report', 'error');
+            showToast('Failed to generate report: ' + error.message, 'error');
             console.error('Export error:', error);
         });
 }
