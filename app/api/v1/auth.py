@@ -342,14 +342,35 @@ async def login(request: LoginRequest):
         user_metadata = user.user_metadata or {}
         display_name = user_metadata.get("display_name") or request.email.split("@")[0]
 
-        # Update last_active_at in user profile
+        # Ensure user profile exists (create if not present)
         try:
             supabase_admin = get_supabase_admin()
-            supabase_admin.table("user_profiles").update(
-                {"last_active_at": "now()"}
-            ).eq("user_id", str(user.id)).execute()
+            
+            # First check if profile exists
+            profile_response = supabase_admin.table("user_profiles").select("id").eq("user_id", str(user.id)).execute()
+            
+            if not profile_response.data:
+                # Profile doesn't exist, create one
+                logger.info(f"Creating user profile for {user.id} on login")
+                supabase_admin.table("user_profiles").insert(
+                    {
+                        "user_id": str(user.id),
+                        "display_name": display_name,
+                        "total_points": 0,
+                        "level": 1,
+                        "modules_completed": 0,
+                        "change_talk_evoked": 0,
+                        "reflections_offered": 0,
+                        "technique_mastery": {},
+                    }
+                ).execute()
+            else:
+                # Profile exists, update last_active_at
+                supabase_admin.table("user_profiles").update(
+                    {"last_active_at": "now()"}
+                ).eq("user_id", str(user.id)).execute()
         except Exception as e:
-            logger.warning(f"Failed to update last_active_at: {e}")
+            logger.warning(f"Failed to ensure user profile: {e}")
 
         return AuthResponse(
             access_token=session.access_token,

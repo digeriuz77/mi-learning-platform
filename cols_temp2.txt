@@ -1,0 +1,1 @@
+["id", "user_id", "display_name", "total_points", "level", "modules_completed", "change_talk_evoked", "reflections_offered", "technique_mastery", "created_at", "updated_at", "last_active_at", "practice_sessions_count", "avg_overall_score", "avg_trust_safety", "avg_empathy_partnership", "avg_empowerment_clarity", "avg_mi_spirit", "last_practice_at"]
