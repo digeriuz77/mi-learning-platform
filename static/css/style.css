@@ -3407,3 +3407,86 @@ body.modal-open {
         width: 100%;
     }
 }
+
+/* Print styles */
+@media print {
+    /* Hide navigation and header */
+    nav, .navbar, header, .nav-bar, #nav {
+        display: none !important;
+    }
+    
+    /* Hide buttons and interactive elements */
+    .btn, button, a.btn, .no-print, .toggle-transcript, #downloadTranscriptResultsBtn, 
+    #exportReportBtn, #giveFeedbackBtn, #practiceAgainBtn, .feedback-section.user-feedback,
+    .results-actions, .transcript-buttons, .feedback-actions {
+        display: none !important;
+    }
+    
+    /* Show transcript by default when printing */
+    .transcript-content, #transcriptContent {
+        display: block !important;
+    }
+    
+    /* Improve print layout */
+    body {
+        background: white;
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+    
+    .results-page, #app {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Keep colors for print */
+    .score-card, .score-value, .spirit-item, .technique-count, .movement-indicator {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* Page break handling */
+    .feedback-section, .transcript-section, .suggestions-section {
+        page-break-inside: avoid;
+    }
+}
+    
+    /* Hide buttons and interactive elements */
+    .btn, button, a.btn, .no-print, .toggle-transcript, #downloadTranscriptResultsBtn, 
+    #exportReportBtn, #giveFeedbackBtn, #practiceAgainBtn, .feedback-section.user-feedback,
+    .results-actions, .transcript-buttons, .feedback-actions {
+        display: none !important;
+    }
+    
+    /* Show transcript by default when printing */
+    .transcript-content, #transcriptContent {
+        display: block !important;
+    }
+    
+    /* Improve print layout */
+    body {
+        background: white font-size: 12pt;
+        line-height:  !important;
+           }
+    
+   1.4;
+ .results-page, #app {
+        max-width: 100% !important;
+        marginimportant;
+        padding: 0 !: 0 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Keep colors for print */
+    .score-card, .score-value, .spirit-item, .technique-count, .movement-indicator {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* Page break handling */
+    .feedback-section, .transcript-section, .suggestions-section {
+        page-break-inside: avoid;
+    }
+}

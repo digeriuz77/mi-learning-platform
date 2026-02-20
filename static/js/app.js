@@ -2202,7 +2202,7 @@ function renderChatResults() {
                         Give Feedback
                     </button>
                     <button class="btn btn-outline" id="exportReportBtn">
-                        Export Styled Report
+                        Print this Page
                     </button>
                 </div>
             </div>
@@ -2379,47 +2379,13 @@ function resetChatState() {
 }
 
 /**
- * Export analysis report to styled HTML (for PDF printing)
+ * Export analysis report - triggers browser print dialog
  */
 function exportAnalysisToHTML(analysis, transcript) {
-    const exportData = {
-        analysis: analysis,
-        format: "html",
-        title: `MI Practice Analysis - ${chatState.personaName || 'Session'}`
-    };
-
-    // Show loading state
-    showToast('Generating report...', 'info');
-
-    fetch(`${API_BASE}/export/report/html`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': state.token ? `Bearer ${state.token}` : ''
-        },
-        body: JSON.stringify(exportData)
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-            }
-            return response.text();
-        })
-        .then(html => {
-            // Open a new window with the styled report only after successful response
-            const exportWindow = window.open('', '_blank');
-            if (!exportWindow) {
-                showToast('Popup blocked. Please allow popups for this site.', 'error');
-                return;
-            }
-            exportWindow.document.write(html);
-            exportWindow.document.close();
-            showToast('Report opened in new window. Use Print to save as PDF.', 'success');
-        })
-        .catch(error => {
-            showToast('Failed to generate report: ' + error.message, 'error');
-            console.error('Export error:', error);
-        });
+    // Simply open the browser's print dialog
+    // User can print to PDF or paper from there
+    showToast('Opening print dialog...', 'info');
+    window.print();
 }
 
 /**
