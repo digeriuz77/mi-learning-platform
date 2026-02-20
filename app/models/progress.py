@@ -1,6 +1,7 @@
 """
 Progress and leaderboard models
 """
+
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -8,6 +9,7 @@ from datetime import datetime
 
 class UserProgress(BaseModel):
     """User progress for a module"""
+
     id: str
     module_id: str
     module_title: str
@@ -27,14 +29,21 @@ class UserProgress(BaseModel):
 
 class ProgressListResponse(BaseModel):
     """List of user progress"""
+
     progress: List[UserProgress]
     total_points: int
     level: int
     modules_completed: int
+    # Practice chat analytics
+    practice_sessions_count: Optional[int] = 0
+    avg_overall_score: Optional[float] = None
+    avg_mi_spirit: Optional[float] = None
+    last_practice_at: Optional[str] = None
 
 
 class LeaderboardEntry(BaseModel):
     """Leaderboard entry"""
+
     rank: int
     display_name: str
     total_points: int
@@ -44,12 +53,14 @@ class LeaderboardEntry(BaseModel):
 
 class LeaderboardResponse(BaseModel):
     """Leaderboard response"""
+
     entries: List[LeaderboardEntry]
     current_user: Optional[LeaderboardEntry] = None
 
 
 class UserProfile(BaseModel):
     """User profile information"""
+
     id: str
     email: str
     display_name: Optional[str] = None

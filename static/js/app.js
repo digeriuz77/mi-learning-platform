@@ -1337,18 +1337,34 @@ async function renderProgress() {
 
             <div class="stats-grid">
                 <div class="stat-card highlight">
-                    <div class="stat-value">${data.total_points}</div>
-                    <div class="stat-label">Total Points</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${data.level}</div>
-                    <div class="stat-label">Current Level</div>
-                </div>
-                <div class="stat-card">
                     <div class="stat-value">${data.modules_completed}</div>
                     <div class="stat-label">Modules Completed</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.practice_sessions_count || 0}</div>
+                    <div class="stat-label">Practice Sessions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.avg_overall_score ? data.avg_overall_score.toFixed(1) : '-'}</div>
+                    <div class="stat-label">Avg Practice Score</div>
+                </div>
             </div>
+
+            ${data.practice_sessions_count > 0 ? `
+            <div class="progress-section">
+                <h2>Chat Practice Performance</h2>
+                <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                    <div class="stat-card">
+                        <div class="stat-value">${data.avg_mi_spirit ? data.avg_mi_spirit.toFixed(1) : '-'}</div>
+                        <div class="stat-label">MI Spirit Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.last_practice_at ? new Date(data.last_practice_at).toLocaleDateString() : '-'}</div>
+                        <div class="stat-label">Last Practice</div>
+                    </div>
+                </div>
+            </div>
+            ` : ''}
 
             <div class="progress-section">
                 <h2>Module Progress</h2>

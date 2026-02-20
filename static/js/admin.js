@@ -809,7 +809,7 @@ async function downloadBackendCsv(endpoint, filename) {
 async function downloadUserAnalyticsCsv() {
     try {
         const search = document.getElementById('analyticsUserSearch')?.value.trim() || null;
-        const limit = 1000;
+        const limit = 500; // API max is 500
         let offset = 0;
         let allUsers = [];
 
