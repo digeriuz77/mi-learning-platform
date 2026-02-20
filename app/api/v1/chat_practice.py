@@ -81,7 +81,7 @@ async def start_chat_session(request: ChatStartRequest, auth: Optional[AuthConte
         return ChatStartResponse(**result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to start session")
 
 
@@ -105,7 +105,7 @@ async def send_message(request: ChatMessageRequest, auth: Optional[AuthContext] 
         return ChatMessageResponse(**result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to process message")
 
 
@@ -166,7 +166,6 @@ async def end_chat_session(request: ChatEndRequest, auth: Optional[AuthContext] 
         transcript = [{"role": msg["role"], "content": msg["content"]} for msg in session_data["transcript"]]
 
         # Save analysis to database
-        analysis_saved = False
         try:
             analysis_id = save_conversation_analysis(
                 session_id=request.session_id,
@@ -178,7 +177,6 @@ async def end_chat_session(request: ChatEndRequest, auth: Optional[AuthContext] 
                 total_turns=session_data["total_turns"],
             )
             if analysis_id:
-                analysis_saved = True
                 logger.info(f"Analysis saved successfully: {analysis_id}")
 
                 # Update user profile with practice session stats if user is authenticated
@@ -234,7 +232,7 @@ async def end_chat_session(request: ChatEndRequest, auth: Optional[AuthContext] 
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to end session")
 
 
@@ -243,6 +241,9 @@ async def get_session_status(session_id: str, auth: Optional[AuthContext] = Depe
     """
     Get the current status of a chat practice session.
     """
+    if auth:
+        chat_service.validate_session_owner(session_id, auth.user_id)
+
     session = chat_service.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
@@ -263,6 +264,9 @@ async def get_session_transcript(session_id: str, auth: Optional[AuthContext] = 
     """
     Get the conversation transcript for a session.
     """
+    if auth:
+        chat_service.validate_session_owner(session_id, auth.user_id)
+
     transcript = chat_service.get_session_transcript(session_id)
     if not transcript:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
@@ -372,5 +376,5 @@ async def analyze_transcript(
             "transcript": transcript,
         }
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to analyze transcript")

@@ -62,6 +62,7 @@ async def get_leaderboard(
         if user_profile_response.data:
             # Get user's rank by counting users with more completed modules
             user_modules = user_profile_response.data[0].get('modules_completed', 0)
+            user_points = user_profile_response.data[0].get('total_points', 0)
             rank_response = supabase_admin.table('user_profiles') \
                 .select('id') \
                 .gt('modules_completed', user_modules) \
