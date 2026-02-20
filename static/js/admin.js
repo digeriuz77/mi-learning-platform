@@ -80,6 +80,7 @@ async function initAdmin() {
         await loadUsers();
         await loadModuleStats();
         await loadPracticeAnalytics();
+        await loadPracticeHistory();
         await loadFeedbackStats();
         await loadRecentFeedback();
 
@@ -226,6 +227,18 @@ function setupEventListeners() {
             searchTimeout = setTimeout(() => {
                 practiceAnalytics.page = 1;
                 loadUsersWithAnalytics(e.target.value.trim() || null);
+            }, 300);
+        });
+    }
+
+    // Practice History search
+    const practiceHistorySearch = document.getElementById('practiceHistorySearch');
+    if (practiceHistorySearch) {
+        practiceHistorySearch.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                practiceHistory.page = 1;
+                loadPracticeHistory();
             }, 300);
         });
     }
@@ -612,6 +625,132 @@ function nextAnalyticsPage() {
 async function refreshPracticeAnalytics() {
     practiceAnalytics.page = 1;
     await loadPracticeAnalytics();
+}
+
+// ----------------------------------------------------
+// Practice History - Individual Session Records
+// ----------------------------------------------------
+let practiceHistory = {
+    sessions: [],
+    page: 1,
+    pageSize: 50
+};
+
+async function loadPracticeHistory() {
+    try {
+        const offset = (practiceHistory.page - 1) * practiceHistory.pageSize;
+        const search = document.getElementById('practiceHistorySearch')?.value.trim() || null;
+        
+        let url = `${ADMIN_API}/analytics/practice-history?limit=${practiceHistory.pageSize}&offset=${offset}`;
+        if (search) {
+            url += `&search=${encodeURIComponent(search)}`;
+        }
+
+        const data = await adminRequest(url);
+        practiceHistory.sessions = data.sessions || [];
+        renderPracticeHistory();
+        updatePracticeHistoryPagination();
+    } catch (error) {
+        console.error('Error loading practice history:', error);
+        showToast('Error loading practice history', 'error');
+    }
+}
+
+function renderPracticeHistory() {
+    const tbody = document.getElementById('practiceHistoryBody');
+    
+    if (!practiceHistory.sessions || practiceHistory.sessions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">No practice history found</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = practiceHistory.sessions.map(session => {
+        const createdAt = session.created_at || '';
+        const date = createdAt.split('T')[0] || '';
+        const time = createdAt.split('T')[1]?.split('.')[0] || '';
+        
+        return `
+            <tr>
+                <td>${escapeHtml(session.email || 'Anonymous')}</td>
+                <td>${date}</td>
+                <td>${time}</td>
+                <td>${escapeHtml(session.persona_name || '-')}</td>
+                <td><span class="score ${getScoreClass(session.overall_score)}">${session.overall_score ? session.overall_score.toFixed(1) : '-'}</span></td>
+                <td>${session.trust_safety ? session.trust_safety.toFixed(1) : '-'}</td>
+                <td>${session.empathy ? session.empathy.toFixed(1) : '-'}</td>
+                <td>${session.empowerment ? session.empowerment.toFixed(1) : '-'}</td>
+                <td>${session.mi_spirit ? session.mi_spirit.toFixed(1) : '-'}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updatePracticeHistoryPagination() {
+    const pageInfo = document.getElementById('practiceHistoryPageInfo');
+    const prevBtn = document.getElementById('prevPracticeHistoryPage');
+    const nextBtn = document.getElementById('nextPracticeHistoryPage');
+    
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${practiceHistory.page}`;
+    }
+    if (prevBtn) {
+        prevBtn.disabled = practiceHistory.page === 1;
+    }
+    if (nextBtn) {
+        nextBtn.disabled = practiceHistory.sessions.length < practiceHistory.pageSize;
+    }
+}
+
+function previousPracticeHistoryPage() {
+    if (practiceHistory.page > 1) {
+        practiceHistory.page--;
+        loadPracticeHistory();
+    }
+}
+
+function nextPracticeHistoryPage() {
+    practiceHistory.page++;
+    loadPracticeHistory();
+}
+
+function refreshPracticeHistory() {
+    practiceHistory.page = 1;
+    loadPracticeHistory();
+}
+
+async function downloadPracticeHistoryCsv() {
+    showToast('Generating CSV...', 'info');
+    try {
+        const search = document.getElementById('practiceHistorySearch')?.value.trim();
+        let url = `${ADMIN_API}/export/practice-history`;
+        if (search) {
+            url += `?search=${encodeURIComponent(search)}`;
+        }
+        
+        const token = localStorage.getItem('access_token');
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const response = await fetch(url, { headers });
+        if (!response.ok) {
+            throw new Error('Failed to download CSV');
+        }
+
+        const blob = await response.blob();
+        const url2 = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url2;
+        a.download = 'practice_history_export.csv';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url2);
+        document.body.removeChild(a);
+        
+        showToast('CSV downloaded successfully', 'success');
+    } catch (error) {
+        console.error('Error downloading CSV:', error);
+        showToast('Error downloading CSV', 'error');
+    }
 }
 
 function toCsvValue(value) {

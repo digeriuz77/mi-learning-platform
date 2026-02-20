@@ -215,9 +215,6 @@ async def get_module_stats(admin: AuthContext = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
-
-
-
 class AdminActionRequest(BaseModel):
     """Request to perform an admin action."""
 
@@ -447,10 +444,14 @@ async def get_comprehensive_analytics(admin: AuthContext = Depends(require_admin
         supabase = get_supabase_admin()
 
         # Query conversation_analyses table directly for aggregate stats
-        result = supabase.table("conversation_analyses").select(
-            "overall_score, foundational_trust_safety, empathic_partnership_autonomy, "
-            "empowerment_clarity, mi_spirit_score, change_talk_evoked, total_turns, user_id"
-        ).execute()
+        result = (
+            supabase.table("conversation_analyses")
+            .select(
+                "overall_score, foundational_trust_safety, empathic_partnership_autonomy, "
+                "empowerment_clarity, mi_spirit_score, change_talk_evoked, total_turns, user_id"
+            )
+            .execute()
+        )
 
         data = result.data or []
 
@@ -472,11 +473,25 @@ async def get_comprehensive_analytics(admin: AuthContext = Depends(require_admin
         unique_users = set(row.get("user_id") for row in data if row.get("user_id"))
         total_users = len(unique_users)
 
-        avg_overall = sum(row.get("overall_score", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
-        avg_trust = sum(row.get("foundational_trust_safety", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
-        avg_empathy = sum(row.get("empathic_partnership_autonomy", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
-        avg_empowerment = sum(row.get("empowerment_clarity", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
-        avg_mi_spirit = sum(row.get("mi_spirit_score", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        avg_overall = (
+            sum(row.get("overall_score", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        )
+        avg_trust = (
+            sum(row.get("foundational_trust_safety", 0) or 0 for row in data) / total_sessions
+            if total_sessions > 0
+            else 0
+        )
+        avg_empathy = (
+            sum(row.get("empathic_partnership_autonomy", 0) or 0 for row in data) / total_sessions
+            if total_sessions > 0
+            else 0
+        )
+        avg_empowerment = (
+            sum(row.get("empowerment_clarity", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        )
+        avg_mi_spirit = (
+            sum(row.get("mi_spirit_score", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
+        )
         avg_turns = sum(row.get("total_turns", 0) or 0 for row in data) / total_sessions if total_sessions > 0 else 0
 
         change_talk_count = sum(1 for row in data if row.get("change_talk_evoked"))
@@ -517,10 +532,10 @@ async def get_users_with_analytics(
 
         # Get users from auth.users (via public.users which mirrors it)
         query = supabase.table("users").select("id, email, display_name, role, is_active, created_at")
-        
+
         if search:
             query = query.ilike("email", f"%{search}%")
-        
+
         query = query.order("created_at", desc=True).range(offset, offset + limit - 1)
         users_result = query.execute()
 
@@ -530,37 +545,44 @@ async def get_users_with_analytics(
         # Get user profiles with practice analytics
         profiles_map = {}
         if user_ids:
-            profiles_result = supabase.table("user_profiles").select(
-                "user_id, total_points, modules_completed, level, "
-                "practice_sessions_count, avg_overall_score, avg_trust_safety, "
-                "avg_empathy_partnership, avg_empowerment_clarity, avg_mi_spirit, last_practice_at"
-            ).in_("user_id", user_ids).execute()
-            
-            for p in (profiles_result.data or []):
+            profiles_result = (
+                supabase.table("user_profiles")
+                .select(
+                    "user_id, total_points, modules_completed, level, "
+                    "practice_sessions_count, avg_overall_score, avg_trust_safety, "
+                    "avg_empathy_partnership, avg_empowerment_clarity, avg_mi_spirit, last_practice_at"
+                )
+                .in_("user_id", user_ids)
+                .execute()
+            )
+
+            for p in profiles_result.data or []:
                 profiles_map[p.get("user_id")] = p
 
         # Combine user data with profile analytics
         result_users = []
         for user in users:
             profile = profiles_map.get(user.get("id"), {})
-            result_users.append({
-                "id": user.get("id"),
-                "email": user.get("email"),
-                "display_name": user.get("display_name"),
-                "created_at": user.get("created_at"),
-                "role": user.get("role", "user"),
-                "is_active": user.get("is_active", True),
-                "modules_completed": profile.get("modules_completed", 0),
-                "total_points": profile.get("total_points", 0),
-                "level": profile.get("level", 1),
-                "practice_sessions_count": profile.get("practice_sessions_count", 0),
-                "avg_overall_score": profile.get("avg_overall_score"),
-                "avg_trust_safety": profile.get("avg_trust_safety"),
-                "avg_empathy_partnership": profile.get("avg_empathy_partnership"),
-                "avg_empowerment_clarity": profile.get("avg_empowerment_clarity"),
-                "avg_mi_spirit": profile.get("avg_mi_spirit"),
-                "last_practice_at": profile.get("last_practice_at"),
-            })
+            result_users.append(
+                {
+                    "id": user.get("id"),
+                    "email": user.get("email"),
+                    "display_name": user.get("display_name"),
+                    "created_at": user.get("created_at"),
+                    "role": user.get("role", "user"),
+                    "is_active": user.get("is_active", True),
+                    "modules_completed": profile.get("modules_completed", 0),
+                    "total_points": profile.get("total_points", 0),
+                    "level": profile.get("level", 1),
+                    "practice_sessions_count": profile.get("practice_sessions_count", 0),
+                    "avg_overall_score": profile.get("avg_overall_score"),
+                    "avg_trust_safety": profile.get("avg_trust_safety"),
+                    "avg_empathy_partnership": profile.get("avg_empathy_partnership"),
+                    "avg_empowerment_clarity": profile.get("avg_empowerment_clarity"),
+                    "avg_mi_spirit": profile.get("avg_mi_spirit"),
+                    "last_practice_at": profile.get("last_practice_at"),
+                }
+            )
 
         return {
             "users": result_users,
@@ -589,34 +611,43 @@ async def get_practice_analytics_leaderboard(
         supabase = get_supabase_admin()
 
         # Query user_profiles with practice sessions, joined with users for display_name
-        profiles_result = supabase.table("user_profiles").select(
-            "user_id, display_name, practice_sessions_count, avg_overall_score, "
-            "avg_trust_safety, avg_empathy_partnership, avg_empowerment_clarity, avg_mi_spirit"
-        ).gt("practice_sessions_count", 0).order("avg_overall_score", desc=True).limit(limit).execute()
+        profiles_result = (
+            supabase.table("user_profiles")
+            .select(
+                "user_id, display_name, practice_sessions_count, avg_overall_score, "
+                "avg_trust_safety, avg_empathy_partnership, avg_empowerment_clarity, avg_mi_spirit"
+            )
+            .gt("practice_sessions_count", 0)
+            .order("avg_overall_score", desc=True)
+            .limit(limit)
+            .execute()
+        )
 
         profiles = profiles_result.data or []
-        
+
         # Get display names from users table for any missing names
         user_ids = [p.get("user_id") for p in profiles if p.get("user_id")]
         users_map = {}
         if user_ids:
             users_result = supabase.table("users").select("id, display_name").in_("id", user_ids).execute()
-            for u in (users_result.data or []):
+            for u in users_result.data or []:
                 users_map[u.get("id")] = u.get("display_name")
 
         # Build leaderboard with display names
         leaderboard = []
         for p in profiles:
-            leaderboard.append({
-                "user_id": p.get("user_id"),
-                "display_name": p.get("display_name") or users_map.get(p.get("user_id"), "Anonymous"),
-                "practice_sessions_count": p.get("practice_sessions_count", 0),
-                "avg_overall_score": p.get("avg_overall_score"),
-                "avg_trust_safety": p.get("avg_trust_safety"),
-                "avg_empathy_partnership": p.get("avg_empathy_partnership"),
-                "avg_empowerment_clarity": p.get("avg_empowerment_clarity"),
-                "avg_mi_spirit": p.get("avg_mi_spirit"),
-            })
+            leaderboard.append(
+                {
+                    "user_id": p.get("user_id"),
+                    "display_name": p.get("display_name") or users_map.get(p.get("user_id"), "Anonymous"),
+                    "practice_sessions_count": p.get("practice_sessions_count", 0),
+                    "avg_overall_score": p.get("avg_overall_score"),
+                    "avg_trust_safety": p.get("avg_trust_safety"),
+                    "avg_empathy_partnership": p.get("avg_empathy_partnership"),
+                    "avg_empowerment_clarity": p.get("avg_empowerment_clarity"),
+                    "avg_mi_spirit": p.get("avg_mi_spirit"),
+                }
+            )
 
         return {"leaderboard": leaderboard, "total": len(leaderboard)}
 
@@ -827,10 +858,161 @@ async def export_progress_csv(admin: AuthContext = Depends(require_admin)):
 
 
 # =====================================================
-# Module Points Recalculation
+# Practice History - Individual Session Records
 # =====================================================
 
 
+@router.get("/analytics/practice-history")
+async def get_practice_history(
+    search: Optional[str] = None,
+    limit: int = Query(default=100, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+    admin: AuthContext = Depends(require_admin),
+):
+    """
+    Get practice history - individual session records with user email.
+
+    Returns all practice sessions with user details for tracking progress over time.
+    """
+    try:
+        supabase = get_supabase_admin()
+
+        # Get all conversation analyses with user info
+        query = (
+            supabase.table("conversation_analyses")
+            .select(
+                "id, session_id, user_id, persona_name, overall_score, "
+                "foundational_trust_safety, empathic_partnership_autonomy, "
+                "empowerment_clarity, mi_spirit_score, created_at"
+            )
+            .order("created_at", desc=True)
+        )
+
+        analyses_result = query.range(offset, offset + limit - 1).execute()
+        analyses = analyses_result.data or []
+
+        # Get user emails
+        user_ids = list(set(a.get("user_id") for a in analyses if a.get("user_id")))
+        users_map = {}
+        if user_ids:
+            users_result = supabase.table("users").select("id, email").in_("id", user_ids).execute()
+            users_map = {u.get("id"): u.get("email") for u in (users_result.data or [])}
+
+        # Build results
+        results = []
+        for a in analyses:
+            results.append(
+                {
+                    "id": a.get("id"),
+                    "email": users_map.get(a.get("user_id"), "Anonymous"),
+                    "user_id": a.get("user_id"),
+                    "session_id": a.get("session_id"),
+                    "persona_name": a.get("persona_name", "Unknown"),
+                    "overall_score": float(a.get("overall_score", 0)) if a.get("overall_score") else None,
+                    "trust_safety": float(a.get("foundational_trust_safety", 0))
+                    if a.get("foundational_trust_safety")
+                    else None,
+                    "empathy": float(a.get("empathic_partnership_autonomy", 0))
+                    if a.get("empathic_partnership_autonomy")
+                    else None,
+                    "empowerment": float(a.get("empowerment_clarity", 0)) if a.get("empowerment_clarity") else None,
+                    "mi_spirit": float(a.get("mi_spirit_score", 0)) if a.get("mi_spirit_score") else None,
+                    "created_at": a.get("created_at"),
+                }
+            )
+
+        # Filter by search if provided
+        if search:
+            results = [r for r in results if r["email"] and search.lower() in r["email"].lower()]
+
+        return {
+            "sessions": results,
+            "total": len(results),
+            "limit": limit,
+            "offset": offset,
+        }
+
+    except Exception as e:
+        logger.error(f"Error loading practice history: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred")
 
 
+@router.get("/export/practice-history")
+async def export_practice_history_csv(
+    search: Optional[str] = None,
+    admin: AuthContext = Depends(require_admin),
+):
+    """
+    Export practice history as CSV for tracking user progress over time.
+    """
+    try:
+        supabase = get_supabase_admin()
 
+        # Get all conversation analyses
+        analyses_result = (
+            supabase.table("conversation_analyses")
+            .select(
+                "id, session_id, user_id, persona_name, overall_score, "
+                "foundational_trust_safety, empathic_partnership_autonomy, "
+                "empowerment_clarity, mi_spirit_score, created_at"
+            )
+            .order("created_at", desc=True)
+            .execute()
+        )
+
+        analyses = analyses_result.data or []
+
+        # Get user emails
+        user_ids = list(set(a.get("user_id") for a in analyses if a.get("user_id")))
+        users_map = {}
+        if user_ids:
+            users_result = supabase.table("users").select("id, email").in_("id", user_ids).execute()
+            users_map = {u.get("id"): u.get("email") for u in (users_result.data or [])}
+
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(
+            [
+                "Email",
+                "Date",
+                "Time",
+                "Persona",
+                "Score",
+                "Trust & Safety",
+                "Empathy & Partnership",
+                "Empowerment",
+                "MI Spirit",
+                "Session ID",
+            ]
+        )
+
+        for a in analyses:
+            created_at = a.get("created_at", "")
+            date_part = created_at.split("T")[0] if created_at else ""
+            time_part = created_at.split("T")[1].split(".")[0] if "T" in created_at else ""
+
+            writer.writerow(
+                [
+                    users_map.get(a.get("user_id"), "Anonymous"),
+                    date_part,
+                    time_part,
+                    a.get("persona_name", "Unknown"),
+                    a.get("overall_score", ""),
+                    a.get("foundational_trust_safety", ""),
+                    a.get("empathic_partnership_autonomy", ""),
+                    a.get("empowerment_clarity", ""),
+                    a.get("mi_spirit_score", ""),
+                    a.get("session_id", ""),
+                ]
+            )
+
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=practice_history_export.csv"},
+        )
+
+    except Exception as e:
+        logger.error(f"Error exporting practice history CSV: {e}")
+        raise HTTPException(status_code=500, detail="An internal error occurred")

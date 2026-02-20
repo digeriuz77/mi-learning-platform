@@ -31,6 +31,7 @@
                 <li class="active" data-tab="dashboard">Dashboard</li>
                 <li data-tab="users">User Management</li>
                 <li data-tab="practice-analytics">Practice Analytics</li>
+                <li data-tab="practice-history">Practice History</li>
                 <li data-tab="modules">Module Analytics</li>
                 <li data-tab="feedback">Feedback</li>
                 <li data-tab="settings">Settings</li>
@@ -258,6 +259,50 @@
                         <button onclick="nextAnalyticsPage()" id="nextAnalyticsPage"
                             class="btn btn-secondary">Next</button>
                     </div>
+                </div>
+            </section>
+
+            <!-- Practice History Tab -->
+            <section id="practice-history" class="tab-content">
+                <h1>Practice History</h1>
+                <p>Individual session records showing user progress over time.</p>
+
+                <div class="user-controls">
+                    <input type="text" id="practiceHistorySearch" placeholder="Search by email..."
+                        class="search-input">
+                    <button onclick="refreshPracticeHistory()" class="btn btn-primary">Refresh</button>
+                    <button onclick="downloadPracticeHistoryCsv()" class="btn btn-secondary"
+                        style="margin-left: 0.5rem;">Download CSV</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Persona</th>
+                                <th>Score</th>
+                                <th>Trust</th>
+                                <th>Empathy</th>
+                                <th>Empowerment</th>
+                                <th>MI Spirit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="practiceHistoryBody">
+                            <tr>
+                                <td colspan="9" class="loading">Loading practice history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button onclick="previousPracticeHistoryPage()" id="prevPracticeHistoryPage"
+                        class="btn btn-secondary">Previous</button>
+                    <span id="practiceHistoryPageInfo">Page 1</span>
+                    <button onclick="nextPracticeHistoryPage()" id="nextPracticeHistoryPage"
+                        class="btn btn-secondary">Next</button>
                 </div>
             </section>
 
