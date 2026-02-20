@@ -768,14 +768,10 @@ async function renderModules() {
                                 <span class="meta-icon">📊</span>
                                 ${module.stage_of_change}
                             </span>
-                            <span class="meta-item">
-                                <span class="meta-icon">⭐</span>
-                                ${module.max_points_available || module.points} pts
-                            </span>
                         </div>
                         ${module.user_points_earned !== null && module.user_points_earned > 0 ? `
                             <div class="module-score">
-                                <span class="score-text">Points: ${module.user_points_earned} / ${module.max_points_available || '---'}</span>
+                                <span class="score-text">Module Mastery Developed</span>
                             </div>
                         ` : ''}
                     </div>
@@ -816,10 +812,6 @@ async function renderModuleDetail(moduleId) {
                         <span class="info-label">Stage of Change</span>
                         <span class="info-value">${module.stage_of_change}</span>
                     </div>
-                    <div class="info-card">
-                        <span class="info-label">Points Available</span>
-                        <span class="info-value">${module.max_points_available || module.points}</span>
-                    </div>
                 </div>
 
                 <div class="module-description-card">
@@ -833,7 +825,7 @@ async function renderModuleDetail(moduleId) {
                             <span class="badge-icon">✓</span>
                             <div class="badge-content">
                                 <span class="badge-title">Module Completed</span>
-                                <span class="badge-stats">Points: ${module.user_points_earned || 0} / ${module.max_points_available || '---'}</span>
+                                <span class="badge-stats">Journey complete!</span>
                             </div>
                         </div>
                         <div class="action-buttons">
@@ -1004,22 +996,22 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
         hintsToggle.addEventListener('click', () => {
             state.hintsEnabled = !state.hintsEnabled;
             localStorage.setItem('hints_enabled', state.hintsEnabled);
-            
+
             // Update toggle button appearance
             hintsToggle.classList.toggle('active', state.hintsEnabled);
             hintsToggle.querySelector('.hint-icon').textContent = state.hintsEnabled ? '💡' : '💡';
             hintsToggle.querySelector('.hint-label').textContent = state.hintsEnabled ? 'Hints ON' : 'Hints OFF';
-            
+
             // Re-render choices with/without hints
             const choicesSection = document.querySelector('.choices-section');
             const choicesContainer = document.querySelector('.choices-grid');
-            
+
             // Update all choice cards
             document.querySelectorAll('.choice-card').forEach((card, index) => {
                 const choice = node.practitioner_choices[index];
                 const hintDiv = card.querySelector('.technique-hint');
                 const techniqueSpan = card.querySelector('.choice-technique');
-                
+
                 if (state.hintsEnabled) {
                     card.classList.add('hints-visible');
                     if (!hintDiv) {
@@ -1055,7 +1047,7 @@ function renderDialogueNode(moduleId, nodeData, dialogueContent) {
             });
         });
     }
-    
+
     // Add click handlers for choices
     document.querySelectorAll('.choice-card').forEach(card => {
         card.addEventListener('click', async () => {
@@ -1111,7 +1103,7 @@ function getQualityDisplay(quality) {
  */
 function getTechniqueHint(technique) {
     const techniqueLower = technique.toLowerCase();
-    
+
     // Technique hints based on MI skills
     const hints = {
         // Simple Reflections
@@ -1120,10 +1112,10 @@ function getTechniqueHint(technique) {
         'simple reflection (partial)': 'Reflects only part of what the patient said. A more complete reflection would acknowledge their full view.',
         'simple reflection (specific)': 'Reflects a specific detail the patient mentioned. Specificity strengthens reflections.',
         'simple reflection (literal)': 'A word-for-word reflection of what they said. Accurate but may miss underlying meaning.',
-        
+
         // Open Questions
         'open question': 'Questions that invite elaboration rather than yes/no answers. They encourage patients to explore thoughts.',
-        
+
         // Affirmations
         'genuine affirmation (specific)': 'Recognizes a specific action or quality demonstrated. More powerful than generic praise.',
         'affirmation': 'Recognizes and amplifies patient strengths, efforts, or values without being overly enthusiastic.',
@@ -1131,35 +1123,35 @@ function getTechniqueHint(technique) {
         'affirmation (awareness)': 'Affirms patient\'s self-awareness and internal shifts. Honors their capacity for growth.',
         'affirmation (values-based thinking)': 'Affirms that they\'re using their deepest values to guide thinking. Sustainable motivation.',
         'acknowledgment': 'Validates or confirms what patient said without adding interpretation. Shows respect.',
-        
+
         // Complex/Combined Techniques
         'complex reflection': 'Combines reflection with deeper meaning or emotion. Shows understanding at multiple levels.',
         'reflection + affirmation': 'Combines understanding with recognition of strengths. Very effective MI skill.',
         'double-sided reflection': 'Reflects both sides of a patient\'s ambivalence. Helps them explore both perspectives.',
         'reflection + open': 'Reflection followed by an open question to encourage continued exploration.',
-        
+
         // Summary
         'summary': 'Pulls together key themes from the conversation. Validates the patient\'s experience.',
-        
+
         // Non-MI Techniques (for context)
         'righting reflex': 'The urge to correct or educate patients. Increases resistance.',
         'lecturing': 'Telling patients what they should think or do. Violates autonomy and creates resistance.',
         'closed question': 'Questions with yes/no answers that limit exploration.',
         'cheerleading': 'Overly enthusiastic praise that focuses on your feelings rather than their action. Can feel patronizing.',
         'false reassurance': 'Promising outcomes you can\'t guarantee. Dismisses legitimate concerns.',
-        
+
         // Recovery/Misc
         'apology': 'Acknowledges an error and repairs the relationship. Important when missteps occur.',
         'boundary setting': 'Respecting limits in the therapeutic relationship. Honors both parties\' needs.',
     };
-    
+
     // Find matching hint (partial matches allowed)
     for (const [key, value] of Object.entries(hints)) {
         if (techniqueLower.includes(key)) {
             return value;
         }
     }
-    
+
     // Default hint for unknown techniques
     return `This ${technique} is a Motivational Interviewing technique. Consider how it aligns with OARS skills (Open questions, Affirmations, Reflections, Summaries).`;
 }
@@ -1194,11 +1186,6 @@ function showFeedback(feedback, moduleId, dialogueContent) {
             <div class="feedback-body">
                 <p class="feedback-text">${feedback.feedback_text}</p>
 
-                <div class="points-earned">
-                    <span class="points-value">+${feedback.points_earned}</span>
-                    <span class="points-label">points</span>
-                </div>
-
                 ${feedback.evoked_change_talk ? `
                     <div class="change-talk-badge">
                         <span class="badge-icon">🎯</span>
@@ -1223,9 +1210,6 @@ function showFeedback(feedback, moduleId, dialogueContent) {
                                 <span class="stat-label">Status</span>
                                 <span class="stat-value">${feedback.completion_score === 100 ? '✓ Complete' : 'In Progress'}</span>
                             </div>
-                            <div class="summary-stat">
-                                <span class="stat-label">Points</span>
-                                <span class="stat-value">${feedback.points_earned || 0} / ${feedback.max_points_available || '---'}</span>
                             </div>
                             <div class="summary-stat">
                                 <span class="stat-label">Level</span>
@@ -1295,10 +1279,10 @@ function showFeedback(feedback, moduleId, dialogueContent) {
                     const data = await modulesAPI.list();
                     const modules = data.modules;
                     const currentIndex = modules.findIndex(m => m.id === moduleId);
-                    const nextModule = currentIndex >= 0 && currentIndex < modules.length - 1 
-                        ? modules[currentIndex + 1] 
+                    const nextModule = currentIndex >= 0 && currentIndex < modules.length - 1
+                        ? modules[currentIndex + 1]
                         : null;
-                    
+
                     if (nextModule) {
                         showToast(`Starting ${nextModule.title}...`, 'info');
                         router.navigate(`/modules/${nextModule.id}`);
@@ -1390,9 +1374,6 @@ async function renderProgress() {
                                         <span class="metric-value">${p.completion_score || 0}%</span>
                                         <span class="metric-label">Score</span>
                                     </div>
-                                    <div class="metric">
-                                        <span class="metric-value">${p.points_earned}</span>
-                                        <span class="metric-label">Points</span>
                                     </div>
                                 </div>
                             </div>
@@ -2648,7 +2629,7 @@ const router = {
                 const path = link.dataset.link;
                 this.navigate(path);
             }
-            
+
             // Handle navbar logo click (always goes home)
             const navLogo = e.target.closest('#navbar-logo');
             if (navLogo) {
