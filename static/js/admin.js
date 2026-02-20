@@ -80,6 +80,8 @@ async function initAdmin() {
         await loadUsers();
         await loadModuleStats();
         await loadPracticeAnalytics();
+        await loadFeedbackStats();
+        await loadRecentFeedback();
 
         // 4. Setup event listeners
         setupEventListeners();
@@ -464,7 +466,7 @@ async function loadComprehensiveAnalytics() {
         // Update stats
         document.getElementById('totalPracticeSessions').textContent = data.total_sessions || 0;
         document.getElementById('activePractitioners').textContent = data.total_users || 0;
-        document.getElementById('avgOverallScore').textContent = 
+        document.getElementById('avgOverallScore').textContent =
             data.avg_overall_score ? data.avg_overall_score.toFixed(1) + '/5' : '-';
 
         // Calculate change talk rate
@@ -636,6 +638,36 @@ function downloadCsvFile(filename, headers, rows) {
     URL.revokeObjectURL(url);
 }
 
+// ----------------------------------------------------
+// Download backend endpoints that stream CSV
+// ----------------------------------------------------
+async function downloadBackendCsv(endpoint, filename) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const response = await fetch(`${ADMIN_API}${endpoint}`, { headers });
+        if (!response.ok) {
+            throw new Error('Failed to download CSV');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast(`${filename} downloaded successfully`, 'success');
+    } catch (error) {
+        console.error(`Error downloading ${filename}:`, error);
+        showToast(`Failed to download ${filename}`, 'error');
+    }
+}
+
 async function downloadUserAnalyticsCsv() {
     try {
         const search = document.getElementById('analyticsUserSearch')?.value.trim() || null;
@@ -767,37 +799,7 @@ async function recalculateModulePoints() {
     }
 }
 
-async function confirmResetAllProgress() {
-    // Double confirmation for destructive action
-    if (!confirm('Are you sure you want to reset progress for ALL users? This cannot be undone.')) {
-        return;
-    }
-    if (!confirm('FINAL WARNING: This will delete ALL user progress, points, and modules completed. Continue?')) {
-        return;
-    }
 
-    const resultEl = document.getElementById('resetAllResult');
-    resultEl.textContent = 'Resetting all progress...';
-    resultEl.style.color = '#666';
-
-    try {
-        const data = await adminRequest(`${ADMIN_API}/reset-progress`, {
-            method: 'POST',
-            body: JSON.stringify({})  // No user_id = reset all
-        });
-
-        resultEl.style.color = '#059669';
-        resultEl.textContent = `✓ ${data.message || 'All user progress has been reset.'}`;
-        showToast('All user progress has been reset', 'success');
-        
-        // Refresh dashboard stats
-        await loadDashboardStats();
-    } catch (error) {
-        resultEl.style.color = '#dc2626';
-        resultEl.textContent = '✗ Error: ' + (error.message || 'Failed to reset progress');
-        showToast('Failed to reset all progress', 'error');
-    }
-}
 
 // Make functions globally available
 window.showUserActions = showUserActions;
@@ -825,3 +827,44 @@ window.confirmResetAllProgress = confirmResetAllProgress;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', initAdmin);
+
+
+// ==========================================
+// Feedback
+// ==========================================
+
+async function loadFeedbackStats() {
+    try {
+        const data = await adminRequest(`${ADMIN_API}/feedback/stats`);
+        if (data) {
+            document.getElementById('totalFeedback').textContent = data.total_feedback || 0;
+            document.getElementById('avgFeedbackScore').textContent = data.average_score ? data.average_score.toFixed(1) : '-';
+        }
+    } catch (error) {
+        console.error('Error loading feedback stats:', error);
+    }
+}
+
+async function loadRecentFeedback() {
+    try {
+        const data = await adminRequest(`${ADMIN_API}/feedback/recent`);
+        const tbody = document.getElementById('feedbackTableBody');
+        if (!data.feedback || data.feedback.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty">No feedback found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.feedback.map(item => `
+            <tr>
+                <td>${formatDate(item.created_at)}</td>
+                <td>${escapeHtml(item.persona_practiced || 'General')}</td>
+                <td><span class="score ${getScoreClass(item.helpfulness_score)}">${item.helpfulness_score || '-'}</span></td>
+                <td>${escapeHtml(item.what_was_helpful || '-')}</td>
+                <td>${escapeHtml(item.improvement_suggestions || '-')}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Error loading recent feedback:', error);
+        document.getElementById('feedbackTableBody').innerHTML = '<tr><td colspan="5" class="loading">Error loading feedback</td></tr>';
+    }
+}

@@ -32,6 +32,7 @@
                 <li data-tab="users">User Management</li>
                 <li data-tab="practice-analytics">Practice Analytics</li>
                 <li data-tab="modules">Module Analytics</li>
+                <li data-tab="feedback">Feedback</li>
                 <li data-tab="settings">Settings</li>
             </ul>
         </aside>
@@ -88,6 +89,10 @@
                 <div class="user-controls">
                     <input type="text" id="userSearch" placeholder="Search by email..." class="search-input">
                     <button onclick="refreshUsers()" class="btn btn-primary">Refresh</button>
+                    <button onclick="downloadBackendCsv('/export/users', 'users_export.csv')" class="btn btn-secondary"
+                        style="margin-left: 0.5rem;">Export Users CSV</button>
+                    <button onclick="downloadBackendCsv('/export/progress', 'progress_export.csv')"
+                        class="btn btn-secondary" style="margin-left: 0.5rem;">Export Progress CSV</button>
                 </div>
 
                 <div class="table-container">
@@ -123,8 +128,10 @@
             <section id="practice-analytics" class="tab-content">
                 <h1>Practice Analytics</h1>
                 <div class="section-actions">
-                    <button class="btn btn-secondary" onclick="downloadPracticeAnalyticsCsv()">Download practice analytics CSV</button>
-                    <button class="btn btn-secondary" onclick="downloadUserAnalyticsCsv()">Download user analytics CSV</button>
+                    <button class="btn btn-secondary" onclick="downloadPracticeAnalyticsCsv()">Download practice
+                        analytics CSV</button>
+                    <button class="btn btn-secondary" onclick="downloadUserAnalyticsCsv()">Download user analytics
+                        CSV</button>
                 </div>
 
                 <div class="stats-grid">
@@ -219,7 +226,8 @@
                 <div class="users-analytics-section">
                     <h2>User Practice Analytics</h2>
                     <div class="user-controls">
-                        <input type="text" id="analyticsUserSearch" placeholder="Search by email..." class="search-input">
+                        <input type="text" id="analyticsUserSearch" placeholder="Search by email..."
+                            class="search-input">
                         <button onclick="refreshPracticeAnalytics()" class="btn btn-primary">Refresh</button>
                     </div>
                     <div class="table-container">
@@ -245,9 +253,11 @@
                         </table>
                     </div>
                     <div class="pagination">
-                        <button onclick="previousAnalyticsPage()" id="prevAnalyticsPage" class="btn btn-secondary">Previous</button>
+                        <button onclick="previousAnalyticsPage()" id="prevAnalyticsPage"
+                            class="btn btn-secondary">Previous</button>
                         <span id="analyticsPageInfo">Page 1</span>
-                        <button onclick="nextAnalyticsPage()" id="nextAnalyticsPage" class="btn btn-secondary">Next</button>
+                        <button onclick="nextAnalyticsPage()" id="nextAnalyticsPage"
+                            class="btn btn-secondary">Next</button>
                     </div>
                 </div>
             </section>
@@ -256,7 +266,8 @@
             <section id="modules" class="tab-content">
                 <h1>Module Analytics</h1>
                 <div class="section-actions">
-                    <button class="btn btn-secondary" onclick="downloadModuleAnalyticsCsv()">Download module analytics CSV</button>
+                    <button class="btn btn-secondary" onclick="downloadModuleAnalyticsCsv()">Download module analytics
+                        CSV</button>
                 </div>
 
                 <div class="module-stats">
@@ -286,14 +297,58 @@
                 </div>
             </section>
 
+            <!-- Feedback Tab -->
+            <section id="feedback" class="tab-content">
+                <h1>User Feedback</h1>
+
+                <div class="stats-grid" id="feedbackStatsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <h3>Total Feedback</h3>
+                            <p id="totalFeedback">-</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <h3>Average Score</h3>
+                            <p id="avgFeedbackScore">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h2>Recent Feedback</h2>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Persona</th>
+                                <th>Score</th>
+                                <th>What was helpful</th>
+                                <th>Improvements</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedbackTableBody">
+                            <tr>
+                                <td colspan="5" class="loading">Loading feedback...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
             <!-- Settings Tab -->
             <section id="settings" class="tab-content">
                 <h1>Admin Settings</h1>
 
                 <div class="settings-section">
                     <h2>Module Points Recalculation</h2>
-                    <p>Recalculate max_points_available for all modules using the optimal path algorithm. This ensures each module shows the correct maximum achievable points based on its dialogue structure.</p>
-                    <button onclick="recalculateModulePoints()" class="btn btn-primary">Recalculate Module Points</button>
+                    <p>Recalculate max_points_available for all modules using the optimal path algorithm. This ensures
+                        each module shows the correct maximum achievable points based on its dialogue structure.</p>
+                    <button onclick="recalculateModulePoints()" class="btn btn-primary">Recalculate Module
+                        Points</button>
                     <p id="recalculateResult" style="margin-top: 0.5rem; color: #666;"></p>
                 </div>
 
@@ -306,13 +361,7 @@
                     </div>
                 </div>
 
-                <div class="settings-section">
-                    <h2>Reset All User Progress</h2>
-                    <p style="color: #dc2626; font-weight: 500;">Danger: This will reset progress for ALL users.</p>
-                    <p>This will delete all module progress, dialogue attempts, and reset all users' points, levels, and modules completed to zero. This action cannot be undone.</p>
-                    <button onclick="confirmResetAllProgress()" class="btn btn-danger">Reset All User Progress</button>
-                    <p id="resetAllResult" style="margin-top: 0.5rem; color: #666;"></p>
-                </div>
+
 
             </section>
         </main>
