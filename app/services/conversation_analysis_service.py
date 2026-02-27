@@ -4,44 +4,27 @@ Analyzes conversations using MAPS framework and MI technique detection.
 Uses Fireworks AI for LLM-based analysis.
 """
 
-import os
-import httpx
 import json
+import os
 from typing import Dict, Any, List, Optional
+
+import httpx
 
 from app.config import settings
 
-OPENAI_API_URL = "https://api.openai.com/v1/responses"
 # Fireworks AI API configuration
 FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
-
-
-def _get_openai_model() -> str:
-    """Get OpenAI model from environment, defaulting to gpt-4.1-mini."""
-    return os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-
-
-def _get_openai_key() -> str:
-    """Get OpenAI API key from Settings (consistent with rest of codebase)."""
-    try:
-        from app.config import settings
-
-        key = settings.OPENAI_API_KEY
-    except Exception:
-        key = os.getenv("OPENAI_API_KEY")
-    if not key:
-        raise ValueError("OPENAI_API_KEY is not configured")
-    return key
+MAX_ANALYSIS_MESSAGES = 36
+MAX_ANALYSIS_HEAD_MESSAGES = 8
+MAX_ANALYSIS_TAIL_MESSAGES = 24
+MAX_ANALYSIS_CHARS_PER_MESSAGE = 220
+MAX_ANALYSIS_CONVERSATION_CHARS = 6500
+ANALYSIS_RESPONSE_MAX_TOKENS = 2200
 
 
 def _get_fireworks_key() -> str:
     """Get Fireworks API key from environment."""
-    try:
-        from app.config import settings
-
-        key = settings.FIREWORKS_API_KEY
-    except Exception:
-        key = os.getenv("FIREWORKS_API_KEY")
+    key = (os.getenv("FIREWORKS_API_KEY") or settings.FIREWORKS_API_KEY or "").strip()
     if not key:
         raise ValueError(
             "FIREWORKS_API_KEY environment variable is not set. Get your API key from https://fireworks.ai"
@@ -49,111 +32,81 @@ def _get_fireworks_key() -> str:
     return key
 
 
-ANALYSIS_PROMPT = """You are an expert Motivational Interviewing (MI) trainer and assessor.
-Analyze the following practice conversation between a practitioner learning MI and a simulated client.
+ANALYSIS_SYSTEM_PROMPT = """You are an expert Motivational Interviewing (MI) assessor for MAPS.
+Return ONLY valid JSON (no markdown) that matches this structure exactly:
+{
+  "overall_score": 1-5 float,
+  "foundational_trust_safety": 1-5 float,
+  "empathic_partnership_autonomy": 1-5 float,
+  "empowerment_clarity": 1-5 float,
+  "mi_spirit_score": 1-5 float,
+  "partnership_demonstrated": bool,
+  "acceptance_demonstrated": bool,
+  "compassion_demonstrated": bool,
+  "evocation_demonstrated": bool,
+  "techniques_used": [{"technique": str, "turn_number": int, "example": str, "effectiveness": "effective|partially_effective|ineffective"}],
+  "techniques_count": {"open_question": int, "closed_question": int, "simple_reflection": int, "complex_reflection": int, "affirmation": int, "summary": int, "giving_advice": int, "directing": int},
+  "strengths": [str],
+  "areas_for_improvement": [str],
+  "client_movement": "toward_change|stable|away_from_change",
+  "change_talk_evoked": bool,
+  "transcript_summary": str,
+  "summary": str,
+  "key_moments": [{"turn": int, "moment": str, "impact": "positive|negative|neutral"}],
+  "suggestions_for_next_time": [str]
+}
+Rules:
+- Ground feedback in transcript evidence.
+- Keep examples concise and specific.
+- Include enough depth to be actionable and educational."""
 
-Your task is to provide detailed, constructive feedback based on the MAPS (Money and Pensions Service)
-person-centred coaching framework and MI principles.
+ANALYSIS_USER_PROMPT = """Persona: {persona_name}
+Transcript:
+{conversation}"""
 
-ANALYSIS FRAMEWORK:
 
-1. MAPS Core Dimensions (score each 1-5):
-   - Foundational Trust & Safety: Did the practitioner create psychological safety? Were they
-     authentic and non-judgmental?
-   - Empathic Partnership & Autonomy: Did they demonstrate genuine empathy while respecting
-     the client's autonomy and right to make their own choices?
-   - Empowerment & Clarity: Did they help the client feel capable? Was the path forward clearer?
-
-2. MI Spirit Assessment:
-   - Partnership: Collaborative rather than prescriptive
-   - Acceptance: Unconditional positive regard, autonomy support
-   - Compassion: Genuine care for client wellbeing
-   - Evocation: Drawing out client's own motivations rather than imposing
-
-3. MI Techniques to identify:
-   - Open Questions: Questions that invite elaboration
-   - Affirmations: Genuine acknowledgment of strengths/efforts
-   - Reflections: Simple (repeat/rephrase) and Complex (add meaning/emotion)
-   - Summaries: Pulling together what the client has shared
-   - OARS overall balance
-
-4. Non-MI Behaviors to identify:
-   - Giving unsolicited advice
-   - Confrontation or argumentation
-   - Directing without permission
-   - Judging or criticizing
-   - Closed questions that limit exploration
-
-5. Client Movement:
-   - Did the client move toward change talk?
-   - Did they become more open or more resistant?
-   - Were there any breakthrough moments?
-
-CONVERSATION TO ANALYZE:
-{conversation}
-
-Please provide your analysis in the following JSON format (ensure valid JSON):
-{{
-    "overall_score": <1-5 float>,
-    "foundational_trust_safety": <1-5 float>,
-    "empathic_partnership_autonomy": <1-5 float>,
-    "empowerment_clarity": <1-5 float>,
-    "mi_spirit_score": <1-5 float>,
-    "partnership_demonstrated": <true/false>,
-    "acceptance_demonstrated": <true/false>,
-    "compassion_demonstrated": <true/false>,
-    "evocation_demonstrated": <true/false>,
-    "techniques_used": [
-        {{
-            "technique": "<technique name>",
-            "turn_number": <turn number>,
-            "example": "<brief quote or paraphrase>",
-            "effectiveness": "<effective/partially_effective/ineffective>"
-        }}
-    ],
-    "techniques_count": {{
-        "open_question": <count>,
-        "closed_question": <count>,
-        "simple_reflection": <count>,
-        "complex_reflection": <count>,
-        "affirmation": <count>,
-        "summary": <count>,
-        "giving_advice": <count>,
-        "directing": <count>
-    }},
-    "strengths": ["<strength 1>", "<strength 2>", ...],
-    "areas_for_improvement": ["<area 1>", "<area 2>", ...],
-    "client_movement": "<toward_change/stable/away_from_change>",
-    "change_talk_evoked": <true/false>,
-    "transcript_summary": "<1-2 paragraph summary of what actually happened in the conversation - the key topics discussed, how the client responded, and the flow of dialogue>",
-    "summary": "<2-3 paragraph summary of the conversation quality and practitioner performance>",
-    "key_moments": [
-        {{
-            "turn": <turn number>,
-            "moment": "<description of what happened>",
-            "impact": "<positive/negative/neutral>"
-        }}
-    ],
-    "suggestions_for_next_time": ["<suggestion 1>", "<suggestion 2>", ...]
-}}
-
-Be specific in your feedback with examples from the conversation. Be constructive and educational -
-the goal is to help the practitioner improve their MI skills."""
+def _compact_message_text(text: str, limit: int = MAX_ANALYSIS_CHARS_PER_MESSAGE) -> str:
+    """Normalize and trim message content for analysis efficiency."""
+    normalized = " ".join((text or "").split())
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 1].rstrip() + "…"
 
 
 def _format_conversation(transcript: List[Dict[str, str]], persona_name: str) -> str:
-    """Format conversation transcript for analysis."""
-    formatted_lines = []
+    """Format transcript as compact turn lines for token-efficient analysis."""
+    lines: List[str] = []
     turn = 0
 
-    for i, msg in enumerate(transcript):
-        if msg["role"] == "user":
+    for msg in transcript:
+        role = msg.get("role")
+        if role not in {"user", "assistant"}:
+            continue
+        content = _compact_message_text(str(msg.get("content", "")))
+        if not content:
+            continue
+        if role == "user":
             turn += 1
-            formatted_lines.append(f"[Turn {turn}] Practitioner: {msg['content']}")
+            lines.append(f"[T{turn}] Practitioner: {content}")
         else:
-            formatted_lines.append(f"[Turn {turn}] {persona_name}: {msg['content']}")
+            visible_turn = turn if turn > 0 else 1
+            lines.append(f"[T{visible_turn}] {persona_name}: {content}")
 
-    return "\n\n".join(formatted_lines)
+    if len(lines) > MAX_ANALYSIS_MESSAGES:
+        head = lines[:MAX_ANALYSIS_HEAD_MESSAGES]
+        tail = lines[-MAX_ANALYSIS_TAIL_MESSAGES:]
+        omitted = len(lines) - len(head) - len(tail)
+        lines = [
+            *head,
+            f"[... {omitted} earlier messages omitted for brevity ...]",
+            *tail,
+        ]
+
+    conversation = "\n".join(lines)
+    if len(conversation) > MAX_ANALYSIS_CONVERSATION_CHARS:
+        conversation = conversation[: MAX_ANALYSIS_CONVERSATION_CHARS - 1].rstrip() + "…"
+
+    return conversation
 
 
 async def analyze_conversation(transcript: List[Dict[str, str]], persona_name: str = "Client") -> Dict[str, Any]:
@@ -173,19 +126,32 @@ async def analyze_conversation(transcript: List[Dict[str, str]], persona_name: s
     formatted_conversation = _format_conversation(transcript, persona_name)
 
     # Build the analysis request
-    prompt = ANALYSIS_PROMPT.format(conversation=formatted_conversation)
+    prompt = ANALYSIS_USER_PROMPT.format(
+        persona_name=persona_name, conversation=formatted_conversation
+    )
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
     # Use Fireworks chat completions format
-    payload = {"model": settings.FIREWORKS_MODEL, "messages": [{"role": "user", "content": prompt}]}
+    payload = {
+        "model": settings.FIREWORKS_MODEL,
+        "messages": [
+            {
+                "role": "system",
+                "content": ANALYSIS_SYSTEM_PROMPT,
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.2,
+        "top_p": 0.9,
+        "max_tokens": ANALYSIS_RESPONSE_MAX_TOKENS,
+    }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(FIREWORKS_API_URL, headers=headers, json=payload)
 
         if response.status_code != 200:
-            error_detail = response.text
-            raise Exception(f"Fireworks API error: {response.status_code} - {error_detail}")
+            raise Exception(f"Fireworks API error: {response.status_code}")
 
         data = response.json()
 
@@ -195,7 +161,7 @@ async def analyze_conversation(transcript: List[Dict[str, str]], persona_name: s
         # Parse JSON from response
         analysis = _parse_analysis_json(response_text)
 
-        return analysis
+    return analysis
 
 
 def _extract_response_text(data: Dict[str, Any]) -> str:
@@ -248,9 +214,16 @@ def _parse_analysis_json(response_text: str) -> Dict[str, Any]:
 
     try:
         return json.loads(text)
-    except json.JSONDecodeError as e:
-        # If parsing fails, return a default structure with error info
-        return _get_default_analysis(f"Failed to parse analysis: {str(e)}")
+    except json.JSONDecodeError:
+        # Retry by extracting the first JSON object when the model adds wrappers.
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            try:
+                return json.loads(text[start : end + 1])
+            except json.JSONDecodeError as e:
+                return _get_default_analysis(f"Failed to parse analysis: {str(e)}")
+        return _get_default_analysis("Failed to parse analysis: no valid JSON object found")
 
 
 def _get_default_analysis(error_message: Optional[str] = None) -> Dict[str, Any]:

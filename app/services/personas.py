@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 _CACHE_EXPIRY_SECONDS = 300
 _cache_timestamp: Optional[datetime] = None
 _persona_metadata_cache: Dict[str, Dict[str, Any]] = {}
+DEFAULT_INITIAL_MOOD = "guarded but open to talking"
+DEFAULT_DIALECT = "RP"
 
 
 # ============================================================================
@@ -653,9 +655,10 @@ def _refresh_persona_cache() -> None:
                     'description': item['description'],
                     'avatar': item['avatar'],
                     'topic': item['topic'],
-                    'stage_of_change': item['stage_of_change'],
+                    'stage_of_change': item.get('stage_of_change') or 'contemplation',
                     'age': item.get('age'),
-                    'initial_mood': item.get('initial_mood'),
+                    'initial_mood': item.get('initial_mood') or DEFAULT_INITIAL_MOOD,
+                    'dialect': item.get('dialect') or DEFAULT_DIALECT,
                     'display_order': item.get('display_order', 0),
                     'metadata': item.get('metadata', {})
                 }
@@ -727,15 +730,40 @@ def get_persona(persona_id: str) -> Optional[Dict[str, Any]]:
     # If no metadata found, use the definition as-is (fallback)
     if not metadata:
         logger.warning(f"Persona '{persona_id}' not found in database, using definition only")
-        return full_definition.copy()
+        persona = full_definition.copy()
+        if not persona.get('initial_mood'):
+            persona['initial_mood'] = DEFAULT_INITIAL_MOOD
+        if not persona.get('stage_of_change'):
+            persona['stage_of_change'] = 'contemplation'
+        if not persona.get('dialect'):
+            persona['dialect'] = DEFAULT_DIALECT
+        return persona
 
     # Return full persona with metadata potentially overriding some fields
     result = full_definition.copy()
     # Metadata fields take precedence for display-related fields
-    for key in ['id', 'name', 'title', 'description', 'avatar', 'topic',
-                'stage_of_change', 'age', 'initial_mood', 'display_order']:
-        if key in metadata:
+    for key in [
+        'id',
+        'name',
+        'title',
+        'description',
+        'avatar',
+        'topic',
+        'stage_of_change',
+        'age',
+        'initial_mood',
+        'dialect',
+        'display_order',
+    ]:
+        if key in metadata and metadata.get(key) is not None:
             result[key] = metadata[key]
+
+    if not result.get('initial_mood'):
+        result['initial_mood'] = DEFAULT_INITIAL_MOOD
+    if not result.get('stage_of_change'):
+        result['stage_of_change'] = 'contemplation'
+    if not result.get('dialect'):
+        result['dialect'] = DEFAULT_DIALECT
 
     return result
 
@@ -777,7 +805,8 @@ def get_persona_list() -> List[Dict[str, Any]]:
                 'description': p['description'],
                 'avatar': p['avatar'],
                 'topic': p.get('topic'),
-                'stage_of_change': p.get('stage_of_change')
+                'stage_of_change': p.get('stage_of_change', 'contemplation'),
+                'dialect': p.get('dialect', DEFAULT_DIALECT),
             }
             for p in _FULL_PERSONA_DEFINITIONS.values()
         ]
@@ -790,7 +819,8 @@ def get_persona_list() -> List[Dict[str, Any]]:
             'description': p['description'],
             'avatar': p['avatar'],
             'topic': p.get('topic'),
-            'stage_of_change': p.get('stage_of_change')
+            'stage_of_change': p.get('stage_of_change', 'contemplation'),
+            'dialect': p.get('dialect', DEFAULT_DIALECT),
         }
         for p in sorted(all_metadata.values(), key=lambda x: x.get('display_order', 0))
     ]
@@ -810,7 +840,8 @@ def get_persona_list_by_topic(topic: str) -> List[Dict[str, Any]]:
             'description': p['description'],
             'avatar': p['avatar'],
             'topic': p.get('topic'),
-            'stage_of_change': p.get('stage_of_change')
+            'stage_of_change': p.get('stage_of_change', 'contemplation'),
+            'dialect': p.get('dialect', DEFAULT_DIALECT),
         }
         for p in filtered_metadata
     ]

@@ -17,7 +17,8 @@ class PersonaSummary(BaseModel):
     description: str
     avatar: str
     topic: Optional[str] = None
-    stage_of_change: Optional[str] = None
+    stage_of_change: str = "contemplation"
+    dialect: str = "RP"
 
 
 class PersonaListResponse(BaseModel):

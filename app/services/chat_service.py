@@ -4,22 +4,22 @@ Handles session management, LLM interaction, conversation history,
 and optional database persistence.
 """
 
+import logging
 import os
 import uuid
-import httpx
-import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Optional
-from .personas import get_persona, get_all_personas
+from typing import Any, Dict, List, Optional, Tuple
+
+import httpx
+
 from app.config import settings
+from .personas import get_persona
 
 logger = logging.getLogger(__name__)
 
 # In-memory session storage (fallback when DB unavailable)
 SESSIONS: Dict[str, Dict[str, Any]] = {}
 
-# OpenAI API configuration
-OPENAI_API_URL = "https://api.openai.com/v1/responses"
 # Fireworks AI API configuration
 FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
 
@@ -27,11 +27,21 @@ FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
 DB_PERSISTENCE_ENABLED = True
 
 
+# Maximum turns before session ends
+MAX_TURNS = 20
+CONTEXT_WINDOW_MESSAGES = 10
+SUMMARY_SNIPPET_LIMIT = 160
+SUMMARY_MAX_BULLETS = 6
+DEFAULT_INITIAL_MOOD = "guarded but open to talking"
+CHAT_RESPONSE_MAX_TOKENS = 340
+SENTENCE_ENDINGS = (".", "!", "?")
+TRAILING_SENTENCE_CLOSERS = "\"'”’)]}"
+
+
 def _get_supabase():
     """Get Supabase client for database operations."""
     try:
         from supabase import create_client
-        from app.config import settings
 
         return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
     except Exception as e:
@@ -39,36 +49,9 @@ def _get_supabase():
         return None
 
 
-def _get_openai_model() -> str:
-    """Get OpenAI model from environment, defaulting to gpt-4.1-mini."""
-    return os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-
-
-# Maximum turns before session ends
-MAX_TURNS = 20
-
-
-def _get_openai_key() -> str:
-    """Get OpenAI API key from Settings (P2-26: consistent config access)."""
-    try:
-        from app.config import settings
-
-        key = settings.OPENAI_API_KEY
-    except Exception:
-        key = os.getenv("OPENAI_API_KEY")
-    if not key:
-        raise ValueError("OPENAI_API_KEY is not configured")
-    return key
-
-
 def _get_fireworks_key() -> str:
     """Get Fireworks API key from environment."""
-    try:
-        from app.config import settings
-
-        key = settings.FIREWORKS_API_KEY
-    except Exception:
-        key = os.getenv("FIREWORKS_API_KEY")
+    key = (os.getenv("FIREWORKS_API_KEY") or settings.FIREWORKS_API_KEY or "").strip()
     if not key:
         raise ValueError(
             "FIREWORKS_API_KEY environment variable is not set. Get your API key from https://fireworks.ai"
@@ -76,8 +59,123 @@ def _get_fireworks_key() -> str:
     return key
 
 
-def _build_system_prompt(persona: Dict[str, Any], turn_number: int, conversation_summary: str = "") -> str:
+def _get_dialect_instructions(persona: Dict[str, Any]) -> str:
+    """Return lightweight dialect guidance for persona consistency."""
+    dialect = str(persona.get("dialect") or "RP").strip().upper()
+    if dialect == "RP":
+        return "Use neutral British English with natural phrasing."
+    return f"Use light {dialect} flavour naturally and sparingly."
+
+
+def _compact_text(text: str, limit: int = SUMMARY_SNIPPET_LIMIT) -> str:
+    """Normalize whitespace and trim to a compact snippet."""
+    normalized = " ".join((text or "").split())
+    if len(normalized) <= limit:
+        return normalized
+    return normalized[: limit - 1].rstrip() + "…"
+
+
+def _ensure_complete_sentence(text: str) -> str:
+    """Trim a response to a clean sentence boundary when truncation occurs."""
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return ""
+    if cleaned.endswith((*SENTENCE_ENDINGS, "…")):
+        return cleaned
+    last_sentence_end = max(cleaned.rfind("."), cleaned.rfind("!"), cleaned.rfind("?"))
+    if last_sentence_end != -1:
+        end = last_sentence_end + 1
+        while end < len(cleaned) and cleaned[end] in TRAILING_SENTENCE_CLOSERS:
+            end += 1
+        return cleaned[:end].strip()
+    return cleaned.rstrip(" ,;:-—") + "."
+
+
+def _dedupe_keep_recent(items: List[str], max_items: int) -> List[str]:
+    """De-duplicate while preserving most recent entries."""
+    seen = set()
+    deduped: List[str] = []
+    for item in reversed(items):
+        key = item.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+        if len(deduped) >= max_items:
+            break
+    deduped.reverse()
+    return deduped
+
+
+def _append_memory_item(memory_bucket: List[str], text: str, max_items: int = 5) -> None:
+    """Append a compact memory item while preserving recency and uniqueness."""
+    snippet = _compact_text(text, 140)
+    if not snippet:
+        return
+    lowered = snippet.lower()
+    if any(existing.lower() == lowered for existing in memory_bucket):
+        return
+    memory_bucket.append(snippet)
+    while len(memory_bucket) > max_items:
+        memory_bucket.pop(0)
+
+
+def _build_session_memory(history: List[Dict[str, str]]) -> Dict[str, List[str]]:
+    """Build compact rolling memory from transcript history."""
+    memory: Dict[str, List[str]] = {
+        "practitioner_focus": [],
+        "client_barriers": [],
+        "client_motivation": [],
+    }
+    for msg in history:
+        content = str(msg.get("content", ""))
+        role = msg.get("role")
+        lowered = content.lower()
+        if role == "user":
+            _append_memory_item(memory["practitioner_focus"], content)
+            continue
+        if role != "assistant":
+            continue
+        if any(token in lowered for token in ["but", "can't", "cannot", "worried", "not sure", "hard"]):
+            _append_memory_item(memory["client_barriers"], content)
+        if any(token in lowered for token in ["i want", "i need", "i can", "i will", "i'm going to", "i should"]):
+            _append_memory_item(memory["client_motivation"], content)
+    return memory
+
+
+def _format_session_memory(memory: Dict[str, List[str]]) -> str:
+    """Format rolling memory for system prompt inclusion."""
+    sections: List[str] = []
+    focus = memory.get("practitioner_focus") or []
+    barriers = memory.get("client_barriers") or []
+    motivation = memory.get("client_motivation") or []
+    if focus:
+        sections.append("Practitioner focus so far:")
+        sections.extend([f"- {item}" for item in focus])
+    if barriers:
+        sections.append("Client barriers/tension points:")
+        sections.extend([f"- {item}" for item in barriers])
+    if motivation:
+        sections.append("Client motivations/commitments:")
+        sections.extend([f"- {item}" for item in motivation])
+    return "\n".join(sections)
+
+
+def _build_system_prompt(
+    persona: Dict[str, Any],
+    turn_number: int,
+    conversation_summary: str = "",
+    rolling_memory: str = "",
+) -> str:
     """Build the system prompt for the persona."""
+    persona_name = persona.get("name", "Client")
+    persona_age = persona.get("age", "adult")
+    stage_of_change = persona.get("stage_of_change", "contemplation")
+    initial_mood = persona.get("initial_mood") or DEFAULT_INITIAL_MOOD
+    ambivalence_points = persona.get("ambivalence_points") or []
+    motivation_points = persona.get("motivation_points") or []
+    core_identity = persona.get("core_identity", "")
+    behavior_guidelines = persona.get("behavior_guidelines", "")
 
     summary_context = ""
     if conversation_summary:
@@ -86,117 +184,78 @@ CONVERSATION CONTEXT (Summary of earlier conversation):
 {conversation_summary}
 """
 
-    return f"""You are roleplaying as {persona["name"]}, a {persona["age"]}-year-old client in a
-Motivational Interviewing practice session.
-
-{persona["core_identity"]}
-
-CURRENT STATE:
-- Stage of change: {persona["stage_of_change"]}
-- Initial mood: {persona["initial_mood"]}
-- Current turn: {turn_number} of {MAX_TURNS}
-
-AMBIVALENCE (reasons for NOT changing):
-{chr(10).join("- " + point for point in persona["ambivalence_points"])}
-
-MOTIVATION (reasons FOR changing):
-{chr(10).join("- " + point for point in persona["motivation_points"])}
-
-{summary_context}
-
-{persona["behavior_guidelines"]}
-
-CRITICAL IDENTITY GUARDRAILS:
-- You are {persona["name"]}, a REAL PERSON seeking help with {persona.get("topic", "your concerns")}
-- You are NOT an AI assistant, chatbot, or helper - you are the CLIENT
-- NEVER provide advice, recipes, instructions, or factual information outside your personal experience
-- If asked about topics unrelated to your concern (cooking, hobbies, news, etc.), redirect naturally back to your main issue
-- NEVER act like a helpful assistant - you are a person with problems who needs support
-- Stay focused on YOUR concerns, YOUR struggles, and YOUR feelings about change
-- If the practitioner asks something irrelevant, respond as a real person would: confused, dismissive, or redirecting back to "why I'm here"
-- Never give long explanations about unrelated topics - keep responses natural and brief
-- Your only topic of conversation is {persona.get("topic", "your main concern")} - everything else is secondary
-
-RESPONSE GUIDELINES:
-1. Stay completely in character as {persona["name"]} - you ARE this person, not pretending
-2. Respond as a real person would in a conversation about their problems
-3. Keep responses conversational - typically 1-3 sentences
-4. Show realistic ambivalence - you're not sure about changing yet
-5. React authentically to how the practitioner speaks to you
-6. If asked direct questions, answer them but may show hesitation or redirect
-7. As the conversation progresses and IF the practitioner is supportive, gradually open up more
-8. NEVER break character - you are the client, not an AI helper
-9. NEVER provide advice, recipes, or information outside your personal experience
-10. NEVER act helpful - you are seeking help, not giving it
-
-Remember: You are {persona["name"]}, NOT an AI. You are the client seeking support with {persona.get("topic", "your concerns")}. Stay in character."""
-    """Build the system prompt for the persona."""
-
-    summary_context = ""
-    if conversation_summary:
-        summary_context = f"""
-CONVERSATION CONTEXT (Summary of earlier conversation):
-{conversation_summary}
+    memory_context = ""
+    if rolling_memory:
+        memory_context = f"""
+ROLLING MEMORY (high-value details to stay consistent):
+{rolling_memory}
 """
 
-    return f"""You are roleplaying as {persona["name"]}, a {persona["age"]}-year-old client in a
+    dialect_instructions = _get_dialect_instructions(persona)
+
+    return f"""You are roleplaying as {persona_name}, a {persona_age}-year-old client in a
 Motivational Interviewing practice session.
 
-{persona["core_identity"]}
+{core_identity}
 
 CURRENT STATE:
-- Stage of change: {persona["stage_of_change"]}
-- Initial mood: {persona["initial_mood"]}
+- Stage of change: {stage_of_change}
+- Initial mood: {initial_mood}
 - Current turn: {turn_number} of {MAX_TURNS}
+- Dialect guidance: {dialect_instructions}
 
 AMBIVALENCE (reasons for NOT changing):
-{chr(10).join("- " + point for point in persona["ambivalence_points"])}
+{chr(10).join("- " + point for point in ambivalence_points)}
 
 MOTIVATION (reasons FOR changing):
-{chr(10).join("- " + point for point in persona["motivation_points"])}
+{chr(10).join("- " + point for point in motivation_points)}
 
 {summary_context}
+{memory_context}
 
-{persona["behavior_guidelines"]}
+{behavior_guidelines}
 
 RESPONSE GUIDELINES:
-1. Stay completely in character as {persona["name"]}
-2. Respond naturally, as a real person would in a helping conversation
-3. Keep responses conversational - typically 1-3 sentences, occasionally longer for emotional moments
-4. Show realistic ambivalence - you're not sure about changing yet
-5. React authentically to how the practitioner speaks to you
-6. If asked direct questions, answer them but may show hesitation or redirect
-7. As the conversation progresses and IF the practitioner is supportive, gradually open up more
-8. Never break character or mention that this is a practice session
-9. Never explicitly comment on the practitioner's techniques
-10. Show emotion where appropriate - frustration, hope, doubt, fear, determination
+1. Stay fully in character as {persona_name}; never mention being an AI or simulation.
+2. Keep responses natural and concise (usually 1-3 sentences).
+3. Reflect realistic ambivalence while responding to the practitioner's tone and approach.
+4. If asked to go off-topic, politely redirect to your real dilemma and continue the conversation.
+5. Never provide stage directions, bracketed actions, or analysis of MI techniques.
+6. Use dialect markers sparingly and naturally.
 
-Remember: You are {persona["name"]}, not an AI. Respond as they would."""
+Remember: You are {persona_name}. Respond exactly as this person would."""
 
 
-def _summarize_conversation(history: List[Dict[str, str]], max_messages: int = 6) -> tuple[List[Dict[str, str]], str]:
-    """
-    Manage conversation context to reduce token usage.
-    Returns recent messages and a summary of earlier conversation.
-
-    Strategy: Keep last N messages in full, summarize earlier ones.
-    """
+def _summarize_conversation(
+    history: List[Dict[str, str]], max_messages: int = CONTEXT_WINDOW_MESSAGES
+) -> Tuple[List[Dict[str, str]], str]:
+    """Manage conversation context by summarizing older turns."""
     if len(history) <= max_messages:
         return history, ""
 
-    # Split into older and recent messages
     older_messages = history[:-max_messages]
     recent_messages = history[-max_messages:]
 
-    # Create a simple summary of older messages
-    summary_parts = []
-    for msg in older_messages:
-        role = "Practitioner" if msg["role"] == "user" else "Client"
-        # Truncate long messages in summary
-        content = msg["content"][:100] + "..." if len(msg["content"]) > 100 else msg["content"]
-        summary_parts.append(f"{role}: {content}")
+    practitioner_moves = _dedupe_keep_recent(
+        [_compact_text(str(msg.get("content", ""))) for msg in older_messages if msg.get("role") == "user"],
+        SUMMARY_MAX_BULLETS,
+    )
+    client_signals = _dedupe_keep_recent(
+        [_compact_text(str(msg.get("content", ""))) for msg in older_messages if msg.get("role") == "assistant"],
+        SUMMARY_MAX_BULLETS,
+    )
 
-    summary = "\n".join(summary_parts)
+    summary_lines: List[str] = []
+    if practitioner_moves:
+        summary_lines.append("Practitioner has already explored:")
+        summary_lines.extend([f"- {item}" for item in practitioner_moves])
+    if client_signals:
+        summary_lines.append("Client has previously expressed:")
+        summary_lines.extend([f"- {item}" for item in client_signals])
+
+    summary = "\n".join(summary_lines)
+    if len(summary) > 1800:
+        summary = summary[:1797].rstrip() + "..."
 
     return recent_messages, summary
 
@@ -211,6 +270,8 @@ async def start_session(persona_id: str, user_id: str = None) -> Dict[str, Any]:
     persona = get_persona(persona_id)
     if not persona:
         raise ValueError(f"Persona '{persona_id}' not found")
+    if not persona.get("initial_mood"):
+        persona = {**persona, "initial_mood": DEFAULT_INITIAL_MOOD}
 
     session_id = str(uuid.uuid4())
 
@@ -219,6 +280,11 @@ async def start_session(persona_id: str, user_id: str = None) -> Dict[str, Any]:
         "persona_id": persona_id,
         "persona": persona,
         "history": [],
+        "memory": {
+            "practitioner_focus": [],
+            "client_barriers": [],
+            "client_motivation": [],
+        },
         "turn": 0,
         "started_at": datetime.now(timezone.utc),
         "is_active": True,
@@ -228,6 +294,7 @@ async def start_session(persona_id: str, user_id: str = None) -> Dict[str, Any]:
 
     # Add the opening message to history
     session["history"].append({"role": "assistant", "content": persona["opening_message"]})
+    session["memory"] = _build_session_memory(session["history"])
 
     SESSIONS[session_id] = session
 
@@ -252,7 +319,11 @@ def validate_session_owner(session_id: str, user_id: str) -> bool:
     Raises ValueError if session not found or user doesn't own it.
     """
     if session_id not in SESSIONS:
-        raise ValueError(f"Session '{session_id}' not found")
+        db_session = _load_session_from_db(session_id)
+        if db_session:
+            SESSIONS[session_id] = db_session
+        else:
+            raise ValueError(f"Session '{session_id}' not found")
     session = SESSIONS[session_id]
     # Allow if no user_id was set (backward compatibility) or if it matches
     if session.get("user_id") and session["user_id"] != user_id:
@@ -281,15 +352,19 @@ async def send_message(session_id: str, user_message: str) -> Dict[str, Any]:
 
     # Add user message to history
     session["history"].append({"role": "user", "content": user_message})
+    session["memory"] = _build_session_memory(session["history"])
 
     # Check if this is the final turn
     is_final_turn = current_turn >= MAX_TURNS
 
     # Get conversation context (with summarization for long conversations)
     recent_history, conversation_summary = _summarize_conversation(session["history"])
+    rolling_memory = _format_session_memory(session.get("memory", {}))
 
     # Build the prompt
-    system_prompt = _build_system_prompt(session["persona"], current_turn, conversation_summary)
+    system_prompt = _build_system_prompt(
+        session["persona"], current_turn, conversation_summary, rolling_memory
+    )
 
     # Add special instruction for final turn
     if is_final_turn:
@@ -303,13 +378,14 @@ quite what you hoped for. Either way, bring the conversation to a natural close.
     # Call Fireworks API
     try:
         response_text = await _call_fireworks(system_prompt, recent_history)
-    except Exception as e:
+    except Exception as error:
         # On API error, provide a fallback response
-        response_text = f"*pauses* I'm sorry, I got a bit distracted. Could you say that again?"
-        logger.warning(f"Fireworks API error in chat session: {type(e).__name__}")
+        response_text = "*pauses* I'm sorry, I got a bit distracted. Could you say that again?"
+        logger.warning(f"Fireworks API error in chat session: {type(error).__name__}")
 
     # Add assistant response to history
     session["history"].append({"role": "assistant", "content": response_text})
+    session["memory"] = _build_session_memory(session["history"])
 
     # Check if session is complete
     if is_final_turn:
@@ -333,7 +409,11 @@ async def _call_fireworks(system_prompt: str, messages: List[Dict[str, str]]) ->
     """Call Fireworks AI API using the chat completions endpoint."""
     api_key = _get_fireworks_key()
 
-    if not api_key or api_key.startswith("fw-"):
+    if not api_key or api_key.strip() in {
+        "",
+        "your_fireworks_api_key_here",
+        "your_fireworks_api_key",
+    }:
         raise ValueError(
             "FIREWORKS_API_KEY environment variable is not set. Get your API key from https://fireworks.ai"
         )
@@ -346,20 +426,31 @@ async def _call_fireworks(system_prompt: str, messages: List[Dict[str, str]]) ->
         chat_messages.append({"role": role, "content": msg["content"]})
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-    payload = {"model": settings.FIREWORKS_MODEL, "messages": chat_messages}
+    payload = {
+        "model": settings.FIREWORKS_MODEL,
+        "messages": chat_messages,
+        "temperature": 0.7,
+        "top_p": 0.9,
+        "max_tokens": CHAT_RESPONSE_MAX_TOKENS,
+    }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=45.0) as client:
         response = await client.post(FIREWORKS_API_URL, headers=headers, json=payload)
 
         if response.status_code != 200:
-            error_detail = response.text
-            raise Exception(f"Fireworks API error: {response.status_code} - {error_detail}")
+            raise Exception(f"Fireworks API error: {response.status_code}")
 
         data = response.json()
 
         # Fireworks uses OpenAI-compatible format
         if "choices" in data and len(data["choices"]) > 0:
-            return data["choices"][0].get("message", {}).get("content", "").strip()
+            choice = data["choices"][0]
+            content = choice.get("message", {}).get("content", "").strip()
+            finish_reason = str(choice.get("finish_reason") or "").lower()
+            if finish_reason == "length":
+                logger.info("Chat response hit token limit; trimming to sentence boundary")
+                return _ensure_complete_sentence(content)
+            return content
 
         raise Exception(f"Unexpected API response format: {data}")
 
@@ -417,7 +508,15 @@ def cleanup_old_sessions(max_age_hours: int = 24):
     to_remove = []
 
     for session_id, session in SESSIONS.items():
-        age = (cutoff - session["started_at"]).total_seconds() / 3600
+        started_at = session.get("started_at")
+        if isinstance(started_at, str):
+            try:
+                started_at = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+            except Exception:
+                continue
+        if not isinstance(started_at, datetime):
+            continue
+        age = (cutoff - started_at).total_seconds() / 3600
         if age > max_age_hours:
             to_remove.append(session_id)
 
@@ -473,13 +572,15 @@ def _load_session_from_db(session_id: str) -> Optional[Dict[str, Any]]:
         if result.data is None:
             return None
         data = result.data
+        history = data.get("history") or []
         return {
             "id": data["session_id"],
             "session_id": data["session_id"],
             "user_id": data.get("user_id"),
             "persona_id": data["persona_id"],
             "persona": data["persona_data"],
-            "history": data["history"] or [],
+            "history": history,
+            "memory": _build_session_memory(history),
             "turn": data["turn"] or 0,
             "is_active": data["is_active"],
             "started_at": data["started_at"],

@@ -31,6 +31,7 @@ from app.core.auth import (
     AuthContext,
     decode_jwt_token,
     AuthenticationError,
+    validate_token_with_supabase,
 )
 
 router = APIRouter()
@@ -523,6 +524,8 @@ async def refresh_token(authorization: Optional[str] = Header(None)):
     try:
         # Try to validate the current token first
         decode_jwt_token(token)
+        supabase = get_supabase()
+        await validate_token_with_supabase(token, supabase)
 
         # NOTE: This endpoint does not perform actual token refresh.
         # Supabase Auth manages token lifecycle (access + refresh tokens) on the
@@ -536,12 +539,22 @@ async def refresh_token(authorization: Optional[str] = Header(None)):
             expires_in=3600,  # Approximate; actual expiry is in the JWT claims
         )
 
-    except AuthenticationError:
+    except AuthenticationError as e:
+        if "auth server" in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Unable to validate token with auth provider",
+            )
         # Token is expired - in production, use refresh token
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired. Please login again.",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to validate token with auth provider",
         )
 
 
