@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     Optional environment variables (Chat Practice):
         - OPENAI_API_KEY: API key for OpenAI (required for chat practice feature)
         - OPENAI_MODEL: Model to use (default: gpt-realtime-mini-2025-12-15)
+        - FIREWORKS_API_KEY: API key for Fireworks AI (alternative to OpenAI)
+        - FIREWORKS_MODEL: Fireworks model to use (default: accounts/fireworks/models/gpt-oss-120b)
 
     All other settings have sensible defaults.
     """
@@ -67,9 +69,13 @@ class Settings(BaseSettings):
             raise ValueError("SUPABASE_URL must start with http:// or https://")
         return v.rstrip("/")  # Remove trailing slash
 
-    # SECURITY: OpenAI API key should be accessed through Settings, not os.getenv()
+    # OpenAI API (legacy - consider using Fireworks instead)
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4.1-mini"
+
+    # Fireworks AI API (alternative to OpenAI)
+    FIREWORKS_API_KEY: str = ""
+    FIREWORKS_MODEL: str = "accounts/fireworks/models/gpt-oss-120b"
 
     # Scoring Configuration (Optional - have defaults)
     SCORING_EXCELLENT_POINTS: int = 150

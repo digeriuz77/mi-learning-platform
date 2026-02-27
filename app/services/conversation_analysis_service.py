@@ -1,6 +1,7 @@
 """
 Conversation Analysis Service for MI Practice Sessions.
 Analyzes conversations using MAPS framework and MI technique detection.
+Uses Fireworks AI for LLM-based analysis.
 """
 
 import os
@@ -8,8 +9,11 @@ import httpx
 import json
 from typing import Dict, Any, List, Optional
 
+from app.config import settings
 
 OPENAI_API_URL = "https://api.openai.com/v1/responses"
+# Fireworks AI API configuration
+FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
 
 
 def _get_openai_model() -> str:
@@ -21,11 +25,27 @@ def _get_openai_key() -> str:
     """Get OpenAI API key from Settings (consistent with rest of codebase)."""
     try:
         from app.config import settings
+
         key = settings.OPENAI_API_KEY
     except Exception:
         key = os.getenv("OPENAI_API_KEY")
     if not key:
         raise ValueError("OPENAI_API_KEY is not configured")
+    return key
+
+
+def _get_fireworks_key() -> str:
+    """Get Fireworks API key from environment."""
+    try:
+        from app.config import settings
+
+        key = settings.FIREWORKS_API_KEY
+    except Exception:
+        key = os.getenv("FIREWORKS_API_KEY")
+    if not key:
+        raise ValueError(
+            "FIREWORKS_API_KEY environment variable is not set. Get your API key from https://fireworks.ai"
+        )
     return key
 
 
@@ -136,9 +156,7 @@ def _format_conversation(transcript: List[Dict[str, str]], persona_name: str) ->
     return "\n\n".join(formatted_lines)
 
 
-async def analyze_conversation(
-    transcript: List[Dict[str, str]], persona_name: str = "Client"
-) -> Dict[str, Any]:
+async def analyze_conversation(transcript: List[Dict[str, str]], persona_name: str = "Client") -> Dict[str, Any]:
     """
     Analyze a practice conversation and return detailed feedback.
 
@@ -149,7 +167,7 @@ async def analyze_conversation(
     Returns:
         Detailed analysis dictionary
     """
-    api_key = _get_openai_key()
+    api_key = _get_fireworks_key()
 
     # Format the conversation
     formatted_conversation = _format_conversation(transcript, persona_name)
@@ -159,19 +177,15 @@ async def analyze_conversation(
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
-    payload = {
-        "model": _get_openai_model(),
-        "input": prompt,
-    }
+    # Use Fireworks chat completions format
+    payload = {"model": settings.FIREWORKS_MODEL, "messages": [{"role": "user", "content": prompt}]}
 
     async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(OPENAI_API_URL, headers=headers, json=payload)
+        response = await client.post(FIREWORKS_API_URL, headers=headers, json=payload)
 
         if response.status_code != 200:
             error_detail = response.text
-            raise Exception(
-                f"OpenAI API error: {response.status_code} - {error_detail}"
-            )
+            raise Exception(f"Fireworks API error: {response.status_code} - {error_detail}")
 
         data = response.json()
 
@@ -185,7 +199,16 @@ async def analyze_conversation(
 
 
 def _extract_response_text(data: Dict[str, Any]) -> str:
-    """Extract text from OpenAI API response."""
+    """Extract text from Fireworks API response."""
+    # Fireworks uses OpenAI-compatible format
+    if "choices" in data and len(data["choices"]) > 0:
+        choice = data["choices"][0]
+        if "message" in choice:
+            return choice["message"].get("content", "").strip()
+        if "text" in choice:
+            return choice["text"].strip()
+
+    # Fallback to other formats
     if "output" in data:
         output = data["output"]
         if isinstance(output, list) and len(output) > 0:
@@ -202,9 +225,6 @@ def _extract_response_text(data: Dict[str, Any]) -> str:
 
     if "text" in data:
         return data["text"].strip()
-
-    if "choices" in data and len(data["choices"]) > 0:
-        return data["choices"][0].get("message", {}).get("content", "").strip()
 
     raise Exception(f"Unexpected API response format: {data}")
 
@@ -261,12 +281,9 @@ def _get_default_analysis(error_message: Optional[str] = None) -> Dict[str, Any]
         "client_movement": "stable",
         "change_talk_evoked": False,
         "transcript_summary": "Analysis could not be generated. Please try again.",
-        "summary": error_message
-        or "Analysis could not be generated. Please try again.",
+        "summary": error_message or "Analysis could not be generated. Please try again.",
         "key_moments": [],
-        "suggestions_for_next_time": [
-            "Practice with longer conversations for more detailed feedback"
-        ],
+        "suggestions_for_next_time": ["Practice with longer conversations for more detailed feedback"],
     }
 
 
@@ -275,30 +292,19 @@ def calculate_technique_balance(techniques_count: Dict[str, int]) -> Dict[str, A
     oars = {
         "open_questions": techniques_count.get("open_question", 0),
         "affirmations": techniques_count.get("affirmation", 0),
-        "reflections": techniques_count.get("simple_reflection", 0)
-        + techniques_count.get("complex_reflection", 0),
+        "reflections": techniques_count.get("simple_reflection", 0) + techniques_count.get("complex_reflection", 0),
         "summaries": techniques_count.get("summary", 0),
     }
 
     total_oars = sum(oars.values())
-    non_mi = techniques_count.get("giving_advice", 0) + techniques_count.get(
-        "directing", 0
-    )
+    non_mi = techniques_count.get("giving_advice", 0) + techniques_count.get("directing", 0)
 
     # Calculate reflection to question ratio
-    total_questions = techniques_count.get("open_question", 0) + techniques_count.get(
-        "closed_question", 0
-    )
-    reflection_ratio = (
-        oars["reflections"] / total_questions if total_questions > 0 else 0
-    )
+    total_questions = techniques_count.get("open_question", 0) + techniques_count.get("closed_question", 0)
+    reflection_ratio = oars["reflections"] / total_questions if total_questions > 0 else 0
 
     # Calculate open vs closed question ratio
-    open_question_ratio = (
-        techniques_count.get("open_question", 0) / total_questions
-        if total_questions > 0
-        else 0
-    )
+    open_question_ratio = techniques_count.get("open_question", 0) / total_questions if total_questions > 0 else 0
 
     return {
         "oars_breakdown": oars,
@@ -307,9 +313,7 @@ def calculate_technique_balance(techniques_count: Dict[str, int]) -> Dict[str, A
         "reflection_to_question_ratio": round(reflection_ratio, 2),
         "open_question_percentage": round(open_question_ratio * 100, 1),
         "mi_adherent_percentage": round(
-            total_oars / (total_oars + non_mi) * 100
-            if (total_oars + non_mi) > 0
-            else 0,
+            total_oars / (total_oars + non_mi) * 100 if (total_oars + non_mi) > 0 else 0,
             1,
         ),
     }

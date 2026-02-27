@@ -1,6 +1,7 @@
 """
-Chat service for MI practice sessions using OpenAI API.
-Handles session management, LLM interaction, and conversation history.
+Chat service for MI practice sessions using Fireworks AI.
+Handles session management, LLM interaction, conversation history,
+and optional database persistence.
 """
 
 import os
@@ -10,6 +11,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from .personas import get_persona, get_all_personas
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,8 @@ SESSIONS: Dict[str, Dict[str, Any]] = {}
 
 # OpenAI API configuration
 OPENAI_API_URL = "https://api.openai.com/v1/responses"
+# Fireworks AI API configuration
+FIREWORKS_API_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
 
 # Database persistence enabled flag
 DB_PERSISTENCE_ENABLED = True
@@ -54,6 +58,21 @@ def _get_openai_key() -> str:
         key = os.getenv("OPENAI_API_KEY")
     if not key:
         raise ValueError("OPENAI_API_KEY is not configured")
+    return key
+
+
+def _get_fireworks_key() -> str:
+    """Get Fireworks API key from environment."""
+    try:
+        from app.config import settings
+
+        key = settings.FIREWORKS_API_KEY
+    except Exception:
+        key = os.getenv("FIREWORKS_API_KEY")
+    if not key:
+        raise ValueError(
+            "FIREWORKS_API_KEY environment variable is not set. Get your API key from https://fireworks.ai"
+        )
     return key
 
 
@@ -228,13 +247,13 @@ that acknowledges where you are in your thinking about change. If the practition
 helpful, express some appreciation. If not, you can express that the conversation wasn't
 quite what you hoped for. Either way, bring the conversation to a natural close."""
 
-    # Call OpenAI API
+    # Call Fireworks API
     try:
-        response_text = await _call_openai(system_prompt, recent_history)
+        response_text = await _call_fireworks(system_prompt, recent_history)
     except Exception as e:
         # On API error, provide a fallback response
         response_text = f"*pauses* I'm sorry, I got a bit distracted. Could you say that again?"
-        logger.warning(f"OpenAI API error in chat session: {type(e).__name__}")
+        logger.warning(f"Fireworks API error in chat session: {type(e).__name__}")
 
     # Add assistant response to history
     session["history"].append({"role": "assistant", "content": response_text})
@@ -257,57 +276,35 @@ quite what you hoped for. Either way, bring the conversation to a natural close.
     return result
 
 
-async def _call_openai(system_prompt: str, messages: List[Dict[str, str]]) -> str:
-    """Call OpenAI API using the responses endpoint."""
-    api_key = _get_openai_key()
+async def _call_fireworks(system_prompt: str, messages: List[Dict[str, str]]) -> str:
+    """Call Fireworks AI API using the chat completions endpoint."""
+    api_key = _get_fireworks_key()
 
-    # Build the input for the responses API
-    # Format conversation as a single input with context
-    conversation_text = f"System: {system_prompt}\n\n"
+    if not api_key or api_key.startswith("fw-"):
+        raise ValueError(
+            "FIREWORKS_API_KEY environment variable is not set. Get your API key from https://fireworks.ai"
+        )
+
+    # Build messages array for chat completions format
+    chat_messages = [{"role": "system", "content": system_prompt}]
+
     for msg in messages:
-        role = "Practitioner" if msg["role"] == "user" else "Client"
-        conversation_text += f"{role}: {msg['content']}\n\n"
-
-    conversation_text += "Client:"
+        role = "user" if msg["role"] == "user" else "assistant"
+        chat_messages.append({"role": role, "content": msg["content"]})
 
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
-
-    payload = {
-        "model": _get_openai_model(),
-        "input": conversation_text,
-    }
+    payload = {"model": settings.FIREWORKS_MODEL, "messages": chat_messages}
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(OPENAI_API_URL, headers=headers, json=payload)
+        response = await client.post(FIREWORKS_API_URL, headers=headers, json=payload)
 
         if response.status_code != 200:
             error_detail = response.text
-            raise Exception(f"OpenAI API error: {response.status_code} - {error_detail}")
+            raise Exception(f"Fireworks API error: {response.status_code} - {error_detail}")
 
         data = response.json()
 
-        # Extract response text from the API response
-        # The responses API returns output in a specific format
-        if "output" in data:
-            output = data["output"]
-            if isinstance(output, list) and len(output) > 0:
-                # Handle structured output
-                for item in output:
-                    if item.get("type") == "message":
-                        content = item.get("content", [])
-                        for c in content:
-                            if c.get("type") == "output_text":
-                                return c.get("text", "").strip()
-                            if c.get("type") == "text":
-                                return c.get("text", "").strip()
-            elif isinstance(output, str):
-                return output.strip()
-
-        # Fallback: try to find text in response
-        if "text" in data:
-            return data["text"].strip()
-
-        # Another fallback for different response formats
+        # Fireworks uses OpenAI-compatible format
         if "choices" in data and len(data["choices"]) > 0:
             return data["choices"][0].get("message", {}).get("content", "").strip()
 
