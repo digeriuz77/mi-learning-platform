@@ -1,4 +1,4 @@
-# MAPS Learning Platform
+# Chose You MI Learning Platform
 A FastAPI-based web application for practicing facilitative coaching through interactive dialogue scenarios, real-time feedback, and gamification.
 
 ⚠️ Project Status: Provisional
