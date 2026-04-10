@@ -168,9 +168,9 @@ async def root(request: Request):
     """Root endpoint - serve the frontend HTML"""
     if templates:
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "supabase_url": getattr(settings, "SUPABASE_URL", ""),
                 "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
             },
@@ -189,9 +189,9 @@ async def admin_dashboard(request: Request):
     """Admin dashboard endpoint - serve the admin HTML with Supabase config"""
     if templates:
         return templates.TemplateResponse(
+            request,
             "admin.html",
             {
-                "request": request,
                 "supabase_url": getattr(settings, "SUPABASE_URL", ""),
                 "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
             },
@@ -204,9 +204,9 @@ async def reset_password_page(request: Request):
     """Password reset page - serves the SPA for password reset flow"""
     if templates:
         return templates.TemplateResponse(
+            request,
             "index.html",
             {
-                "request": request,
                 "supabase_url": getattr(settings, "SUPABASE_URL", ""),
                 "supabase_anon_key": getattr(settings, "SUPABASE_KEY", ""),
             },
