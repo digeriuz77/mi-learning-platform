@@ -592,6 +592,7 @@ async def forgot_password(request: Request, payload: PasswordResetRequest):
     Returns:
         Success message (always returns success for security)
     """
+    redirect_url = "(not built)"
     try:
         supabase = get_request_scoped_supabase()
 
@@ -605,8 +606,10 @@ async def forgot_password(request: Request, payload: PasswordResetRequest):
 
         logger.info(f"Sending password reset email to {payload.email} with redirect URL: {redirect_url}")
 
-        # Request password reset from Supabase
-        # Note: reset_password_email sends the email with a link
+        # Request password reset from Supabase.
+        # IMPORTANT: redirect_url must be in the Supabase "Redirect URLs" allow list
+        # (Supabase dashboard > Auth > URL Configuration > Redirect URLs).
+        # Set the SITE_URL environment variable to your public app URL to control this.
         supabase.auth.reset_password_email(
             payload.email, options={"redirect_to": redirect_url}
         )
@@ -619,8 +622,12 @@ async def forgot_password(request: Request, payload: PasswordResetRequest):
         }
 
     except Exception as e:
-        # Log error prominently for debugging
-        logger.error(f"Password reset FAILED for {payload.email}: {e}")
+        # Log error prominently — the redirect URL is the most common cause of failure.
+        # Check that SITE_URL env var is set and that the URL is in Supabase's Redirect URLs list.
+        logger.error(
+            f"Password reset FAILED for {payload.email}: {e} "
+            f"(redirect_url used: {redirect_url})"
+        )
         # Still return success message for security (don't reveal if email exists)
         return {
             "success": True,
