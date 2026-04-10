@@ -1,19 +1,40 @@
-SOFTWARE AND CONTENT LICENSE AGREEMENT
-Copyright (c) 2026 Gary Stanyard/Sepiidai. All Rights Reserved.
+# SOFTWARE AND CONTENT LICENSE AGREEMENT
+**Copyright (c) 2025 Gary Stanyard / Sepiidai Ltd. All Rights Reserved.**
 
-1. Ownership
-All intellectual property in this software, including but not limited to the application code, learning materials, coaching content, frameworks, and methodologies, remains the sole and exclusive property of the Developer. This agreement conveys no ownership rights to the Client.
-2. License Grant
-The Developer grants the Client a non-exclusive, non-transferable, revocable licence to access and use the software and associated learning materials solely for internal purposes within the Client's organisation, for the duration of the agreement between the parties.
-3. Permitted Use
-The Client may make the learning materials and software available to its employees and authorised internal users for internal training and operational purposes only.
-4. Restrictions
-The Client may not: resell, sublicense, or redistribute the software or content; use the software or content to create derivative training products; share access with third parties outside the organisation; reverse engineer or copy any part of the application or its content.
-5. Developer Rights Reserved
+### 1. Ownership and Title
+All intellectual property in this software—including but not limited to the FastAPI backend code, Vanilla JS frontend architecture, database schemas, learning materials, coaching content, frameworks, and methodologies—remains the sole and exclusive property of Gary Stanyard and Sepiidai Ltd (the "Developer"). 
+
+**Title Transfer:** Notwithstanding the delivery of source code, making a repository public, or the provision of database access, full ownership and title to the Intellectual Property shall only transfer to the Client upon the successful and verified settlement of **Invoices VHL009 and VHL010**.
+
+### 2. Conditional License Grant
+The Developer grants the Client a non-exclusive, non-transferable, and **revocable** license to access and use the software for internal training purposes. This license is strictly conditional upon the payment terms outlined in Section 7. Failure to settle outstanding invoices renders any continued use of the software an infringement of copyright.
+
+### 3. Permitted Use
+The Client may make the software available to its employees and authorized internal users for internal training and operational purposes only. Use by third parties or for commercial resale is strictly prohibited.
+
+### 4. Restrictions
+The Client may not:
+*   Resell, sublicense, or redistribute the software or content.
+*   Use the software or content to create derivative training products for external sale.
+*   Share access with third parties outside the organization.
+*   Claim ownership of the underlying methodologies or code prior to the settlement of all outstanding fees.
+
+### 5. Developer Rights Reserved
 The Developer expressly retains the right to apply the same methodologies, approaches, frameworks, and learning designs to other clients and projects. Nothing in this agreement limits the Developer's ability to develop similar solutions for third parties.
-6. Termination
-Upon termination of the agreement, the Client's licence to use the software and materials ceases immediately.
-7. Payment Condition & Title Transfer
-Notwithstanding any other provision of this Agreement, the license granted herein is conditional upon receipt of full payment of all outstanding invoices. Title to the Intellectual Property and the right to permanent use shall only transfer to the Client upon the successful settlement of all project fees. Until such time, this license is considered "Provisional" and may be revoked at the Developer’s discretion.
-8. Hosting and Service Levels
-While the software is hosted on the Developer’s infrastructure, no Service Level Agreement (SLA) is in effect. The Developer is not responsible for monitoring, uptime, or data backups. Users access this instance "as-is" during this evaluation/pre-settlement period.
+
+### 6. Termination
+Upon termination of the agreement, or in the event of non-payment of the specified invoices, the Client’s license to use the software and materials ceases immediately. The Developer reserves the right to suspend hosting and access to the software until the account is brought into good standing.
+
+### 7. Payment Condition
+This License is granted on a **Provisional Basis**. The right to use the software in a production environment is contingent upon the receipt of full payment for:
+*   **Invoice Ref: VHL009**
+*   **Invoice Ref: VHL010**
+
+Until these invoices are settled, this software is considered "Evaluation Software" and the Developer reserves the right to revoke access or append license-status notifications to the user interface.
+
+### 8. Infrastructure and Liability Disclaimer
+As the Client has not provided independent hosting or infrastructure accounts, the application is currently hosted on the Developer’s private architecture (Railway/Supabase). 
+*   **No SLA:** There is no Service Level Agreement (SLA) in effect. 
+*   **No Monitoring:** The Developer is not performing active system monitoring, 24/7 support, or automated uptime restoration.
+*   **Limitation of Liability:** The Developer is not liable for any damages, loss of data, or business interruption resulting from outages, server failures, or the cessation of hosting services due to non-payment. Users access this instance "as-is" at their own risk.
+
