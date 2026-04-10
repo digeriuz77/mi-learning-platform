@@ -698,7 +698,13 @@ async def reset_password_confirm(request: Request, payload: ResetPasswordConfirm
         supabase = get_request_scoped_supabase()
         supabase_admin = get_supabase_admin()
 
-        decoded = decode_jwt_token(payload.access_token)
+        try:
+            decoded = decode_jwt_token(payload.access_token)
+        except AuthenticationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
         token_type = str(decoded.get("type", "")).lower()
         if token_type and token_type not in {"recovery", "password_recovery"}:
             raise HTTPException(
