@@ -721,6 +721,8 @@ async function renderResetPassword() {
         try {
             const result = await authAPI.updatePassword(password);
             showToast(result.message || 'Password updated successfully!', 'success');
+            // Clear the recovery flow flag before logging out
+            localStorage.removeItem('auth_flow_type');
             // Log them out so they can log in with the new password
             await authAPI.logout();
             renderNav();
@@ -2695,9 +2697,16 @@ async function initApp() {
         window.history.replaceState(null, '', currentPath);
     }
 
-    // Check for existing token and validate it
+    // Check for existing token and validate it.
+    // Skip validation for recovery tokens — they are one-shot tokens used only by
+    // the reset-password form, not regular session tokens. Running verifyToken() on
+    // them can fail or succeed but either way we must not clear them before the
+    // reset-password page has a chance to use them.
     const token = localStorage.getItem('access_token');
-    if (token) {
+    const authFlowType = localStorage.getItem('auth_flow_type');
+    const isRecoveryFlow = authFlowType === 'recovery';
+
+    if (token && !isRecoveryFlow) {
         state.token = token;
         try {
             // Verify token is still valid
@@ -2726,6 +2735,10 @@ async function initApp() {
                 localStorage.removeItem('auth_flow_type');
             }
         }
+    } else if (token && isRecoveryFlow) {
+        // Keep the recovery token in state so reset-password-confirm can use it.
+        // Do not attempt to load the user — the person is not "logged in" yet.
+        state.token = token;
     }
 
     // Initialize router with the correct path
