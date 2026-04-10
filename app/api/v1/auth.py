@@ -577,6 +577,53 @@ class ResetPasswordConfirmRequest(BaseModel):
     password: str = Field(..., min_length=6, max_length=100)
 
 
+@router.get("/debug-reset-config")
+async def debug_reset_config(request: Request):
+    """
+    Diagnostic endpoint — shows the redirect URL that would be sent to Supabase
+    for password reset, without sending any email. Helps verify SITE_URL config
+    and Supabase redirect URL allow-list setup.
+
+    Remove or protect this endpoint once the reset flow is confirmed working.
+    """
+    site_url = (settings.SITE_URL or "").rstrip("/")
+    site_url_source = "SITE_URL env var"
+    if not site_url:
+        site_url = str(request.base_url).rstrip("/")
+        site_url_source = "request.base_url (SITE_URL not set)"
+
+    redirect_url = f"{site_url}/reset-password"
+
+    # Attempt a live call to Supabase with a known-nonexistent email so we
+    # can confirm whether Supabase accepts the redirect_url without leaking
+    # real user data.
+    supabase_response = None
+    supabase_error = None
+    try:
+        test_client = get_request_scoped_supabase()
+        test_client.auth.reset_password_email(
+            "debug-probe@example.invalid",
+            options={"redirect_to": redirect_url}
+        )
+        supabase_response = "accepted (no exception)"
+    except Exception as e:
+        supabase_error = str(e)
+
+    return {
+        "redirect_url": redirect_url,
+        "site_url_source": site_url_source,
+        "site_url_configured": bool(settings.SITE_URL),
+        "supabase_probe": {
+            "result": supabase_response,
+            "error": supabase_error,
+            "note": (
+                "If error mentions 'redirect_to' or 'not allowed', add the redirect_url "
+                "above to Supabase dashboard → Auth → URL Configuration → Redirect URLs"
+            ),
+        },
+    }
+
+
 @router.post("/forgot-password")
 @limiter.limit("5/minute")
 async def forgot_password(request: Request, payload: PasswordResetRequest):
