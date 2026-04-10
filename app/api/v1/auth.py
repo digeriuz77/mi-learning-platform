@@ -698,40 +698,22 @@ async def reset_password_confirm(request: Request, payload: ResetPasswordConfirm
         supabase = get_request_scoped_supabase()
         supabase_admin = get_supabase_admin()
 
-        try:
-            decoded = decode_jwt_token(payload.access_token)
-        except AuthenticationError as e:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(e),
-            )
-        token_type = str(decoded.get("type", "")).lower()
-        if token_type and token_type not in {"recovery", "password_recovery"}:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid reset token type",
-            )
-
-        # Validate the token and get user info using Supabase's get_user method
+        # Validate the token via Supabase — it handles algorithm/signature checks internally
         try:
             user_response = supabase.auth.get_user(payload.access_token)
             if not user_response or not user_response.user:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Invalid or expired token",
+                    detail="Invalid or expired reset token",
                 )
             user_id = str(user_response.user.id)
-            token_user_id = str(decoded.get("sub", ""))
-            if token_user_id and token_user_id != user_id:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Token user mismatch",
-                )
+        except HTTPException:
+            raise
         except Exception as e:
-            logger.error(f"Failed to validate token: {e}")
+            logger.error(f"Failed to validate reset token: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid or expired token",
+                detail="Invalid or expired reset token",
             )
 
         # Update the user's password using admin API
