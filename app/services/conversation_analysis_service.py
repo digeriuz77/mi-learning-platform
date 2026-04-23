@@ -161,6 +161,7 @@ async def analyze_conversation(transcript: List[Dict[str, str]], persona_name: s
         # Parse JSON from response
         analysis = _parse_analysis_json(response_text)
 
+    analysis["technique_balance"] = calculate_technique_balance(analysis.get("techniques_count", {}))
     return analysis
 
 
