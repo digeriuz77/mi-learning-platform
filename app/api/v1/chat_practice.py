@@ -233,24 +233,20 @@ async def end_chat_session(
         transcript = [{"role": msg["role"], "content": msg["content"]} for msg in session_data["transcript"]]
 
         # Save analysis to database
-        try:
-            analysis_id = save_conversation_analysis(
-                session_id=request.session_id,
-                analysis=analysis,
-                transcript=transcript,
-                persona_id=session_data.get("persona_id"),
-                persona_name=persona_name,
-                user_id=auth.user_id if auth else None,
-                total_turns=session_data["total_turns"],
-            )
-            if analysis_id:
-                logger.info(f"Analysis saved successfully: {analysis_id}")
-                await _update_user_profile_from_analysis(auth, analysis)
-            else:
-                logger.warning("Analysis save returned no ID")
-        except Exception as e:
-            # Log detailed error for debugging
-            logger.error(f"Failed to save analysis to database: {e}", exc_info=True)
+        analysis_id = save_conversation_analysis(
+            session_id=request.session_id,
+            analysis=analysis,
+            transcript=transcript,
+            persona_id=session_data.get("persona_id"),
+            persona_name=persona_name,
+            user_id=auth.user_id if auth else None,
+            total_turns=session_data["total_turns"],
+        )
+        if analysis_id:
+            logger.info(f"Analysis saved successfully: {analysis_id}")
+            await _update_user_profile_from_analysis(auth, analysis)
+        else:
+            logger.warning("Analysis save returned no ID")
 
         return ChatEndResponse(
             session_id=request.session_id,
@@ -352,22 +348,19 @@ async def analyze_transcript(
         )
 
         # Save analysis to database for demo sessions too
-        try:
-            session_id = f"demo_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
-            analysis_id = save_conversation_analysis(
-                session_id=session_id,
-                analysis=analysis,
-                transcript=transcript,
-                persona_id=None,
-                persona_name=persona_name,
-                user_id=auth.user_id if auth else None,
-                total_turns=len([m for m in transcript if m.get("role") == "user"]),
-            )
-            if analysis_id:
-                logger.info(f"Demo analysis saved: {analysis_id}")
-                await _update_user_profile_from_analysis(auth, analysis)
-        except Exception as save_err:
-            logger.error(f"Failed to save demo analysis: {save_err}", exc_info=True)
+        session_id = f"demo_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        analysis_id = save_conversation_analysis(
+            session_id=session_id,
+            analysis=analysis,
+            transcript=transcript,
+            persona_id=None,
+            persona_name=persona_name,
+            user_id=auth.user_id if auth else None,
+            total_turns=len([m for m in transcript if m.get("role") == "user"]),
+        )
+        if analysis_id:
+            logger.info(f"Demo analysis saved: {analysis_id}")
+            await _update_user_profile_from_analysis(auth, analysis)
 
         return {
             "session_id": "demo",

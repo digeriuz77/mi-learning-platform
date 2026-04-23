@@ -93,16 +93,7 @@ def save_conversation_analysis(
             result = supabase.table("conversation_analyses").insert(analysis_data).execute()
         except Exception as db_error:
             logger.error(f"Database error during analysis insert: {db_error}", exc_info=True)
-            # Try to insert without the conversation_id if it causes issues
-            if "conversation_id" in analysis_data:
-                del analysis_data["conversation_id"]
-                try:
-                    result = supabase.table("conversation_analyses").insert(analysis_data).execute()
-                except Exception as retry_error:
-                    logger.error(f"Retry also failed: {retry_error}")
-                    return None
-            else:
-                return None
+            return None
 
         if result.data and len(result.data) > 0:
             analysis_id = result.data[0]["id"]
