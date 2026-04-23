@@ -227,6 +227,7 @@ async def end_chat_session(
             summary=analysis_result.get("summary", ""),
             key_moments=analysis_result.get("key_moments", []),
             suggestions_for_next_time=analysis_result.get("suggestions_for_next_time", []),
+            technique_balance=analysis_result.get("technique_balance"),
         )
 
         # Format transcript for response
@@ -345,6 +346,7 @@ async def analyze_transcript(
             summary=analysis_result.get("summary", ""),
             key_moments=analysis_result.get("key_moments", []),
             suggestions_for_next_time=analysis_result.get("suggestions_for_next_time", []),
+            technique_balance=analysis_result.get("technique_balance"),
         )
 
         # Save analysis to database for demo sessions too
