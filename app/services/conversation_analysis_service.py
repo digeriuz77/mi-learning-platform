@@ -144,7 +144,6 @@ async def analyze_conversation(transcript: List[Dict[str, str]], persona_name: s
         ],
         "temperature": 0.2,
         "top_p": 0.9,
-        "max_tokens": ANALYSIS_RESPONSE_MAX_TOKENS,
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -161,6 +160,13 @@ async def analyze_conversation(transcript: List[Dict[str, str]], persona_name: s
         # Parse JSON from response
         analysis = _parse_analysis_json(response_text)
 
+    analysis["technique_balance"] = calculate_technique_balance(analysis.get("techniques_count", {}))
+    return analysis
+
+
+def get_default_analysis(error_message: Optional[str] = None) -> Dict[str, Any]:
+    """Return a default analysis structure when parsing fails, with technique_balance."""
+    analysis = _get_default_analysis(error_message)
     analysis["technique_balance"] = calculate_technique_balance(analysis.get("techniques_count", {}))
     return analysis
 
@@ -223,8 +229,8 @@ def _parse_analysis_json(response_text: str) -> Dict[str, Any]:
             try:
                 return json.loads(text[start : end + 1])
             except json.JSONDecodeError as e:
-                return _get_default_analysis(f"Failed to parse analysis: {str(e)}")
-        return _get_default_analysis("Failed to parse analysis: no valid JSON object found")
+                return get_default_analysis(f"Failed to parse analysis: {str(e)}")
+        return get_default_analysis("Failed to parse analysis: no valid JSON object found")
 
 
 def _get_default_analysis(error_message: Optional[str] = None) -> Dict[str, Any]:
