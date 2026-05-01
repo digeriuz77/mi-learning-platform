@@ -69,5 +69,5 @@ def test_analyze_conversation_uses_system_user_messages_and_token_limit(monkeypa
     assert payload["messages"][0]["content"] == service.ANALYSIS_SYSTEM_PROMPT
     assert payload["messages"][1]["role"] == "user"
     assert "Transcript:" in payload["messages"][1]["content"]
-    assert payload["max_tokens"] == service.ANALYSIS_RESPONSE_MAX_TOKENS
+    assert "max_tokens" not in payload
     assert result["overall_score"] == 4.0
